@@ -16,7 +16,7 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",
 .wrap{max-width:900px;margin:0 auto;padding:12px;}
 .card{background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:12px;margin-bottom:12px;}
 .tbl-scroll{overflow-x:auto;border:1px solid #c9ced8;border-radius:6px;}
-table.cov{width:100%;border-collapse:collapse;font-size:12px;min-width:720px;}
+table.cov{width:100%;border-collapse:collapse;font-size:12px;min-width:820px;table-layout:fixed;}
 table.cov th,table.cov td{border:1px solid #d8dde6;padding:6px 6px;text-align:left;}
 table.cov th{background:#f1f4f9;font-weight:700;text-align:center;}
 table.cov td.c{text-align:center;}
@@ -32,14 +32,15 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-0810";
+var APP_VERSION="v2-0617-0835";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
- {t:"死亡・高度障害",req:[]},
+ {t:"死亡・高度障害",req:["介護も同額対象","障害も同額対象"]},
+ {t:"死亡・高度障害・介護",req:["いずれかで支払","各々で支払"]},
  {t:"入院（疾病）",req:["日帰り入院から","1泊2日から","5日以上","60日型","120日型","無制限"]},
  {t:"入院（災害）",req:["日帰り入院から","1泊2日から"]},
- {t:"手術",req:["入院中のみ","外来含む","公的保険連動"]},
+ {t:"手術",req:["公的保険連動","倍率型","一律型"],dual:true},
  {t:"通院",req:["入院前後","がん通院","退院後のみ"]},
  {t:"がん診断一時金",req:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
  {t:"がん入院",req:["無制限","日数制限あり"]},
@@ -65,7 +66,8 @@ if(!STATE.items)STATE.items=[];
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;}
 
 function getItem(i){
- if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,req:"",reqFree:"",endAge:"",amount:"",amountType:"一時金(万円)",freq:"1回",interval:"",premium:""};
+ if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,req:"",reqFree:"",periodType:"主契約と同じ",endAge:"",amount:"",amount2:"",amountType:"一時金(万円)",freq:"1回",interval:"",premium:""};
+ if(STATE.items[i].periodType===undefined)STATE.items[i].periodType=(STATE.items[i].endAge?"歳指定":"主契約と同じ");
  return STATE.items[i];
 }
 
@@ -94,8 +96,11 @@ function render(){
 
  var sc=el("div","tbl-scroll");
  var tbl=el("table","cov");
+ var cg=document.createElement("colgroup");
+ ["40px","130px","230px","110px","90px","100px","110px","90px"].forEach(function(w){var co=document.createElement("col");co.style.width=w;cg.appendChild(co);});
+ tbl.appendChild(cg);
  var thead=el("tr");
- ["該当","給付事由","要件・条件","保険期間","給付金額","種類","回数・間隔","特約保険料(円/月)"].forEach(function(t){thead.appendChild(el("th",null,t));});
+ ["該当","給付事由","要件・条件","保険期間","給付金額","種類","回数・支払","特約保険料(円/月)"].forEach(function(t){thead.appendChild(el("th",null,t));});
  tbl.appendChild(thead);
 
  COV_PRESETS.forEach(function(p,i){
@@ -117,15 +122,26 @@ function render(){
     var fi2=document.createElement("input");fi2.type="text";fi2.value=it.reqFree||"";fi2.placeholder="（任意）";fi2.addEventListener("input",function(){it.reqFree=this.value;saveState();});tdr.appendChild(fi2);
    }
    tr.appendChild(tdr);
-   // 保険期間
-   var tde=el("td","c");var ei=document.createElement("input");ei.type="number";ei.value=it.endAge||"";ei.placeholder="主契約と同じ";ei.addEventListener("input",function(){it.endAge=this.value;saveState();});tde.appendChild(ei);tr.appendChild(tde);
-   // 給付金額
-   var tda=el("td","r");var ai=document.createElement("input");ai.type="number";ai.value=it.amount||"";ai.addEventListener("input",function(){it.amount=this.value;saveState();});tda.appendChild(ai);tr.appendChild(tda);
+   // 保険期間（終身/歳指定/主契約と同じ）
+   var tde=el("td","c");
+   tde.appendChild(mkSel(["主契約と同じ","終身","歳指定"],it.periodType||"主契約と同じ",function(v){it.periodType=v;if(v!=="歳指定")it.endAge="";saveState();render();}));
+   if(it.periodType==="歳指定"){var ei=document.createElement("input");ei.type="number";ei.value=it.endAge||"";ei.placeholder="歳";ei.style.marginTop="4px";ei.addEventListener("input",function(){it.endAge=this.value;saveState();});tde.appendChild(ei);}
+   tr.appendChild(tde);
+   // 給付金額（手術系は入院/外来の2段）
+   var tda=el("td","r");
+   if(p.dual){
+     var w1=el("div");w1.style.cssText="display:flex;align-items:center;gap:3px;";var l1=el("span",null,"入");l1.style.cssText="font-size:10px;color:#888;";var a1=document.createElement("input");a1.type="number";a1.value=it.amount||"";a1.placeholder="入院時";a1.addEventListener("input",function(){it.amount=this.value;saveState();});w1.appendChild(l1);w1.appendChild(a1);
+     var w2=el("div");w2.style.cssText="display:flex;align-items:center;gap:3px;margin-top:3px;";var l2=el("span",null,"外");l2.style.cssText="font-size:10px;color:#888;";var a2=document.createElement("input");a2.type="number";a2.value=it.amount2||"";a2.placeholder="外来時";a2.addEventListener("input",function(){it.amount2=this.value;saveState();});w2.appendChild(l2);w2.appendChild(a2);
+     tda.appendChild(w1);tda.appendChild(w2);
+   }else{
+     var ai=document.createElement("input");ai.type="number";ai.value=it.amount||"";ai.addEventListener("input",function(){it.amount=this.value;saveState();});tda.appendChild(ai);
+   }
+   tr.appendChild(tda);
    // 種類
    var tdt=el("td");tdt.appendChild(mkSel(AMT_TYPES,it.amountType,function(v){it.amountType=v;saveState();}));tr.appendChild(tdt);
    // 回数・間隔
-   var tdf=el("td");tdf.appendChild(mkSel(["1回","複数回"],it.freq,function(v){it.freq=v;saveState();render();}));
-   if(it.freq==="複数回"){var ii=document.createElement("input");ii.type="text";ii.value=it.interval||"";ii.placeholder="間隔(例:2年に1回)";ii.style.marginTop="4px";ii.addEventListener("input",function(){it.interval=this.value;saveState();});tdf.appendChild(ii);}
+   var tdf=el("td");tdf.appendChild(mkSel(["1回","複数回","いずれか1回","各々1回","各々複数回"],it.freq,function(v){it.freq=v;saveState();render();}));
+   if(it.freq==="複数回"||it.freq==="各々複数回"){var ii=document.createElement("input");ii.type="text";ii.value=it.interval||"";ii.placeholder="間隔(例:2年に1回)";ii.style.marginTop="4px";ii.addEventListener("input",function(){it.interval=this.value;saveState();});tdf.appendChild(ii);}
    tr.appendChild(tdf);
    // 特約保険料
    var tdp=el("td","r");var pi=document.createElement("input");pi.type="number";pi.value=it.premium||"";pi.addEventListener("input",function(){it.premium=this.value;saveState();});tdp.appendChild(pi);tr.appendChild(tdp);
@@ -164,9 +180,10 @@ function makePdf(){
  var w=window.open("","_blank");
  if(!w){alert("ポップアップを許可してください");return;}
  var esc=function(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
- var amtLabel=function(it){if(!it.amount)return "";var u=it.amountType||"";return esc(Number(it.amount).toLocaleString())+" "+esc(u);};
- var reqLabel=function(it){var base=it.reqUseFree?it.reqFree:it.req;var fr=(it.freq==="複数回"&&it.interval)?("・"+it.interval):"";return esc((base||"")+fr);};
- var trs=rows.map(function(it){return "<tr><td>"+esc(it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+(it.endAge?esc(it.endAge)+"歳":"主契約と同じ")+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
+ var amtLabel=function(it){var u=esc(it.amountType||"");if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString())+" "+u;}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString())+" "+u;};
+ var periodLabel=function(it){if(it.periodType==="終身")return "終身";if(it.periodType==="歳指定"&&it.endAge)return esc(it.endAge)+"歳";return "主契約と同じ";};
+ var reqLabel=function(it){var base=it.reqUseFree?it.reqFree:it.req;var parts=[];if(base)parts.push(base);if(it.freq&&it.freq!=="1回"){parts.push(it.freq+((it.interval&&(it.freq==="複数回"||it.freq==="各々複数回"))?("・"+it.interval):""));}return esc(parts.join("／"));};
+ var trs=rows.map(function(it){return "<tr><td>"+esc(it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+periodLabel(it)+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
  var today=new Date();var ds=today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
  w.document.write('<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>保障内容一覧表</title>'+
  '<style>body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1a2744;padding:24px;}h1{font-size:18px;border-bottom:3px solid #1a2744;padding-bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;}h1 small{font-size:11px;color:#555;font-weight:normal;}.sub{font-size:12px;margin:6px 0 14px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1a2744;color:#fff;padding:7px;border:1px solid #1a2744;text-align:left;}td{padding:7px;border:1px solid #bbb;}tr:nth-child(even) td{background:#f4f6fa;}.ft{text-align:right;font-size:10px;color:#888;margin-top:10px;}@media print{.noprint{display:none;}}</style></head><body>'+

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>保険ツール v2</title>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:#eef1f6;color:#1a2744;font-size:14px;}
+.hdr{background:#1a2744;color:#fff;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:10;}
+.hdr .ttl{color:#e8c977;font-weight:700;font-size:14px;}
+.hdr .ver{margin-left:auto;color:#c9a84c;font-weight:700;font-size:11px;}
+.wrap{max-width:900px;margin:0 auto;padding:12px;}
+.card{background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:12px;margin-bottom:12px;}
+.tbl-scroll{overflow-x:auto;border:1px solid #c9ced8;border-radius:6px;}
+table.cov{width:100%;border-collapse:collapse;font-size:12px;min-width:720px;}
+table.cov th,table.cov td{border:1px solid #d8dde6;padding:6px 6px;text-align:left;}
+table.cov th{background:#f1f4f9;font-weight:700;text-align:center;}
+table.cov td.c{text-align:center;}
+table.cov td.r{text-align:right;}
+table.cov tr.off td{color:#aaa;background:#fafafa;}
+input,select{font-size:12px;padding:4px 6px;border:1px solid #c9ced8;border-radius:4px;width:100%;background:#fff;}
+input[type=checkbox]{width:auto;transform:scale(1.2);}
+.btn{background:#1a2744;color:#fff;border:none;border-radius:5px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn.gold{background:#c9a84c;}
+.muted{color:#8a8a8a;font-size:11px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+var APP_VERSION="v2-0617-0810";
+window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
+
+var COV_PRESETS=[
+ {t:"死亡・高度障害",req:[]},
+ {t:"入院（疾病）",req:["日帰り入院から","1泊2日から","5日以上","60日型","120日型","無制限"]},
+ {t:"入院（災害）",req:["日帰り入院から","1泊2日から"]},
+ {t:"手術",req:["入院中のみ","外来含む","公的保険連動"]},
+ {t:"通院",req:["入院前後","がん通院","退院後のみ"]},
+ {t:"がん診断一時金",req:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
+ {t:"がん入院",req:["無制限","日数制限あり"]},
+ {t:"がん手術・治療",req:["手術","放射線","抗がん剤","自由診療含む"]},
+ {t:"心疾患",req:["急性心筋梗塞のみ","心疾患全般","A:60日所定","B:入院10日以上","C:1泊入院"]},
+ {t:"脳血管疾患",req:["脳卒中のみ","脳血管疾患全般","A:60日所定","B:入院10日以上","C:1泊入院"]},
+ {t:"3大疾病一時金",req:["3大疾病","5大疾病","7大疾病","8大疾病","A:60日所定","B:入院","C:1泊"]},
+ {t:"先進医療",req:["通算上限あり","技術料実費"]},
+ {t:"就業不能",req:["精神疾患含む","精神疾患除く","支払対象期間あり"]},
+ {t:"介護",req:["公的要介護2以上","公的要介護3以上","独自基準"]},
+ {t:"障害・ケガ",req:[]},
+ {t:"祝金・生存給付",req:["〇年ごと","満期"]},
+ {t:"保険料免除",req:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]}
+];
+var AMT_TYPES=["日額(円)","月額(万円)","一時金(万円)","年額(万円)","上限(万円)"];
+
+function loadState(){try{var s=localStorage.getItem("hoken_v2_state");if(s)return JSON.parse(s);}catch(e){}return null;}
+function saveState(){try{localStorage.setItem("hoken_v2_state",JSON.stringify(STATE));}catch(e){}}
+
+var STATE=loadState()||{custName:"",company:"",planName:"",mainEndAge:"",items:[]};
+if(!STATE.items)STATE.items=[];
+
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;}
+
+function getItem(i){
+ if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,req:"",reqFree:"",endAge:"",amount:"",amountType:"一時金(万円)",freq:"1回",interval:"",premium:""};
+ return STATE.items[i];
+}
+
+function render(){
+ var app=document.getElementById("app");app.innerHTML="";
+ var hdr=el("div","hdr");
+ hdr.appendChild(el("span","ttl","保険ツール v2（保障一覧・試作）"));
+ if(STATE.custName){hdr.appendChild(el("span",null,STATE.custName));hdr.lastChild.style.fontSize="12px";}
+ var ver=el("span","ver","版 "+APP_VERSION);hdr.appendChild(ver);
+ app.appendChild(hdr);
+
+ var wrap=el("div","wrap");
+
+ var c1=el("div","card");
+ c1.appendChild(field("お客様名",STATE.custName,function(v){STATE.custName=v;saveState();}));
+ c1.appendChild(field("保険会社",STATE.company,function(v){STATE.company=v;saveState();}));
+ c1.appendChild(field("プラン名",STATE.planName,function(v){STATE.planName=v;saveState();}));
+ c1.appendChild(field("主契約の保険期間（満了年齢）",STATE.mainEndAge,function(v){STATE.mainEndAge=v;saveState();},"number"));
+ wrap.appendChild(c1);
+
+ var c2=el("div","card");
+ var h=el("div");h.style.cssText="font-weight:700;margin-bottom:8px;";h.textContent="保障内容一覧";
+ c2.appendChild(h);
+ var tip=el("p","muted","該当する保障にチェック→各セルを入力。保険期間が空欄なら「主契約と同じ」。");
+ c2.appendChild(tip);
+
+ var sc=el("div","tbl-scroll");
+ var tbl=el("table","cov");
+ var thead=el("tr");
+ ["該当","給付事由","要件・条件","保険期間","給付金額","種類","回数・間隔","特約保険料(円/月)"].forEach(function(t){thead.appendChild(el("th",null,t));});
+ tbl.appendChild(thead);
+
+ COV_PRESETS.forEach(function(p,i){
+  var it=getItem(i);
+  var tr=el("tr");if(!it.on)tr.className="off";
+  // 該当
+  var tdc=el("td","c");var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!it.on;cb.addEventListener("change",function(){it.on=this.checked;saveState();render();});tdc.appendChild(cb);tr.appendChild(tdc);
+  // 給付事由
+  tr.appendChild(el("td",null,p.t));
+  if(it.on){
+   // 要件
+   var tdr=el("td");
+   if(p.req.length){
+    var opts=[""].concat(p.req).concat(["その他"]);
+    var sl=mkSel(opts,(p.req.indexOf(it.req)>=0?it.req:(it.reqFree?"その他":"")),function(v){it.req=(v==="その他"?"":v);it.reqUseFree=(v==="その他");saveState();render();});
+    tdr.appendChild(sl);
+    if(it.reqUseFree){var fi=document.createElement("input");fi.type="text";fi.value=it.reqFree||"";fi.placeholder="自由入力";fi.style.marginTop="4px";fi.addEventListener("input",function(){it.reqFree=this.value;saveState();});tdr.appendChild(fi);}
+   }else{
+    var fi2=document.createElement("input");fi2.type="text";fi2.value=it.reqFree||"";fi2.placeholder="（任意）";fi2.addEventListener("input",function(){it.reqFree=this.value;saveState();});tdr.appendChild(fi2);
+   }
+   tr.appendChild(tdr);
+   // 保険期間
+   var tde=el("td","c");var ei=document.createElement("input");ei.type="number";ei.value=it.endAge||"";ei.placeholder="主契約と同じ";ei.addEventListener("input",function(){it.endAge=this.value;saveState();});tde.appendChild(ei);tr.appendChild(tde);
+   // 給付金額
+   var tda=el("td","r");var ai=document.createElement("input");ai.type="number";ai.value=it.amount||"";ai.addEventListener("input",function(){it.amount=this.value;saveState();});tda.appendChild(ai);tr.appendChild(tda);
+   // 種類
+   var tdt=el("td");tdt.appendChild(mkSel(AMT_TYPES,it.amountType,function(v){it.amountType=v;saveState();}));tr.appendChild(tdt);
+   // 回数・間隔
+   var tdf=el("td");tdf.appendChild(mkSel(["1回","複数回"],it.freq,function(v){it.freq=v;saveState();render();}));
+   if(it.freq==="複数回"){var ii=document.createElement("input");ii.type="text";ii.value=it.interval||"";ii.placeholder="間隔(例:2年に1回)";ii.style.marginTop="4px";ii.addEventListener("input",function(){it.interval=this.value;saveState();});tdf.appendChild(ii);}
+   tr.appendChild(tdf);
+   // 特約保険料
+   var tdp=el("td","r");var pi=document.createElement("input");pi.type="number";pi.value=it.premium||"";pi.addEventListener("input",function(){it.premium=this.value;saveState();});tdp.appendChild(pi);tr.appendChild(tdp);
+  }else{
+   for(var k=0;k<6;k++)tr.appendChild(el("td",null,""));
+  }
+  tbl.appendChild(tr);
+ });
+ sc.appendChild(tbl);
+ c2.appendChild(sc);
+ wrap.appendChild(c2);
+
+ var c3=el("div","card");
+ var pb=el("button","btn gold","印刷用PDFを作る");pb.addEventListener("click",makePdf);c3.appendChild(pb);
+ var note=el("p","muted","ボタンを押すと、印刷・お客様提出用のきれいな一覧（PDF）を作ります。");note.style.marginTop="8px";c3.appendChild(note);
+ wrap.appendChild(c3);
+
+ app.appendChild(wrap);
+}
+
+function field(label,val,onCh,type){
+ var d=el("div");d.style.marginBottom="8px";
+ var l=el("div","muted",label);l.style.marginBottom="2px";d.appendChild(l);
+ var i=document.createElement("input");i.type=type||"text";i.value=val||"";i.addEventListener("input",function(){onCh(this.value);});d.appendChild(i);
+ return d;
+}
+function mkSel(opts,val,onCh){
+ var s=document.createElement("select");
+ opts.forEach(function(o){var op=document.createElement("option");op.value=o;op.textContent=(o===""?"（選択）":o);if(o===val)op.selected=true;s.appendChild(op);});
+ s.addEventListener("change",function(){onCh(this.value);});
+ return s;
+}
+
+function makePdf(){
+ var rows=STATE.items.map(function(it){return it&&it.on?it:null;}).filter(Boolean);
+ var w=window.open("","_blank");
+ if(!w){alert("ポップアップを許可してください");return;}
+ var esc=function(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
+ var amtLabel=function(it){if(!it.amount)return "";var u=it.amountType||"";return esc(Number(it.amount).toLocaleString())+" "+esc(u);};
+ var reqLabel=function(it){var base=it.reqUseFree?it.reqFree:it.req;var fr=(it.freq==="複数回"&&it.interval)?("・"+it.interval):"";return esc((base||"")+fr);};
+ var trs=rows.map(function(it){return "<tr><td>"+esc(it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+(it.endAge?esc(it.endAge)+"歳":"主契約と同じ")+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
+ var today=new Date();var ds=today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
+ w.document.write('<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>保障内容一覧表</title>'+
+ '<style>body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1a2744;padding:24px;}h1{font-size:18px;border-bottom:3px solid #1a2744;padding-bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;}h1 small{font-size:11px;color:#555;font-weight:normal;}.sub{font-size:12px;margin:6px 0 14px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1a2744;color:#fff;padding:7px;border:1px solid #1a2744;text-align:left;}td{padding:7px;border:1px solid #bbb;}tr:nth-child(even) td{background:#f4f6fa;}.ft{text-align:right;font-size:10px;color:#888;margin-top:10px;}@media print{.noprint{display:none;}}</style></head><body>'+
+ '<h1>保障内容一覧表<small>'+esc(ds)+' 作成</small></h1>'+
+ '<div class="sub">'+esc(STATE.custName||"")+(STATE.custName?" 様":"")+(STATE.company?(" ／ "+esc(STATE.company)):"")+(STATE.planName?("　"+esc(STATE.planName)):"")+'</div>'+
+ '<table><tr><th>給付事由</th><th>要件・条件</th><th style="text-align:center">保険期間</th><th style="text-align:right">給付金額</th></tr>'+trs+'</table>'+
+ '<div class="ft">保険ツール v2</div>'+
+ '<div class="noprint" style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:8px 18px;font-size:13px;">印刷 / PDF保存</button></div>'+
+ '</body></html>');
+ w.document.close();
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "保険ツール v2",
+  "short_name": "保険v2",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#1a2744",
+  "theme_color": "#1a2744"
+}

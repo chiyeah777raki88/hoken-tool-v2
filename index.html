@@ -17,12 +17,13 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",
 .card{background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:12px;margin-bottom:12px;}
 .tbl-scroll{overflow-x:auto;border:1px solid #c9ced8;border-radius:6px;}
 table.cov{width:100%;border-collapse:collapse;font-size:12px;min-width:820px;table-layout:fixed;}
-table.cov th,table.cov td{border:1px solid #d8dde6;padding:6px 6px;text-align:left;}
+table.cov th,table.cov td{border:1px solid #d8dde6;padding:5px 5px;text-align:left;overflow:hidden;}
 table.cov th{background:#f1f4f9;font-weight:700;text-align:center;}
 table.cov td.c{text-align:center;}
 table.cov td.r{text-align:right;}
 table.cov tr.off td{color:#aaa;background:#fafafa;}
-input,select{font-size:12px;padding:4px 6px;border:1px solid #c9ced8;border-radius:4px;width:100%;background:#fff;}
+input,select{font-size:12px;padding:4px 5px;border:1px solid #c9ced8;border-radius:4px;width:100%;max-width:100%;box-sizing:border-box;background:#fff;}
+table.cov select{padding-right:2px;}
 input[type=checkbox]{width:auto;transform:scale(1.2);}
 .btn{background:#1a2744;color:#fff;border:none;border-radius:5px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;}
 .btn.gold{background:#c9a84c;}
@@ -32,16 +33,21 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-0835";
+var APP_VERSION="v2-0617-0905";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
- {t:"死亡・高度障害",req:["介護も同額対象","障害も同額対象"]},
- {t:"死亡・高度障害・介護",req:["いずれかで支払","各々で支払"]},
+ {t:"死亡・高度障害",req:["介護も同額対象","障害も同額対象","死亡のみ"]},
+ {t:"災害死亡",req:["不慮の事故","交通事故","特定感染症含む"]},
+ {t:"介護",req:["公的要介護2以上","公的要介護3以上","公的要介護4以上","独自基準","一時金型","年金型"]},
+ {t:"障害",req:["身体障害1-2級","身体障害1-3級","公的障害年金連動","所定の高度障害","独自基準"]},
  {t:"入院（疾病）",req:["日帰り入院から","1泊2日から","5日以上","60日型","120日型","無制限"]},
  {t:"入院（災害）",req:["日帰り入院から","1泊2日から"]},
  {t:"手術",req:["公的保険連動","倍率型","一律型"],dual:true},
  {t:"通院",req:["入院前後","がん通院","退院後のみ"]},
+ {t:"ケガ（外来通院）",req:["事故による通院","日数型","実日数型"]},
+ {t:"ケガ（骨折・断裂）",req:["骨折","骨折・脱臼・腱断裂","所定の外傷"]},
+ {t:"ケガ（外来通院＋骨折等）",req:["両方を補償"]},
  {t:"がん診断一時金",req:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
  {t:"がん入院",req:["無制限","日数制限あり"]},
  {t:"がん手術・治療",req:["手術","放射線","抗がん剤","自由診療含む"]},
@@ -50,12 +56,10 @@ var COV_PRESETS=[
  {t:"3大疾病一時金",req:["3大疾病","5大疾病","7大疾病","8大疾病","A:60日所定","B:入院","C:1泊"]},
  {t:"先進医療",req:["通算上限あり","技術料実費"]},
  {t:"就業不能",req:["精神疾患含む","精神疾患除く","支払対象期間あり"]},
- {t:"介護",req:["公的要介護2以上","公的要介護3以上","独自基準"]},
- {t:"障害・ケガ",req:[]},
  {t:"祝金・生存給付",req:["〇年ごと","満期"]},
  {t:"保険料免除",req:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]}
 ];
-var AMT_TYPES=["日額(円)","月額(万円)","一時金(万円)","年額(万円)","上限(万円)"];
+var AMT_TYPES=["日額(円)","月額(万)","一時金(万)","年額(万)","上限(万)"];
 
 function loadState(){try{var s=localStorage.getItem("hoken_v2_state");if(s)return JSON.parse(s);}catch(e){}return null;}
 function saveState(){try{localStorage.setItem("hoken_v2_state",JSON.stringify(STATE));}catch(e){}}
@@ -97,7 +101,7 @@ function render(){
  var sc=el("div","tbl-scroll");
  var tbl=el("table","cov");
  var cg=document.createElement("colgroup");
- ["40px","130px","230px","110px","90px","100px","110px","90px"].forEach(function(w){var co=document.createElement("col");co.style.width=w;cg.appendChild(co);});
+ ["38px","120px","175px","104px","82px","104px","100px","80px"].forEach(function(w){var co=document.createElement("col");co.style.width=w;cg.appendChild(co);});
  tbl.appendChild(cg);
  var thead=el("tr");
  ["該当","給付事由","要件・条件","保険期間","給付金額","種類","回数・支払","特約保険料(円/月)"].forEach(function(t){thead.appendChild(el("th",null,t));});

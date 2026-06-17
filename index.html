@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0430";
+var APP_VERSION="v2-0618-0500";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -152,7 +152,7 @@ function letterOf(i){return String.fromCharCode(65+i);}
 function loadState(){try{var s=localStorage.getItem("hoken_v2_state");if(s)return JSON.parse(s);}catch(e){}return null;}
 function saveState(){try{localStorage.setItem("hoken_v2_state",JSON.stringify(STATE));}catch(e){}}
 
-function newPolicy(idx){return {company:"",companySel:"",planName:"",insType:"",mainEndAge:"",color:POL_COLORS[idx%POL_COLORS.length],premium:"",payFreq:"月払",payMethod:"口座振替",currency:"JPY（円）",payToAge:"",contractor:"本人",insured:"本人",items:[],hasCashValue:false,cvKind:"単一",fvCostCut:1.5,futureVals:[]};}
+function newPolicy(idx){return {company:"",companySel:"",planName:"",insType:"",mainEndAge:"",color:POL_COLORS[idx%POL_COLORS.length],premium:"",payFreq:"月払",payMethod:"口座振替",currency:"JPY（円）",payToAge:"",contractor:"本人",insured:"本人",contractDate:"",entryAge:"",items:[],hasCashValue:false,cvKind:"単一",fvCostCut:1.5,futureVals:[]};}
 
 var STATE=loadState();
 // 旧（単一証券）データからの移行
@@ -240,6 +240,8 @@ function buildSummaryTab(){
     meta.appendChild(metaRow("払込期間",ageDisp(p.payToAge,p.payToWhole)));
     meta.appendChild(metaRow("保険料",(+p.premium||0)?((+p.premium).toLocaleString()+" "+(p.payFreq||"")):"—"));
     meta.appendChild(metaRow("通貨",p.currency));
+    meta.appendChild(metaRow("契約日",p.contractDate));
+    meta.appendChild(metaRow("加入時年齢",(p.entryAge!==""&&p.entryAge!=null)?(p.entryAge+"歳"):""));
     card.appendChild(meta);
     // 該当保障の表
     var ons=(p.items||[]).filter(function(it){return it&&it.on;});
@@ -289,6 +291,7 @@ var SCAN_PROMPT=
 "    \"mainEndAge\":保険期間の満了年齢の数値（終身なら\"終身\"）,\n"+
 "    \"payToAge\":払込期間の満了年齢の数値（終身払なら\"終身\"）,\n"+
 "    \"premium\":保険料の数値,\n"+
+"    \"contractDate\":契約日（YYYY-MM-DD形式。契約日・保険始期・効力発生日などから）,\n"+
 "    \"payFreq\":月払/半年払/年払/一時払/前納 のいずれか,\n"+
 "    \"currency\":JPY/USD/EUR/AUD のいずれか,\n"+
 "    \"payMethod\":口座振替/クレジットカード/給与天引/団体扱い/現金・振込 のいずれか,\n"+
@@ -336,7 +339,7 @@ function showScanConfirm(data,onReflect){
   var sub=el("p","muted","間違いを直して「反映」を押してください。空欄は現状維持。");sub.style.marginBottom="10px";box.appendChild(sub);
   // 基本情報
   var bh=el("div");bh.style.cssText="font-weight:700;font-size:13px;margin:6px 0 4px;";bh.textContent="基本情報";box.appendChild(bh);
-  var fields=[["company","保険会社"],["insType","保険種類"],["planName","プラン名"],["mainEndAge","保険期間(満了/終身)"],["payToAge","払込期間(満了/終身)"],["premium","保険料"],["payFreq","払込回数"],["currency","通貨"],["payMethod","支払方法"],["contractType","個人/法人"],["corpName","法人名"]];
+  var fields=[["company","保険会社"],["insType","保険種類"],["planName","プラン名"],["mainEndAge","保険期間(満了/終身)"],["payToAge","払込期間(満了/終身)"],["premium","保険料"],["contractDate","契約日(YYYY-MM-DD)"],["payFreq","払込回数"],["currency","通貨"],["payMethod","支払方法"],["contractType","個人/法人"],["corpName","法人名"]];
   var edited={};
   fields.forEach(function(f){
     var w=el("div");w.style.cssText="margin-bottom:6px;";
@@ -382,6 +385,7 @@ function reflectBasic(d,covs,fvs){
   if(d.mainEndAge!=null&&String(d.mainEndAge).trim()){if(String(d.mainEndAge).indexOf("終身")>=0){p.mainEndWhole=true;p.mainEndAge="";}else{p.mainEndWhole=false;p.mainEndAge=String(d.mainEndAge).replace(/[^0-9]/g,"");}}
   if(d.payToAge!=null&&String(d.payToAge).trim()){if(String(d.payToAge).indexOf("終身")>=0){p.payToWhole=true;p.payToAge="";}else{p.payToWhole=false;p.payToAge=String(d.payToAge).replace(/[^0-9]/g,"");}}
   if(d.premium!=null&&String(d.premium).trim())p.premium=String(d.premium).replace(/[^0-9.]/g,"");
+  if(d.contractDate&&String(d.contractDate).trim()){p.contractDate=String(d.contractDate).trim();var insP2=personByLabel(p.insured);var ea=ageAtDate(insP2,p.contractDate);if(ea!=null)p.entryAge=ea;}
   if(d.payFreq&&PAY_FREQ.indexOf(d.payFreq)>=0)p.payFreq=d.payFreq;
   if(d.currency){var cm={JPY:"JPY（円）",USD:"USD（米ドル）",EUR:"EUR（ユーロ）",AUD:"AUD（豪ドル）"};if(cm[d.currency])p.currency=cm[d.currency];}
   if(d.payMethod&&PAY_METHOD.indexOf(d.payMethod)>=0)p.payMethod=d.payMethod;
@@ -695,6 +699,16 @@ function render(){
  crow.appendChild(labeled("支払方法",mkSel(PAY_METHOD,pol.payMethod||"口座振替",function(v){pol.payMethod=v;saveState();})));
  c1.appendChild(crow);
  if(pol.payFreq==="前納"){var prow2=el("div");prow2.style.cssText="margin-top:6px;max-width:200px;";prow2.appendChild(labeled("前納回数（回）",inp("number",pol.prepayCount||"",function(v){pol.prepayCount=v;saveState();})));c1.appendChild(prow2);}
+ // 契約日・加入時年齢（加入時年齢は被保険者の生年月日＋契約日から自動計算、手動上書き可）
+ var cdRow=el("div");cdRow.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;align-items:end;";
+ var cdIn=document.createElement("input");cdIn.type="date";cdIn.value=pol.contractDate||"";cdIn.style.cssText="width:100%;padding:3px 4px;font-size:11px;box-sizing:border-box;";
+ cdIn.addEventListener("change",function(){pol.contractDate=this.value;var ins=personByLabel(pol.insured);var a=ageAtDate(ins,this.value);if(a!=null)pol.entryAge=a;saveState();render();});
+ cdRow.appendChild(labeled("契約日",cdIn));
+ var autoAge=null;var insP=personByLabel(pol.insured);if(pol.contractDate)autoAge=ageAtDate(insP,pol.contractDate);
+ var eaWrap=el("div");var eaL=el("div","muted","加入時年齢"+(autoAge!=null?"（自動）":""));eaL.style.marginBottom="2px";eaWrap.appendChild(eaL);
+ var eaIn=inp("number",(pol.entryAge!==""&&pol.entryAge!=null)?pol.entryAge:(autoAge!=null?autoAge:""),function(v){pol.entryAge=v;saveState();});
+ eaWrap.appendChild(eaIn);cdRow.appendChild(eaWrap);
+ c1.appendChild(cdRow);
  // 法人契約：経理処理欄
  if(isCorp){
    var acHd=el("div");acHd.style.cssText="font-weight:700;font-size:13px;margin:12px 0 6px;padding-top:8px;border-top:1px dashed #ccd2de;";acHd.textContent="経理処理";c1.appendChild(acHd);
@@ -845,6 +859,14 @@ function labeledBlock(label,node){var d=el("div");d.style.marginBottom="8px";var
 var ERA_BASE={"昭和":1925,"平成":1988,"令和":2018};
 function eraToWest(era,y){y=parseInt(y);if(!y)return null;if(era==="西暦")return y;return (ERA_BASE[era]||0)+y;}
 function ageFromBirth(b){if(!b)return null;var wy=eraToWest(b.era,b.y);if(!wy||!b.m||!b.d)return null;var t=new Date();var a=t.getFullYear()-wy;var mm=t.getMonth()+1;if(mm<parseInt(b.m)||(mm===parseInt(b.m)&&t.getDate()<parseInt(b.d)))a--;return a;}
+// 指定日時点の満年齢
+function ageAtDate(b,dateStr){if(!b||!dateStr)return null;var wy=eraToWest(b.era,b.y);if(!wy||!b.m||!b.d)return null;var d=new Date(dateStr);if(isNaN(d.getTime()))return null;var a=d.getFullYear()-wy;var mm=d.getMonth()+1;if(mm<parseInt(b.m)||(mm===parseInt(b.m)&&d.getDate()<parseInt(b.d)))a--;return a>=0?a:null;}
+// 被保険者ラベルから生年月日オブジェクトを引く
+function personByLabel(label){
+  if(!label||label==="本人")return STATE.self;
+  for(var i=0;i<STATE.family.length;i++){if(STATE.family[i].label===label)return STATE.family[i];}
+  return null;
+}
 function birthInput(obj,onCh,compact){
  if(!obj.era)obj.era="西暦";
  var w=el("div");w.style.cssText="display:flex;align-items:center;gap:1px;flex-wrap:nowrap;"+(compact?"justify-content:center;":"");

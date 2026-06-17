@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0745";
+var APP_VERSION="v2-0618-0800";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -236,11 +236,11 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
   var tbl=document.createElement("table");tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
   var hr1=el("tr");
   var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:3px 5px;font-size:11px;min-width:58px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
-  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#1e40af;";th1.textContent="1回目";hr1.appendChild(th1);
+  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#1e40af;";th1.innerHTML="1回目　<span style='font-size:10px;font-weight:400;'>←厳しい（出にくい）　　緩い（出やすい）→</span>";hr1.appendChild(th1);
   if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
   tbl.appendChild(hr1);
   var hr2=el("tr");
-  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:84px;color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
+  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:"+(noSecond?"118px":"84px")+";color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
   if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(l){var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:1px 3px;text-align:center;font-size:10px;min-width:60px;color:#166534;";th.textContent=l;hr2.appendChild(th);});
   tbl.appendChild(hr2);
   rows.forEach(function(row){
@@ -253,7 +253,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var ck=tableType+"|"+row.id+"|"+col.id;
       var defText=(row.def&&row.def[col.id])||"";
       var cd=mxEnsure(data,ck,defText);
-      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"55px":"72px")+";position:relative;";
+      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;";
       if(cd.na){
         var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;background:#fff5f5;cursor:pointer;";naWrap.title="クリックで入力に戻す";
         var naTxt=el("div");naTxt.style.cssText="padding:2px 3px;font-size:11px;color:#999;white-space:pre-wrap;";naTxt.textContent=cd.text||(row.def&&row.def[col.id])||"";
@@ -359,23 +359,6 @@ function buildCheckTab(){
     tbl.appendChild(tr);
   });
   sc.appendChild(tbl);card.appendChild(sc);
-  // 穴のまとめ（不足＝安心ラインに届かない or 該当なし）
-  var holes=[];
-  checkCats.forEach(function(cat){
-    var idx=-1;for(var i=0;i<COV_PRESETS.length;i++){if(COV_PRESETS[i].t===cat){idx=i;break;}}
-    var sum=0,any=false;pols.forEach(function(p){var it=(p.items&&idx>=0)?p.items[idx]:null;if(it&&it.on){any=true;sum+=(+String(it.amount||"").replace(/[^0-9.]/g,"")||0);}});
-    var ans=(STATE.ansin[cat]!=null&&STATE.ansin[cat]!=="")?+STATE.ansin[cat]:null;
-    if(!any)holes.push(cat+"（なし）");
-    else if(ans!=null&&sum<ans)holes.push(cat+"（不足 ▲"+(ans-sum).toLocaleString()+"）");
-  });
-  if(holes.length){
-    var hbox=el("div");hbox.style.cssText="margin-top:12px;background:#fdecec;border:1px solid #f5c6c6;border-radius:8px;padding:10px;";
-    var hh=el("div");hh.style.cssText="font-weight:700;color:#c0392b;margin-bottom:4px;";hh.textContent="不足・未加入の保障（"+holes.length+"件）";hbox.appendChild(hh);
-    var hl=el("div");hl.style.cssText="font-size:13px;color:#8a3232;";hl.textContent=holes.join(" ／ ");hbox.appendChild(hl);
-    card.appendChild(hbox);
-  }else{
-    var okbox=el("div");okbox.style.cssText="margin-top:12px;background:#e8f6ee;border:1px solid #b6e3cb;border-radius:8px;padding:10px;color:#1f7d56;font-weight:700;";okbox.textContent="主要な保障は安心ラインを満たしています。";card.appendChild(okbox);
-  }
   wrap.appendChild(card);
 
   // 給付条件比較・免除条件比較（v1から移植・編集可）

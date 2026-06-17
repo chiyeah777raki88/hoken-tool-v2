@@ -33,31 +33,33 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-0905";
+var APP_VERSION="v2-0617-0940";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
- {t:"死亡・高度障害",req:["介護も同額対象","障害も同額対象","死亡のみ"]},
- {t:"災害死亡",req:["不慮の事故","交通事故","特定感染症含む"]},
- {t:"介護",req:["公的要介護2以上","公的要介護3以上","公的要介護4以上","独自基準","一時金型","年金型"]},
- {t:"障害",req:["身体障害1-2級","身体障害1-3級","公的障害年金連動","所定の高度障害","独自基準"]},
- {t:"入院（疾病）",req:["日帰り入院から","1泊2日から","5日以上","60日型","120日型","無制限"]},
- {t:"入院（災害）",req:["日帰り入院から","1泊2日から"]},
- {t:"手術",req:["公的保険連動","倍率型","一律型"],dual:true},
- {t:"通院",req:["入院前後","がん通院","退院後のみ"]},
- {t:"ケガ（外来通院）",req:["事故による通院","日数型","実日数型"]},
- {t:"ケガ（骨折・断裂）",req:["骨折","骨折・脱臼・腱断裂","所定の外傷"]},
- {t:"ケガ（外来通院＋骨折等）",req:["両方を補償"]},
- {t:"がん診断一時金",req:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
- {t:"がん入院",req:["無制限","日数制限あり"]},
- {t:"がん手術・治療",req:["手術","放射線","抗がん剤","自由診療含む"]},
- {t:"心疾患",req:["急性心筋梗塞のみ","心疾患全般","A:60日所定","B:入院10日以上","C:1泊入院"]},
- {t:"脳血管疾患",req:["脳卒中のみ","脳血管疾患全般","A:60日所定","B:入院10日以上","C:1泊入院"]},
- {t:"3大疾病一時金",req:["3大疾病","5大疾病","7大疾病","8大疾病","A:60日所定","B:入院","C:1泊"]},
- {t:"先進医療",req:["通算上限あり","技術料実費"]},
- {t:"就業不能",req:["精神疾患含む","精神疾患除く","支払対象期間あり"]},
- {t:"祝金・生存給付",req:["〇年ごと","満期"]},
- {t:"保険料免除",req:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]}
+ {t:"死亡・高度障害",r1:["介護も同額対象","障害も同額対象","死亡のみ"]},
+ {t:"災害死亡",r1:["不慮の事故","交通事故","特定感染症含む"]},
+ {t:"介護",r1:["公的要介護2以上","公的要介護3以上","公的要介護4以上","独自基準"],r2:["一時金型","年金型","併用"]},
+ {t:"障害",r1:["身体障害1-2級","身体障害1-3級","公的障害年金連動","所定の高度障害","独自基準"]},
+ {t:"就業不能",r1:["精神疾患含む","精神疾患除く"],r2:["支払対象期間あり","免責期間あり","即日"]},
+ {t:"入院（疾病）",r1:["日帰り入院から","1泊2日から","5日以上"],r2:["60日型","120日型","無制限"]},
+ {t:"入院（災害）",r1:["日帰り入院から","1泊2日から"],r2:["60日型","120日型","無制限"]},
+ {t:"入院一時金",r1:["1入院ごと","1日でも入院で","複数回"]},
+ {t:"退院一時金",r1:["入院日数の条件なし","所定の入院日数以上"]},
+ {t:"手術",dual:true,r1:["公的保険連動","倍率型","一律型"]},
+ {t:"女性手術",r1:["公的保険連動","一律型"]},
+ {t:"通院",r1:["入院前後","退院後のみ"]},
+ {t:"ケガ",r1:["外来通院","骨折・断裂","両方を補償"]},
+ {t:"女性特約",r1:["女性疾病入院","女性がん","出産関連"],r2:["日額","一時金"]},
+ {t:"がん診断一時金",r1:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
+ {t:"がん入院",r1:["無制限","日数制限あり"]},
+ {t:"がん通院",r1:["手術","放射線","抗がん剤","通院","自由診療含む"]},
+ {t:"心疾患",r1:["急性心筋梗塞のみ","心疾患全般"],r2:["A:60日所定","B:入院10日以上","C:1泊入院","診断で即時"]},
+ {t:"脳血管疾患",r1:["脳卒中のみ","脳血管疾患全般"],r2:["A:60日所定","B:入院10日以上","C:1泊入院","診断で即時"]},
+ {t:"大病一時金",r1:["3大疾病","5大疾病","7大疾病","8大疾病"],r2:["A:60日所定","B:入院","C:1泊","診断で即時"]},
+ {t:"先進医療",r1:["通算上限あり","技術料実費"]},
+ {t:"祝金・生存給付",r1:["〇年ごと","満期"]},
+ {t:"保険料免除",r1:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]}
 ];
 var AMT_TYPES=["日額(円)","月額(万)","一時金(万)","年額(万)","上限(万)"];
 
@@ -70,8 +72,8 @@ if(!STATE.items)STATE.items=[];
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;}
 
 function getItem(i){
- if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,req:"",reqFree:"",periodType:"主契約と同じ",endAge:"",amount:"",amount2:"",amountType:"一時金(万円)",freq:"1回",interval:"",premium:""};
- if(STATE.items[i].periodType===undefined)STATE.items[i].periodType=(STATE.items[i].endAge?"歳指定":"主契約と同じ");
+ if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,req1:"",req2:"",periodType:"主契約と同じ",endAge:"",amount:"",amount2:"",amountType:"一時金(万)",freq:"1回",interval:"",premium:""};
+ var _it=STATE.items[i];if(_it.req1===undefined)_it.req1=_it.req||"";if(_it.req2===undefined)_it.req2="";if(_it.periodType===undefined)_it.periodType=(_it.endAge?"歳指定":"主契約と同じ");if(_it.amountType==="一時金(万円)")_it.amountType="一時金(万)";
  return STATE.items[i];
 }
 
@@ -115,15 +117,16 @@ function render(){
   // 給付事由
   tr.appendChild(el("td",null,p.t));
   if(it.on){
-   // 要件
+   // 要件（2段：範囲＋条件）
    var tdr=el("td");
-   if(p.req.length){
-    var opts=[""].concat(p.req).concat(["その他"]);
-    var sl=mkSel(opts,(p.req.indexOf(it.req)>=0?it.req:(it.reqFree?"その他":"")),function(v){it.req=(v==="その他"?"":v);it.reqUseFree=(v==="その他");saveState();render();});
-    tdr.appendChild(sl);
-    if(it.reqUseFree){var fi=document.createElement("input");fi.type="text";fi.value=it.reqFree||"";fi.placeholder="自由入力";fi.style.marginTop="4px";fi.addEventListener("input",function(){it.reqFree=this.value;saveState();});tdr.appendChild(fi);}
-   }else{
-    var fi2=document.createElement("input");fi2.type="text";fi2.value=it.reqFree||"";fi2.placeholder="（任意）";fi2.addEventListener("input",function(){it.reqFree=this.value;saveState();});tdr.appendChild(fi2);
+   if(p.r1&&p.r1.length){
+    tdr.appendChild(mkSel([""].concat(p.r1),it.req1||"",function(v){it.req1=v;saveState();}));
+   }
+   if(p.r2&&p.r2.length){
+    var s2=mkSel([""].concat(p.r2),it.req2||"",function(v){it.req2=v;saveState();});s2.style.marginTop="4px";tdr.appendChild(s2);
+   }
+   if(!(p.r1&&p.r1.length)&&!(p.r2&&p.r2.length)){
+    var fi2=document.createElement("input");fi2.type="text";fi2.value=it.req1||"";fi2.placeholder="（任意）";fi2.addEventListener("input",function(){it.req1=this.value;saveState();});tdr.appendChild(fi2);
    }
    tr.appendChild(tdr);
    // 保険期間（終身/歳指定/主契約と同じ）
@@ -186,7 +189,7 @@ function makePdf(){
  var esc=function(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
  var amtLabel=function(it){var u=esc(it.amountType||"");if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString())+" "+u;}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString())+" "+u;};
  var periodLabel=function(it){if(it.periodType==="終身")return "終身";if(it.periodType==="歳指定"&&it.endAge)return esc(it.endAge)+"歳";return "主契約と同じ";};
- var reqLabel=function(it){var base=it.reqUseFree?it.reqFree:it.req;var parts=[];if(base)parts.push(base);if(it.freq&&it.freq!=="1回"){parts.push(it.freq+((it.interval&&(it.freq==="複数回"||it.freq==="各々複数回"))?("・"+it.interval):""));}return esc(parts.join("／"));};
+ var reqLabel=function(it){var parts=[];if(it.req1)parts.push(it.req1);if(it.req2)parts.push(it.req2);if(it.freq&&it.freq!=="1回"){parts.push(it.freq+((it.interval&&(it.freq==="複数回"||it.freq==="各々複数回"))?("・"+it.interval):""));}return esc(parts.join("／"));};
  var trs=rows.map(function(it){return "<tr><td>"+esc(it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+periodLabel(it)+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
  var today=new Date();var ds=today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
  w.document.write('<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>保障内容一覧表</title>'+

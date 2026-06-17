@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0600";
+var APP_VERSION="v2-0618-0645";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -196,6 +196,112 @@ function getItem(i){
  return pol.items[i];
 }
 
+// ===== 給付条件・免除条件 比較表（v1から移植）=====
+var MX_COLS=[{id:"a",g:"first"},{id:"b",g:"first"},{id:"c",g:"first"},{id:"d",g:"first"},{id:"e",g:"first"},{id:"f",g:"first"},{id:"g",g:"first"},{id:"s1",g:"second"},{id:"s2",g:"second"},{id:"s3",g:"second"},{id:"s4",g:"second"}];
+var MX_ROWS_KYUFU=[
+ {id:"cancer",label:"がん",def:{a:"悪性新生物で60日の労働制限",b:"悪性新生物と診断",c:"上皮内がんを含む診断",f:"がんで入院",g:"がんで通院",s1:"無し",s2:"入院",s3:"入院",s4:"外来OK"}},
+ {id:"heart",label:"心臓",def:{a:"急性心筋梗塞で60日の所定の状態",b:"急性心筋梗塞で入院or手術",c:"心疾患で20日以上の入院",d:"心疾患で10日以上の入院",e:"心疾患で手術",f:"心疾患で入院"}},
+ {id:"brain",label:"脳",def:{a:"脳卒中で60日の所定の状態",b:"脳卒中で入院or手術",c:"脳血管疾患で20日以上の入院",d:"脳血管疾患で10日以上の入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
+ {id:"diabetes",label:"糖尿病",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
+ {id:"hypertension",label:"高血圧性疾患",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
+ {id:"liver",label:"肝硬変",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
+ {id:"kidney",label:"腎疾患",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
+ {id:"pancreas",label:"膵疾患",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
+ {id:"custom1",label:"",editable:true,def:{}},
+ {id:"custom2",label:"",editable:true,def:{}},
+ {id:"dis",label:"介護・就業不能",def:{a:"5疾病",b:"7疾病",c:"全疾病"}},
+ {id:"dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+ {id:"welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+ {id:"care",label:"介護",def:{a:"要介護4",b:"要介護3",c:"要介護2",d:"要介護1"}}
+];
+var MX_ROWS_MENJO=[
+ {id:"m_cancer",label:"がん",def:{a:"悪性新生物で60日の労働制限",b:"悪性新生物と診断",c:"上皮内がんを含む診断"}},
+ {id:"m_heart",label:"心臓",def:{a:"急性心筋梗塞で60日の所定の状態",b:"急性心筋梗塞で入院or手術",c:"心疾患で20日以上の入院",d:"心疾患で10日以上の入院",e:"心疾患で手術",f:"心疾患で入院"}},
+ {id:"m_brain",label:"脳",def:{a:"脳卒中で60日の所定の状態",b:"脳卒中で入院or手術",c:"脳血管疾患で20日以上の入院",d:"脳血管疾患で10日以上の入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
+ {id:"m_dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+ {id:"m_welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+ {id:"m_care",label:"介護",def:{a:"要介護4",b:"要介護3",c:"要介護2",d:"要介護1"}},
+ {id:"m_custom1",label:"",editable:true,def:{}},
+ {id:"m_custom2",label:"",editable:true,def:{}}
+];
+function mxData(){if(!STATE.matrix)STATE.matrix={kyufu:{},menjo:{},rowLabels:{}};if(!STATE.matrix.kyufu)STATE.matrix.kyufu={};if(!STATE.matrix.menjo)STATE.matrix.menjo={};if(!STATE.matrix.rowLabels)STATE.matrix.rowLabels={};return STATE.matrix;}
+function mxEnsure(data,ck,defText){if(!data[ck]){data[ck]={text:defText||"",polIdxs:[],na:false};}if(!data[ck].polIdxs)data[ck].polIdxs=[];return data[ck];}
+function mxBorder(cd){if(cd.na)return "1px solid #ccc";if(cd.polIdxs&&cd.polIdxs.length>=1)return "3px solid "+(STATE.policies[cd.polIdxs[0]]?STATE.policies[cd.polIdxs[0]].color:"#1a2744");return "1px solid #ddd";}
+function mxBuildTable(tableType,rows,title,hColor,noSecond){
+  var M=mxData();var data=M[tableType];
+  var visCOLS=noSecond?MX_COLS.filter(function(c){return c.g!=="second";}):MX_COLS;
+  var sec2=el("div");sec2.style.cssText="margin-bottom:16px;";
+  var sh=el("div");sh.style.cssText="background:"+hColor+";color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:4px 4px 0 0;";sh.textContent=title;sec2.appendChild(sh);
+  var outer=el("div");outer.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;";
+  var tbl=document.createElement("table");tbl.style.cssText="border-collapse:collapse;font-size:9px;white-space:nowrap;";
+  var hr1=el("tr");
+  var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:9px;min-width:64px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
+  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:10px;font-weight:700;color:#1e40af;";th1.textContent="1回目";hr1.appendChild(th1);
+  if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:3px;text-align:center;font-size:10px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
+  tbl.appendChild(hr1);
+  var hr2=el("tr");
+  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 4px;text-align:center;font-size:9px;min-width:72px;color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
+  if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(l){var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 4px;text-align:center;font-size:9px;min-width:55px;color:#166534;";th.textContent=l;hr2.appendChild(th);});
+  tbl.appendChild(hr2);
+  rows.forEach(function(row){
+    var tr=el("tr");
+    var nameTd=el("td");nameTd.style.cssText="padding:3px 6px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:9px;text-align:center;vertical-align:middle;";
+    if(row.editable){var ni=document.createElement("input");ni.type="text";ni.value=M.rowLabels[row.id]||"";ni.placeholder="手入力";ni.style.cssText="border:none;background:transparent;font-size:9px;font-weight:600;width:56px;text-align:center;";ni.addEventListener("change",function(){M.rowLabels[row.id]=this.value;saveState();});nameTd.appendChild(ni);}
+    else nameTd.textContent=row.label;
+    tr.appendChild(nameTd);
+    visCOLS.forEach(function(col){
+      var ck=tableType+"|"+row.id+"|"+col.id;
+      var defText=(row.def&&row.def[col.id])||"";
+      var cd=mxEnsure(data,ck,defText);
+      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"55px":"72px")+";position:relative;";
+      if(cd.na){
+        var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:36px;background:#fff5f5;cursor:pointer;";naWrap.title="クリックで入力に戻す";
+        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:9px;color:#bbb;white-space:pre-wrap;text-decoration:line-through;";naTxt.textContent=cd.text||"";
+        naWrap.appendChild(naTxt);
+        naWrap.addEventListener("click",function(){cd.na=false;saveState();render();});
+        td.appendChild(naWrap);
+      }else{
+        var ta=document.createElement("textarea");ta.value=cd.text||"";ta.rows=2;ta.placeholder="入力...";ta.style.cssText="width:100%;border:none;background:transparent;font-size:9px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:block;";
+        ta.addEventListener("input",function(){cd.text=this.value;saveState();});
+        td.appendChild(ta);
+        var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:2px;padding:1px 3px 3px;align-items:center;";
+        (cd.polIdxs||[]).forEach(function(pi){var dt=el("span");dt.style.cssText="width:10px;height:10px;border-radius:2px;flex:none;background:"+(STATE.policies[pi]?STATE.policies[pi].color:"#999")+";";dotRow.appendChild(dt);});
+        var addB=el("button");addB.textContent="＋証券";addB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #cbd2de;border-radius:3px;background:#f3f5f9;color:#475067;cursor:pointer;";
+        addB.addEventListener("click",function(e){e.stopPropagation();mxPolPopup(e,cd);});
+        var naB=el("button");naB.textContent="✕";naB.title="非該当";naB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #ddd;border-radius:3px;background:#f8f8f8;color:#999;cursor:pointer;";
+        naB.addEventListener("click",function(e){e.stopPropagation();cd.na=true;saveState();render();});
+        dotRow.appendChild(addB);dotRow.appendChild(naB);
+        td.appendChild(dotRow);
+      }
+      tr.appendChild(td);
+    });
+    tbl.appendChild(tr);
+  });
+  outer.appendChild(tbl);sec2.appendChild(outer);
+  return sec2;
+}
+function mxPolPopup(e,cd){
+  var old=document.getElementById("mx-pop");if(old)old.remove();
+  var pop=el("div");pop.id="mx-pop";pop.style.cssText="position:fixed;background:#fff;border:2px solid #1a2744;border-radius:6px;padding:8px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:160px;";
+  pop.style.left=Math.min(e.clientX,window.innerWidth-180)+"px";pop.style.top=Math.min(e.clientY+4,window.innerHeight-220)+"px";
+  var pt=el("div");pt.style.cssText="font-size:11px;font-weight:700;margin-bottom:4px;color:#1a2744;border-bottom:1px solid #eee;padding-bottom:3px;";pt.textContent="証券を割り当て";pop.appendChild(pt);
+  STATE.policies.forEach(function(p,pi){
+    var on=(cd.polIdxs||[]).indexOf(pi)>=0;
+    var pr=el("div");pr.style.cssText="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;";
+    var dot=el("span");dot.style.cssText="width:12px;height:12px;border-radius:2px;flex:none;background:"+p.color+";";
+    var lb=el("span");lb.style.cssText="font-size:11px;flex:1;";lb.textContent=letterOf(pi)+"."+(p.company||p.planName||"証券"+letterOf(pi));
+    var ck=el("span");ck.style.cssText="color:"+(on?p.color:"#ddd")+";font-weight:700;";ck.textContent="✓";
+    pr.appendChild(dot);pr.appendChild(lb);pr.appendChild(ck);
+    pr.addEventListener("click",function(){if(!cd.polIdxs)cd.polIdxs=[];var i=cd.polIdxs.indexOf(pi);if(i>=0)cd.polIdxs.splice(i,1);else cd.polIdxs.push(pi);saveState();pop.remove();render();});
+    pop.appendChild(pr);
+  });
+  var off=el("div");off.style.cssText="padding:4px 0;cursor:pointer;color:#999;font-size:10px;border-top:1px solid #eee;margin-top:3px;";off.textContent="× 全て外す";
+  off.addEventListener("click",function(){cd.polIdxs=[];saveState();pop.remove();render();});
+  pop.appendChild(off);
+  document.body.appendChild(pop);
+  setTimeout(function(){document.addEventListener("click",function h(ev){if(!pop.contains(ev.target)){pop.remove();document.removeEventListener("click",h);}});},50);
+}
+
 function buildCheckTab(){
   var wrap=el("div","wrap");
   var card=el("div","card");
@@ -255,6 +361,19 @@ function buildCheckTab(){
     var okbox=el("div");okbox.style.cssText="margin-top:12px;background:#e8f6ee;border:1px solid #b6e3cb;border-radius:8px;padding:10px;color:#1f7d56;font-weight:700;";okbox.textContent="主要な保障はひと通りカバーされています。";card.appendChild(okbox);
   }
   wrap.appendChild(card);
+
+  // 給付条件比較・免除条件比較（v1から移植・編集可）
+  var card2=el("div","card");
+  var h2=el("div");h2.style.cssText="font-weight:700;font-size:15px;margin-bottom:4px;";h2.textContent="給付条件の比較";card2.appendChild(h2);
+  var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:11px;padding:6px 10px;background:#f6f8fb;border-radius:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;";
+  var lt=el("strong");lt.textContent="証券：";leg.appendChild(lt);
+  STATE.policies.forEach(function(p,pi){var s=el("span");s.style.cssText="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;background:"+p.color+";";s.textContent=letterOf(pi)+"."+(p.company||p.planName||"証券"+letterOf(pi));leg.appendChild(s);});
+  var ln=el("span","muted","セルに条件を直接入力。「＋証券」で該当する証券の色を割り当て（複数可）。「✕」で非該当。条件が厳しいほど左、緩い（出やすい）ほど右です。");leg.appendChild(ln);
+  card2.appendChild(leg);
+  card2.appendChild(mxBuildTable("kyufu",MX_ROWS_KYUFU,"給付条件比較","#1a2744",false));
+  card2.appendChild(mxBuildTable("menjo",MX_ROWS_MENJO,"免除条件比較","#6b21a8",true));
+  wrap.appendChild(card2);
+
   return wrap;
 }
 
@@ -507,7 +626,7 @@ function render(){
 
  // タブバー
  var tabBar2=el("div","tabs");
- [["input","入力・編集"],["summary","詳細一覧"],["graph","保障グラフ"],["proposal","提案"],["check","保障チェック"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
+ [["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案"],["check","保障チェック"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
    var b=el("button","tab-btn"+(CUR_TAB===t[0]?" active":""),t[1]);
    b.addEventListener("click",function(){CUR_TAB=t[0];render();});
    tabBar2.appendChild(b);

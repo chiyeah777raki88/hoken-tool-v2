@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0345";
+var APP_VERSION="v2-0618-0410";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -497,7 +497,7 @@ function render(){
    if(obj){
      var nm=document.createElement("input");nm.type="text";nm.placeholder=title||"名前";
      nm.value=opts.getName?opts.getName():(obj.name||"");
-     nm.style.cssText="width:120px;font-size:11px;padding:1px 3px;text-align:center;margin-bottom:2px;";
+     nm.style.cssText="width:104px;font-size:11px;padding:1px 3px;text-align:center;margin-bottom:2px;";
      nm.addEventListener("input",function(){if(opts.setName)opts.setName(this.value);else obj.name=this.value;saveState();});
      b.appendChild(nm);
      b.appendChild(birthInput(obj,function(){saveState();},true));
@@ -840,10 +840,10 @@ function eraToWest(era,y){y=parseInt(y);if(!y)return null;if(era==="西暦")retu
 function ageFromBirth(b){if(!b)return null;var wy=eraToWest(b.era,b.y);if(!wy||!b.m||!b.d)return null;var t=new Date();var a=t.getFullYear()-wy;var mm=t.getMonth()+1;if(mm<parseInt(b.m)||(mm===parseInt(b.m)&&t.getDate()<parseInt(b.d)))a--;return a;}
 function birthInput(obj,onCh,compact){
  if(!obj.era)obj.era="西暦";
- var w=el("div");w.style.cssText="display:flex;align-items:center;gap:2px;flex-wrap:nowrap;"+(compact?"justify-content:center;":"");
- var era=mkSel(["西暦","昭和","平成","令和"],obj.era,function(v){obj.era=v;onCh();upd();});era.style.cssText=compact?"width:48px;flex:none;font-size:11px;padding:1px;":"width:64px;flex:none;";
- var yw=compact?40:54, mw=compact?28:38;
- function num(val,ph,max,len,next,smart){var i=document.createElement("input");i.type="tel";i.inputMode="numeric";i.value=val||"";i.placeholder=ph;i.maxLength=len;i.style.cssText="width:"+(len>2?yw:mw)+"px;flex:none;text-align:center;"+(compact?"font-size:11px;padding:2px 1px;":"");
+ var w=el("div");w.style.cssText="display:flex;align-items:center;gap:1px;flex-wrap:nowrap;"+(compact?"justify-content:center;":"");
+ var era=mkSel(["西暦","昭和","平成","令和"],obj.era,function(v){obj.era=v;onCh();upd();});era.style.cssText=compact?"width:42px;flex:none;font-size:10px;padding:1px 0;":"width:64px;flex:none;";
+ var yw=compact?34:54, mw=compact?22:38;
+ function num(val,ph,max,len,next,smart){var i=document.createElement("input");i.type="tel";i.inputMode="numeric";i.value=val||"";i.placeholder=ph;i.maxLength=len;i.style.cssText="width:"+(len>2?yw:mw)+"px;flex:none;text-align:center;"+(compact?"font-size:10px;padding:2px 0;":"");
    i.addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"");
      var v=this.value;
      if(smart&&v.length===1){var n=parseInt(v,10);var thresh=(max===12)?1:3;if(n>thresh){if(next&&next())next().focus();}}

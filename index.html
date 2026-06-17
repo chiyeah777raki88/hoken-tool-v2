@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0500";
+var APP_VERSION="v2-0618-0530";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -152,7 +152,9 @@ function letterOf(i){return String.fromCharCode(65+i);}
 function loadState(){try{var s=localStorage.getItem("hoken_v2_state");if(s)return JSON.parse(s);}catch(e){}return null;}
 function saveState(){try{localStorage.setItem("hoken_v2_state",JSON.stringify(STATE));}catch(e){}}
 
-function newPolicy(idx){return {company:"",companySel:"",planName:"",insType:"",mainEndAge:"",color:POL_COLORS[idx%POL_COLORS.length],premium:"",payFreq:"月払",payMethod:"口座振替",currency:"JPY（円）",payToAge:"",contractor:"本人",insured:"本人",contractDate:"",entryAge:"",items:[],hasCashValue:false,cvKind:"単一",fvCostCut:1.5,futureVals:[]};}
+function newPolicy(idx){return {company:"",companySel:"",planName:"",insType:"",mainEndAge:"",color:POL_COLORS[idx%POL_COLORS.length],premium:"",payFreq:"月払",payMethod:"口座振替",currency:"JPY（円）",payToAge:"",contractor:"本人",insured:"本人",contractDate:"",entryAge:"",items:[],hasCashValue:false,cvKind:"単一",fvCostCut:"",futureVals:[]};}
+// 証券に効く控除率（証券ごと指定があればそれ、無ければ基準値）
+function effectiveCostCut(p){if(p&&p.fvCostCut!==""&&p.fvCostCut!=null)return +p.fvCostCut;return (STATE.settings&&STATE.settings.costCut!=null)?+STATE.settings.costCut:1.5;}
 
 var STATE=loadState();
 // 旧（単一証券）データからの移行
@@ -473,6 +475,23 @@ function render(){
    ex.innerHTML="現在の控除幅での内部計算：表示6%→"+(6-cc).toFixed(1)+"%、表示4.5%→"+(4.5-cc).toFixed(1)+"%、表示3%→"+(3-cc).toFixed(1)+"%";
    b1.appendChild(ex);
    sc.appendChild(b1);
+   // 証券ごとの控除率上書き（変額証券のみ）
+   var varPols=[];STATE.policies.forEach(function(p,i){if(p.insType&&p.insType.indexOf("変額")>=0)varPols.push({p:p,i:i});});
+   if(varPols.length){
+     var b2=el("div");b2.style.cssText="margin-top:8px;padding-top:10px;border-top:1px dashed #ccd2de;";
+     var b2h=el("div");b2h.style.cssText="font-weight:700;font-size:13px;margin-bottom:4px;";b2h.textContent="証券ごとの控除率（任意・空なら上のデフォルト）";b2.appendChild(b2h);
+     var b2d=el("p","muted","免除付き・介護付きなど費用が高めの証券は、ここで個別に控除率を上げられます。");b2.appendChild(b2d);
+     varPols.forEach(function(o){
+       var row=el("div");row.style.cssText="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:13px;";
+       var nm=el("span",null,polName(o.p,o.i));nm.style.cssText="flex:1;border-left:4px solid "+o.p.color+";padding-left:6px;font-size:12px;";
+       row.appendChild(nm);
+       var pi=document.createElement("input");pi.type="number";pi.step="0.1";pi.placeholder="基準";pi.value=(o.p.fvCostCut!=null&&o.p.fvCostCut!=="")?o.p.fvCostCut:"";pi.style.cssText="width:70px;text-align:right;padding:5px;";
+       pi.addEventListener("input",function(){o.p.fvCostCut=this.value===""?"":+this.value;saveState();});
+       row.appendChild(pi);row.appendChild(el("span","muted","％"));
+       b2.appendChild(row);
+     });
+     sc.appendChild(b2);
+   }
    sw.appendChild(sc);
    app.appendChild(sw);
    return;

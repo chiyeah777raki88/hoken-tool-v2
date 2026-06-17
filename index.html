@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1105";
+var APP_VERSION="v2-0617-1135";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -48,7 +48,7 @@ var COV_PRESETS=[
  {t:"退院一時金",r1:["入院日数の条件なし","所定の入院日数以上"]},
  {t:"手術",dual:true,r1:["公的保険連動","倍率型","一律型"]},
  {t:"女性手術",r1:["公的保険連動","一律型"]},
- {t:"通院",r1:["入院前後","退院後のみ"]},
+ {t:"通院",r1:["退院後180日以内","退院後120日以内","入院前後","通院のみ"],r2:["30日分まで","60日分まで","90日分まで"]},
  {t:"ケガ",r1:["外来通院","骨折・断裂","両方を補償"]},
  {t:"女性特約",r1:["女性疾病入院","女性がん","出産関連"],r2:["日額","一時金"]},
  {t:"がん診断一時金",r1:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
@@ -194,14 +194,17 @@ function makePdf(){
  var esc=function(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
  var amtLabel=function(it){var u=esc(it.amountType||"");if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString())+" "+u;}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString())+" "+u;};
  var periodLabel=function(it){if(it.periodType==="終身")return "終身";if(it.periodType==="歳指定"&&it.endAge)return esc(it.endAge)+"歳";return "主契約と同じ";};
- var reqLabel=function(it){var parts=[];if(it.req1)parts.push(it.req1);if(it.req2)parts.push(it.req2);if(it.freq&&it.freq!=="1回"){parts.push(it.freq+((it.interval&&(it.freq==="複数回"||it.freq==="各々複数回"))?("・"+it.interval):""));}return esc(parts.join("／"));};
- var trs=rows.map(function(it){return "<tr><td>"+esc(it.triggerFree||it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+periodLabel(it)+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
+ var reqLabel=function(it){var parts=[];if(it.req1)parts.push(it.req1);if(it.req2)parts.push(it.req2);return esc(parts.join("／"));};
+ var freqLabel=function(it){if(!it.freq)return "";var x=it.freq;if((it.freq==="複数回"||it.freq==="各々複数回")&&it.interval)x+="・"+it.interval;return esc(x);};
+ var premLabel=function(it){return it.premium?(esc(Number(it.premium).toLocaleString())+" 円"):"";};
+ var amtNum=function(it){if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString());}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString());};
+ var trs=rows.map(function(it){return "<tr><td>"+esc(it.triggerFree||it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+periodLabel(it)+"</td><td style='text-align:right'>"+amtNum(it)+"</td><td style='text-align:center'>"+esc(it.amountType||"")+"</td><td style='text-align:center'>"+freqLabel(it)+"</td><td style='text-align:right'>"+premLabel(it)+"</td></tr>";}).join("");
  var today=new Date();var ds=today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
  w.document.write('<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>保障内容一覧表</title>'+
  '<style>body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1a2744;padding:24px;}h1{font-size:18px;border-bottom:3px solid #1a2744;padding-bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;}h1 small{font-size:11px;color:#555;font-weight:normal;}.sub{font-size:12px;margin:6px 0 14px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1a2744;color:#fff;padding:7px;border:1px solid #1a2744;text-align:left;}td{padding:7px;border:1px solid #bbb;}tr:nth-child(even) td{background:#f4f6fa;}.ft{text-align:right;font-size:10px;color:#888;margin-top:10px;}@media print{.noprint{display:none;}}</style></head><body>'+
  '<h1>保障内容一覧表<small>'+esc(ds)+' 作成</small></h1>'+
  '<div class="sub">'+esc(STATE.custName||"")+(STATE.custName?" 様":"")+(STATE.company?(" ／ "+esc(STATE.company)):"")+(STATE.planName?("　"+esc(STATE.planName)):"")+'</div>'+
- '<table><tr><th>給付事由</th><th>要件・条件</th><th style="text-align:center">保険期間</th><th style="text-align:right">給付金額</th></tr>'+trs+'</table>'+
+ '<table><tr><th>給付事由</th><th>要件・条件</th><th style="text-align:center">保険期間</th><th style="text-align:right">給付金額</th><th style="text-align:center">種類</th><th style="text-align:center">回数・支払</th><th style="text-align:right">特約保険料</th></tr>'+trs+'</table>'+
  '<div class="ft">保険ツール v2</div>'+
  '<div class="noprint" style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:8px 18px;font-size:13px;">印刷 / PDF保存</button></div>'+
  '</body></html>');

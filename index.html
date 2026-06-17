@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0215";
+var APP_VERSION="v2-0618-0245";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -264,34 +264,50 @@ function buildSummaryTab(){
   return wrap;
 }
 
-// ===== カメラ読み取り（基本情報の自動入力）=====
-var SCAN_PROMPT="保険証券・設計書の画像から、保険契約の基本情報をJSONで正確に抽出してください。\n"+
-"【ルール】\n"+
-"1. JSONのみ返す（説明文やマークダウンの```は不要）\n"+
-"2. 読み取れない項目はnull\n"+
-"3. 数字は1字ずつ慎重に。0と6と8、1と7、3と8を取り違えない\n"+
-"4. はっきり読めない数字は推測せずnull\n"+
-"【フィールド】\n"+
-"company:保険会社名（例 第一ネオ生命/SOMPOひまわり生命/ソニー生命/アクサ生命/メットライフ生命/オリックス生命/アフラック/東京海上日動あんしん生命/日本生命/明治安田生命 等。読めた正式名）\n"+
-"insType:保険種類。次のいずれかに最も近いものを選ぶ→ 終身保険/外貨建て終身保険/定期保険/変額定期保険/収入保障保険/逓減定期保険/養老保険/変額終身保険/変額養老保険/医療保険/がん保険/3大疾病保険/就業不能保険/介護保険/個人年金保険/学資保険/変額年金保険/総合保険（複合型）。どれにも当たらなければその他\n"+
-"planName:プラン名・商品名\n"+
-"mainEndAge:保険期間（満了年齢の数値のみ）。終身なら\"終身\"の文字列\n"+
-"payToAge:払込期間（払込満了年齢の数値のみ）。終身払なら\"終身\"\n"+
-"premium:保険料の数値（通貨記号やカンマ除く）\n"+
-"payFreq:払込回数→ 月払/半年払/年払/一時払/前納 のいずれか\n"+
-"currency:通貨→ JPY/USD/EUR/AUD のいずれか\n"+
-"payMethod:支払方法→ 口座振替/クレジットカード/給与天引/団体扱い/現金・振込 のいずれか\n"+
-"contractType:個人契約か法人契約か→ 個人 か 法人\n"+
-"corpName:法人契約なら法人名（個人ならnull）\n";
+// ===== カメラ読み取り（v1のCPROMPTルールを継承・v2構造へ変換）=====
+var SCAN_PROMPT=
+"保険証券・設計書の画像から情報をJSONで正確に抽出してください。複数ページある場合は全ページを突き合わせて1件にまとめてください。\n\n"+
+"【重要ルール】\n"+
+"1. JSONのみ返す（説明文やマークダウンの``` は一切不要）\n"+
+"2. 見つからない項目はnull\n"+
+"3. 金額は万円単位の数値（例 500万円→500）。入院日額など『円』のものは円のまま\n"+
+"4. 会社名・プラン名は正確に読み取る\n\n"+
+"【読み取り精度の厳守事項】\n"+
+"A. 数字は1文字ずつ慎重に読む。0と6と8、1と7、3と8を取り違えないこと\n"+
+"B. 金額の単位を必ず確認。『円』『万円』『千円』を混同しない。入院日額等は円、保険金・給付金は万円\n"+
+"C. はっきり読めない文字・数字は推測で埋めず、その項目はnull\n"+
+"D. 複数ページや表は全ページ突き合わせ、最新・正式な数値を優先\n"+
+"E. チェック欄や特約あり/なしを見て該当を判定。空欄や取消線は『なし』とみなす\n\n"+
+"【出力JSON構造】\n"+
+"{\n"+
+"  \"basic\": {\n"+
+"    \"company\":保険会社名（第一ネオ生命/SOMPOひまわり生命/ソニー生命/アクサ生命/メットライフ生命/オリックス生命/アフラック/東京海上日動あんしん生命/日本生命/明治安田生命 等の正式名）,\n"+
+"    \"insType\":保険種類（終身保険/外貨建て終身保険/定期保険/変額定期保険/収入保障保険/逓減定期保険/養老保険/変額終身保険/変額養老保険/医療保険/がん保険/3大疾病保険/就業不能保険/介護保険/個人年金保険/学資保険/変額年金保険/総合保険（複合型） のいずれか、該当なければその他）,\n"+
+"    \"planName\":プラン名・商品名,\n"+
+"    \"mainEndAge\":保険期間の満了年齢の数値（終身なら\"終身\"）,\n"+
+"    \"payToAge\":払込期間の満了年齢の数値（終身払なら\"終身\"）,\n"+
+"    \"premium\":保険料の数値,\n"+
+"    \"payFreq\":月払/半年払/年払/一時払/前納 のいずれか,\n"+
+"    \"currency\":JPY/USD/EUR/AUD のいずれか,\n"+
+"    \"payMethod\":口座振替/クレジットカード/給与天引/団体扱い/現金・振込 のいずれか,\n"+
+"    \"contractType\":個人 か 法人,\n"+
+"    \"corpName\":法人なら法人名（個人ならnull）\n"+
+"  },\n"+
+"  \"coverages\": [ 該当する保障だけを配列で。各要素は {\"type\":カテゴリ名, \"amount\":給付金額の数値, \"amount2\":手術の外来側など2つ目の金額, \"amountType\":\"日額(円)\"/\"月額(万)\"/\"一時金(万)\"/\"年額(万)\"/\"上限(万)\", \"note\":要件や条件の補足} ]。\n"+
+"    カテゴリ名は次のいずれかを正確に使う→ 死亡・高度障害/災害死亡/介護/障害/就業不能/入院（疾病）/入院（災害）/入院一時金/退院一時金/手術/女性手術/通院/ケガ/女性特約/がん診断一時金/がん入院/がん通院/心疾患/脳血管疾患/大病一時金/先進医療/祝金・生存給付/保険料免除\n"+
+"    【振り分けの注意】死亡保険金→死亡・高度障害(一時金,万)。入院日額→入院（疾病）(日額,円)。入院一時金→入院一時金(一時金,万)。退院一時金→退院一時金。手術→手術(入院時amount/外来時amount2,倍率や万)。通院給付→通院(日額,円)。先進医療→先進医療(上限,万)。がん診断一時金→がん診断一時金(一時金,万)。がん入院日額→がん入院(日額,円)。3大/8大疾病一時金→大病一時金(一時金,万)。心疾患→心疾患、脳血管→脳血管疾患。就業不能→就業不能(月額,万)。介護→介護。保険料免除特約→保険料免除。特約内容をnoteに長々書かず、対応カテゴリのamountに入れる\n"+
+"  \"futureVals\": [ 解約返戻金/積立金/返戻率の表があれば配列で。各要素 {\"age\":年齢, \"paid\":払込累計(万円), \"val\":解約返戻金(万円), \"v3\":3%予測, \"v45\":4.5%予測, \"v6\":6%予測}。\n"+
+"    ★変額保険は運用率別(3%/4.5%/6%)の予測額を v3/v45/v6 に。★円建て終身・養老・ドル建て等で解約返戻金の推移表・返戻率の表があれば、その額を val に入れる（運用率の区別なし）。外貨は原通貨の数値のまま。年齢が無く『経過年数』なら契約年齢＋経過年数で年齢換算。返戻率(%)しか無ければ 払込累計×返戻率/100 で金額換算。読み取れた行は全て入れる ]\n"+
+"}\n";
 
 function scanBasic(files,setMsg,onReflect){
   if(!AI_API_KEY){setMsg("右上の「🔑鍵」から登録を。","#c0392b");return;}
-  setMsg(files.length+"枚 解析中…（10〜20秒）","#8089a0");
+  setMsg(files.length+"枚 解析中…（10〜30秒）","#8089a0");
   var imgs=[];var done=0;
   files.forEach(function(f,idx){var r=new FileReader();r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)go();};r.onerror=function(){done++;if(done===files.length)go();};r.readAsDataURL(f);});
   function go(){
     var content=imgs.filter(Boolean).concat([{type:"text",text:SCAN_PROMPT}]);
-    fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-opus-4-8",max_tokens:1200,messages:[{role:"user",content:content}]})})
+    fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-opus-4-8",max_tokens:4000,messages:[{role:"user",content:content}]})})
     .then(function(res){return res.json();})
     .then(function(d){
       if(d&&d.error){setMsg("エラー："+(d.error.message||"").slice(0,80),"#c0392b");return;}
@@ -308,51 +324,78 @@ function scanBasic(files,setMsg,onReflect){
 
 // 読み取り結果の確認モーダル → 反映
 function showScanConfirm(data,onReflect){
+  var b0=data.basic||data;
+  var covs=data.coverages||[];
+  var fvs=data.futureVals||[];
   var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;background:rgba(26,39,68,0.6);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;";
-  var box=document.createElement("div");box.style.cssText="background:#fff;border-radius:12px;padding:18px;max-width:480px;width:100%;margin-top:30px;";
+  var box=document.createElement("div");box.style.cssText="background:#fff;border-radius:12px;padding:18px;max-width:480px;width:100%;margin-top:24px;margin-bottom:24px;";
   var h=el("div");h.style.cssText="font-size:16px;font-weight:700;margin-bottom:4px;";h.textContent="読み取り結果の確認";box.appendChild(h);
-  var sub=el("p","muted","間違いを直してから「この内容を反映」を押してください。空欄は現状維持されます。");sub.style.marginBottom="10px";box.appendChild(sub);
-  var fields=[
-    ["company","保険会社"],["insType","保険種類"],["planName","プラン名"],
-    ["mainEndAge","保険期間(満了年齢/終身)"],["payToAge","払込期間(満了年齢/終身)"],
-    ["premium","保険料"],["payFreq","払込回数"],["currency","通貨"],["payMethod","支払方法"],
-    ["contractType","契約形態(個人/法人)"],["corpName","法人名"]
-  ];
+  var sub=el("p","muted","間違いを直して「反映」を押してください。空欄は現状維持。");sub.style.marginBottom="10px";box.appendChild(sub);
+  // 基本情報
+  var bh=el("div");bh.style.cssText="font-weight:700;font-size:13px;margin:6px 0 4px;";bh.textContent="基本情報";box.appendChild(bh);
+  var fields=[["company","保険会社"],["insType","保険種類"],["planName","プラン名"],["mainEndAge","保険期間(満了/終身)"],["payToAge","払込期間(満了/終身)"],["premium","保険料"],["payFreq","払込回数"],["currency","通貨"],["payMethod","支払方法"],["contractType","個人/法人"],["corpName","法人名"]];
   var edited={};
   fields.forEach(function(f){
-    var w=el("div");w.style.cssText="margin-bottom:7px;";
+    var w=el("div");w.style.cssText="margin-bottom:6px;";
     var l=el("div","muted",f[1]);l.style.marginBottom="2px";w.appendChild(l);
-    var i=document.createElement("input");i.type="text";i.value=(data[f[0]]!=null?data[f[0]]:"");i.style.cssText="width:100%;padding:6px;border:1px solid #ccc;border-radius:5px;font-size:14px;box-sizing:border-box;";
-    i.addEventListener("input",function(){edited[f[0]]=this.value;});
-    edited[f[0]]=i.value;
+    var i=document.createElement("input");i.type="text";i.value=(b0[f[0]]!=null?b0[f[0]]:"");i.style.cssText="width:100%;padding:6px;border:1px solid #ccc;border-radius:5px;font-size:14px;box-sizing:border-box;";
+    i.addEventListener("input",function(){edited[f[0]]=this.value;});edited[f[0]]=i.value;
     w.appendChild(i);box.appendChild(w);
   });
-  var btnRow=el("div");btnRow.style.cssText="display:flex;gap:8px;margin-top:12px;";
+  // 保障サマリー（読み取れた分）
+  if(covs.length){
+    var ch=el("div");ch.style.cssText="font-weight:700;font-size:13px;margin:10px 0 4px;";ch.textContent="読み取れた保障（"+covs.length+"件）";box.appendChild(ch);
+    var cl=el("div");cl.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px;";
+    cl.innerHTML=covs.map(function(c){return "・"+(c.type||"?")+"："+(c.amount!=null?c.amount:"")+(c.amount2!=null?("/"+c.amount2):"")+(c.amountType?("("+c.amountType+")"):"");}).join("<br>");
+    box.appendChild(cl);
+  }
+  if(fvs.length){
+    var fh2=el("div");fh2.style.cssText="font-weight:700;font-size:13px;margin:10px 0 4px;";fh2.textContent="読み取れた将来予測（"+fvs.length+"行）";box.appendChild(fh2);
+    var fl=el("div");fl.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px;";
+    fl.innerHTML=fvs.map(function(r){return "・"+(r.age||"?")+"歳：返戻"+(r.val!=null?r.val:(r.v3!=null?("3%"+r.v3):"?"));}).join("<br>");
+    box.appendChild(fl);
+  }
+  var btnRow=el("div");btnRow.style.cssText="display:flex;gap:8px;margin-top:14px;";
   var ok=el("button","btn gold","この内容を反映");ok.style.cssText="flex:1;padding:10px;font-size:14px;";
-  ok.addEventListener("click",function(){onReflect(edited);ov.remove();});
+  ok.addEventListener("click",function(){onReflect(edited,covs,fvs);ov.remove();});
   var cancel=el("button","btn","やめる");cancel.style.cssText="padding:10px 14px;font-size:14px;background:#888;";
   cancel.addEventListener("click",function(){ov.remove();});
   btnRow.appendChild(ok);btnRow.appendChild(cancel);box.appendChild(btnRow);
   ov.appendChild(box);document.body.appendChild(ov);
 }
 
-// 読み取りJSON → 現在の証券へ反映（空欄は維持）
-function reflectBasic(d){
+// 読み取りJSON → 現在の証券へ反映
+function reflectBasic(d,covs,fvs){
   var p=curPol();
-  function setIf(key,val){if(val!=null&&String(val).trim()!=="")p[key]=val;}
   if(d.company&&String(d.company).trim()){p.company=d.company;p.companySel=(COS.indexOf(d.company)>=0?d.company:"その他");}
-  if(d.insType&&ITS.indexOf(d.insType)>=0)p.insType=d.insType;
-  else if(d.insType&&String(d.insType).trim())p.insType="その他";
-  setIf("planName",d.planName);
-  // 保険期間
+  if(d.insType&&ITS.indexOf(d.insType)>=0)p.insType=d.insType;else if(d.insType&&String(d.insType).trim())p.insType="その他";
+  if(d.planName&&String(d.planName).trim())p.planName=d.planName;
   if(d.mainEndAge!=null&&String(d.mainEndAge).trim()){if(String(d.mainEndAge).indexOf("終身")>=0){p.mainEndWhole=true;p.mainEndAge="";}else{p.mainEndWhole=false;p.mainEndAge=String(d.mainEndAge).replace(/[^0-9]/g,"");}}
   if(d.payToAge!=null&&String(d.payToAge).trim()){if(String(d.payToAge).indexOf("終身")>=0){p.payToWhole=true;p.payToAge="";}else{p.payToWhole=false;p.payToAge=String(d.payToAge).replace(/[^0-9]/g,"");}}
   if(d.premium!=null&&String(d.premium).trim())p.premium=String(d.premium).replace(/[^0-9.]/g,"");
   if(d.payFreq&&PAY_FREQ.indexOf(d.payFreq)>=0)p.payFreq=d.payFreq;
   if(d.currency){var cm={JPY:"JPY（円）",USD:"USD（米ドル）",EUR:"EUR（ユーロ）",AUD:"AUD（豪ドル）"};if(cm[d.currency])p.currency=cm[d.currency];}
   if(d.payMethod&&PAY_METHOD.indexOf(d.payMethod)>=0)p.payMethod=d.payMethod;
-  if(d.contractType==="法人"){p.contractType="法人";if(d.corpName)p.corpName=d.corpName;}
-  else if(d.contractType==="個人")p.contractType="個人";
+  if(d.contractType==="法人"){p.contractType="法人";if(d.corpName)p.corpName=d.corpName;}else if(d.contractType==="個人")p.contractType="個人";
+  // 保障の反映：COV_PRESETSのカテゴリに一致するものをitemsへ
+  if(covs&&covs.length){
+    if(!p.items)p.items=[];
+    covs.forEach(function(c){
+      var idx=-1;for(var i=0;i<COV_PRESETS.length;i++){if(COV_PRESETS[i].t===c.type){idx=i;break;}}
+      if(idx<0)return;
+      // itemsをCOV_PRESETSのindexに合わせて確保
+      if(!p.items[idx])p.items[idx]={on:false,trigger:COV_PRESETS[idx].t,triggerFree:"",req1:"",req2:"",periodType:"主契約と同じ",endAge:"",payPeriod:"主契約と同じ",payEndAge:"",amount:"",amount2:"",amountType:"一時金(万)",freq:"1回",interval:"",premium:""};
+      var it=p.items[idx];it.on=true;
+      if(c.amount!=null&&String(c.amount).trim())it.amount=String(c.amount).replace(/[^0-9.]/g,"");
+      if(c.amount2!=null&&String(c.amount2).trim())it.amount2=String(c.amount2).replace(/[^0-9.]/g,"");
+      if(c.amountType&&AMT_TYPES.indexOf(c.amountType)>=0)it.amountType=c.amountType;
+      if(c.note&&String(c.note).trim())it.req1=c.note;
+    });
+  }
+  // 将来予測の反映
+  if(fvs&&fvs.length){
+    p.hasCashValue=true;p.futureVals=fvs.map(function(r){return {age:r.age||"",paid:(r.paid!=null?r.paid:""),val:(r.val!=null?r.val:""),v3:(r.v3!=null?r.v3:""),v45:(r.v45!=null?r.v45:""),v6:(r.v6!=null?r.v6:"")};});
+  }
   saveState();render();
 }
 

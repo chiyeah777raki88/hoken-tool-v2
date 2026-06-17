@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0145";
+var APP_VERSION="v2-0618-0215";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -264,6 +264,98 @@ function buildSummaryTab(){
   return wrap;
 }
 
+// ===== カメラ読み取り（基本情報の自動入力）=====
+var SCAN_PROMPT="保険証券・設計書の画像から、保険契約の基本情報をJSONで正確に抽出してください。\n"+
+"【ルール】\n"+
+"1. JSONのみ返す（説明文やマークダウンの```は不要）\n"+
+"2. 読み取れない項目はnull\n"+
+"3. 数字は1字ずつ慎重に。0と6と8、1と7、3と8を取り違えない\n"+
+"4. はっきり読めない数字は推測せずnull\n"+
+"【フィールド】\n"+
+"company:保険会社名（例 第一ネオ生命/SOMPOひまわり生命/ソニー生命/アクサ生命/メットライフ生命/オリックス生命/アフラック/東京海上日動あんしん生命/日本生命/明治安田生命 等。読めた正式名）\n"+
+"insType:保険種類。次のいずれかに最も近いものを選ぶ→ 終身保険/外貨建て終身保険/定期保険/変額定期保険/収入保障保険/逓減定期保険/養老保険/変額終身保険/変額養老保険/医療保険/がん保険/3大疾病保険/就業不能保険/介護保険/個人年金保険/学資保険/変額年金保険/総合保険（複合型）。どれにも当たらなければその他\n"+
+"planName:プラン名・商品名\n"+
+"mainEndAge:保険期間（満了年齢の数値のみ）。終身なら\"終身\"の文字列\n"+
+"payToAge:払込期間（払込満了年齢の数値のみ）。終身払なら\"終身\"\n"+
+"premium:保険料の数値（通貨記号やカンマ除く）\n"+
+"payFreq:払込回数→ 月払/半年払/年払/一時払/前納 のいずれか\n"+
+"currency:通貨→ JPY/USD/EUR/AUD のいずれか\n"+
+"payMethod:支払方法→ 口座振替/クレジットカード/給与天引/団体扱い/現金・振込 のいずれか\n"+
+"contractType:個人契約か法人契約か→ 個人 か 法人\n"+
+"corpName:法人契約なら法人名（個人ならnull）\n";
+
+function scanBasic(files,setMsg,onReflect){
+  if(!AI_API_KEY){setMsg("右上の「🔑鍵」から登録を。","#c0392b");return;}
+  setMsg(files.length+"枚 解析中…（10〜20秒）","#8089a0");
+  var imgs=[];var done=0;
+  files.forEach(function(f,idx){var r=new FileReader();r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)go();};r.onerror=function(){done++;if(done===files.length)go();};r.readAsDataURL(f);});
+  function go(){
+    var content=imgs.filter(Boolean).concat([{type:"text",text:SCAN_PROMPT}]);
+    fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-opus-4-8",max_tokens:1200,messages:[{role:"user",content:content}]})})
+    .then(function(res){return res.json();})
+    .then(function(d){
+      if(d&&d.error){setMsg("エラー："+(d.error.message||"").slice(0,80),"#c0392b");return;}
+      var txt=(d&&d.content&&d.content[0]&&d.content[0].text)||"";
+      var js=txt.replace(/```json/g,"").replace(/```/g,"").trim();
+      var parsed=null;try{parsed=JSON.parse(js);}catch(e){var m=js.match(/\{[\s\S]*\}/);if(m){try{parsed=JSON.parse(m[0]);}catch(e2){}}}
+      if(!parsed){setMsg("読取結果の解析に失敗。もう一度お試しください。","#c0392b");return;}
+      setMsg("✓ 読み取り完了。内容を確認してください。","#27ae60");
+      showScanConfirm(parsed,onReflect);
+    })
+    .catch(function(e){setMsg("通信エラー："+e.message,"#c0392b");});
+  }
+}
+
+// 読み取り結果の確認モーダル → 反映
+function showScanConfirm(data,onReflect){
+  var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;background:rgba(26,39,68,0.6);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;";
+  var box=document.createElement("div");box.style.cssText="background:#fff;border-radius:12px;padding:18px;max-width:480px;width:100%;margin-top:30px;";
+  var h=el("div");h.style.cssText="font-size:16px;font-weight:700;margin-bottom:4px;";h.textContent="読み取り結果の確認";box.appendChild(h);
+  var sub=el("p","muted","間違いを直してから「この内容を反映」を押してください。空欄は現状維持されます。");sub.style.marginBottom="10px";box.appendChild(sub);
+  var fields=[
+    ["company","保険会社"],["insType","保険種類"],["planName","プラン名"],
+    ["mainEndAge","保険期間(満了年齢/終身)"],["payToAge","払込期間(満了年齢/終身)"],
+    ["premium","保険料"],["payFreq","払込回数"],["currency","通貨"],["payMethod","支払方法"],
+    ["contractType","契約形態(個人/法人)"],["corpName","法人名"]
+  ];
+  var edited={};
+  fields.forEach(function(f){
+    var w=el("div");w.style.cssText="margin-bottom:7px;";
+    var l=el("div","muted",f[1]);l.style.marginBottom="2px";w.appendChild(l);
+    var i=document.createElement("input");i.type="text";i.value=(data[f[0]]!=null?data[f[0]]:"");i.style.cssText="width:100%;padding:6px;border:1px solid #ccc;border-radius:5px;font-size:14px;box-sizing:border-box;";
+    i.addEventListener("input",function(){edited[f[0]]=this.value;});
+    edited[f[0]]=i.value;
+    w.appendChild(i);box.appendChild(w);
+  });
+  var btnRow=el("div");btnRow.style.cssText="display:flex;gap:8px;margin-top:12px;";
+  var ok=el("button","btn gold","この内容を反映");ok.style.cssText="flex:1;padding:10px;font-size:14px;";
+  ok.addEventListener("click",function(){onReflect(edited);ov.remove();});
+  var cancel=el("button","btn","やめる");cancel.style.cssText="padding:10px 14px;font-size:14px;background:#888;";
+  cancel.addEventListener("click",function(){ov.remove();});
+  btnRow.appendChild(ok);btnRow.appendChild(cancel);box.appendChild(btnRow);
+  ov.appendChild(box);document.body.appendChild(ov);
+}
+
+// 読み取りJSON → 現在の証券へ反映（空欄は維持）
+function reflectBasic(d){
+  var p=curPol();
+  function setIf(key,val){if(val!=null&&String(val).trim()!=="")p[key]=val;}
+  if(d.company&&String(d.company).trim()){p.company=d.company;p.companySel=(COS.indexOf(d.company)>=0?d.company:"その他");}
+  if(d.insType&&ITS.indexOf(d.insType)>=0)p.insType=d.insType;
+  else if(d.insType&&String(d.insType).trim())p.insType="その他";
+  setIf("planName",d.planName);
+  // 保険期間
+  if(d.mainEndAge!=null&&String(d.mainEndAge).trim()){if(String(d.mainEndAge).indexOf("終身")>=0){p.mainEndWhole=true;p.mainEndAge="";}else{p.mainEndWhole=false;p.mainEndAge=String(d.mainEndAge).replace(/[^0-9]/g,"");}}
+  if(d.payToAge!=null&&String(d.payToAge).trim()){if(String(d.payToAge).indexOf("終身")>=0){p.payToWhole=true;p.payToAge="";}else{p.payToWhole=false;p.payToAge=String(d.payToAge).replace(/[^0-9]/g,"");}}
+  if(d.premium!=null&&String(d.premium).trim())p.premium=String(d.premium).replace(/[^0-9.]/g,"");
+  if(d.payFreq&&PAY_FREQ.indexOf(d.payFreq)>=0)p.payFreq=d.payFreq;
+  if(d.currency){var cm={JPY:"JPY（円）",USD:"USD（米ドル）",EUR:"EUR（ユーロ）",AUD:"AUD（豪ドル）"};if(cm[d.currency])p.currency=cm[d.currency];}
+  if(d.payMethod&&PAY_METHOD.indexOf(d.payMethod)>=0)p.payMethod=d.payMethod;
+  if(d.contractType==="法人"){p.contractType="法人";if(d.corpName)p.corpName=d.corpName;}
+  else if(d.contractType==="個人")p.contractType="個人";
+  saveState();render();
+}
+
 function render(){
  var app=document.getElementById("app");app.innerHTML="";
  var hdr=el("div","hdr");
@@ -411,19 +503,7 @@ function render(){
  var camMsg=el("div","muted","");camMsg.style.cssText="font-size:10px;";polOps.appendChild(camMsg);
  function readFiles(fileList){
    var files=[].slice.call(fileList||[]);if(!files.length)return;
-   if(!AI_API_KEY){camMsg.style.color="#c0392b";camMsg.textContent="右上の「🔑鍵」から登録を。";return;}
-   camMsg.style.color="#8089a0";camMsg.textContent=files.length+"枚 読取テスト中…";
-   var imgs=[];var done=0;
-   files.forEach(function(f,idx){var r=new FileReader();r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)sendAll();};r.onerror=function(){done++;if(done===files.length)sendAll();};r.readAsDataURL(f);});
-   function sendAll(){
-     var content=imgs.filter(Boolean).concat([{type:"text",text:"これらは1件の保険契約の証券・設計書です。何の書類か、保険会社名・保険種類・概要を日本語で2〜3行だけ答えてください。"}]);
-     fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,messages:[{role:"user",content:content}]})})
-     .then(function(res){return res.json();}).then(function(d){
-       if(d&&d.content&&d.content[0]&&d.content[0].text){camMsg.style.color="#27ae60";camMsg.textContent="✓ "+files.length+"枚読取成功："+d.content[0].text.replace(/\n/g," ").slice(0,60);}
-       else if(d&&d.error){camMsg.style.color="#c0392b";camMsg.textContent="エラー："+(d.error.message||"").slice(0,80);}
-       else{camMsg.style.color="#c0392b";camMsg.textContent="想定外の応答。";}
-     }).catch(function(e){camMsg.style.color="#c0392b";camMsg.textContent="通信エラー："+e.message;});
-   }
+   scanBasic(files,function(t,c){camMsg.style.color=c||"#8089a0";camMsg.textContent=t;},reflectBasic);
  }
  camFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
  libFi.addEventListener("change",function(){readFiles(this.files);this.value="";});

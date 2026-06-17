@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2035";
+var APP_VERSION="v2-0617-2100";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -70,6 +70,8 @@ var ITS=["終身保険","外貨建て終身保険","定期保険","変額定期�
 var PAY_FREQ=["月払","半年払","年払","一時払","前納"];
 var PAY_METHOD=["口座振替","クレジットカード","給与天引","団体扱い","現金・振込"];
 var CURRENCIES=["JPY（円）","USD（米ドル）","EUR（ユーロ）","AUD（豪ドル）"];
+var CORP_PURPOSE=["","事業保障","退職金準備（役員）","退職金準備（従業員）","福利厚生","弔慰金・見舞金","事業承継","その他"];
+var CORP_ACCT=["","全額損金","1/2損金","1/3損金","1/4損金","全額資産計上","資産計上＋取崩","その他"];
 var RELATIONS=["本人","配偶者","子","父","母","その他"];
 function letterOf(i){return String.fromCharCode(65+i);}
 
@@ -235,10 +237,38 @@ function render(){
  var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:34px;height:24px;padding:0;border:1px solid #c9ced8;border-radius:4px;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});pinfo.appendChild(ci);
  if(STATE.policies.length>1){var delP=el("button","btn","削除");delP.style.cssText="margin-left:auto;font-size:12px;padding:4px 8px;";delP.addEventListener("click",function(){if(confirm("証券 "+letterOf(STATE.cur)+" を削除しますか？")){STATE.policies.splice(STATE.cur,1);STATE.cur=0;saveState();render();}});pinfo.appendChild(delP);}
  c1.appendChild(pinfo);
- // 契約者・被保険者（登録済みの人から選択）
+ // 契約形態（個人 / 法人）
+ var isCorp=(pol.contractType==="法人");
+ var ctRow=el("div");ctRow.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:8px;";
+ var ctL=el("span","muted","契約形態");ctL.style.fontSize="12px";ctRow.appendChild(ctL);
+ ["個人","法人"].forEach(function(t){
+   var lb=el("label");lb.style.cssText="display:flex;align-items:center;gap:3px;font-size:13px;cursor:pointer;";
+   var r=document.createElement("input");r.type="radio";r.name="ctype"+STATE.cur;r.checked=(t==="法人"?isCorp:!isCorp);
+   r.addEventListener("change",function(){pol.contractType=t;saveState();render();});
+   lb.appendChild(r);lb.appendChild(document.createTextNode(t));ctRow.appendChild(lb);
+ });
+ c1.appendChild(ctRow);
+ // 法人契約：法人情報
+ if(isCorp){
+   var corpRow=el("div");corpRow.style.cssText="display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-bottom:8px;";
+   corpRow.appendChild(labeled("法人名",inp("text",pol.corpName||"",function(v){pol.corpName=v;saveState();})));
+   corpRow.appendChild(labeled("加入目的",mkSel(CORP_PURPOSE,pol.corpPurpose||"",function(v){pol.corpPurpose=v;saveState();render();})));
+   c1.appendChild(corpRow);
+   if(pol.corpPurpose==="その他"){c1.appendChild(labeledBlock("加入目的（自由入力）",inp("text",pol.corpPurposeFree||"",function(v){pol.corpPurposeFree=v;saveState();})));}
+   var corpRow2=el("div");corpRow2.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;";
+   corpRow2.appendChild(labeled("代表者・担当",inp("text",pol.corpRep||"",function(v){pol.corpRep=v;saveState();})));
+   corpRow2.appendChild(labeled("名義変更予定",inp("text",pol.corpTransfer||"",function(v){pol.corpTransfer=v;saveState();})));
+   c1.appendChild(corpRow2);
+ }
+ // 契約者・被保険者
  var ppl=peopleList();
  var prow=el("div");prow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;";
- prow.appendChild(labeled("契約者",mkSel(ppl,(ppl.indexOf(pol.contractor)>=0?pol.contractor:"本人"),function(v){pol.contractor=v;saveState();})));
+ if(isCorp){
+   var ctDisp=document.createElement("input");ctDisp.type="text";ctDisp.value=pol.corpName?("（法人）"+pol.corpName):"（法人）";ctDisp.disabled=true;ctDisp.style.background="#eef0f4";
+   prow.appendChild(labeled("契約者",ctDisp));
+ }else{
+   prow.appendChild(labeled("契約者",mkSel(ppl,(ppl.indexOf(pol.contractor)>=0?pol.contractor:"本人"),function(v){pol.contractor=v;saveState();})));
+ }
  prow.appendChild(labeled("被保険者",mkSel(ppl,(ppl.indexOf(pol.insured)>=0?pol.insured:"本人"),function(v){pol.insured=v;saveState();})));
  var coVal=(COS.indexOf(pol.companySel)>=0?pol.companySel:(pol.company?"その他":""));
  prow.appendChild(labeled("保険会社",mkSel([""].concat(COS),coVal,function(v){pol.companySel=v;if(v!=="その他"){pol.company=v;}saveState();render();})));
@@ -259,6 +289,16 @@ function render(){
  crow.appendChild(labeled("支払方法",mkSel(PAY_METHOD,pol.payMethod||"口座振替",function(v){pol.payMethod=v;saveState();})));
  c1.appendChild(crow);
  if(pol.payFreq==="前納"){var prow2=el("div");prow2.style.cssText="margin-top:6px;max-width:200px;";prow2.appendChild(labeled("前納回数（回）",inp("number",pol.prepayCount||"",function(v){pol.prepayCount=v;saveState();})));c1.appendChild(prow2);}
+ // 法人契約：経理処理欄
+ if(isCorp){
+   var acHd=el("div");acHd.style.cssText="font-weight:700;font-size:13px;margin:12px 0 6px;padding-top:8px;border-top:1px dashed #ccd2de;";acHd.textContent="経理処理";c1.appendChild(acHd);
+   var acRow=el("div");acRow.style.cssText="display:grid;grid-template-columns:1.2fr 0.8fr 1fr;gap:8px;margin-bottom:6px;align-items:end;";
+   acRow.appendChild(labeled("経理処理区分",mkSel(CORP_ACCT,pol.acctType||"",function(v){pol.acctType=v;saveState();})));
+   acRow.appendChild(labeled("損金算入割合（%）",inp("number",pol.acctRatio||"",function(v){pol.acctRatio=v;saveState();})));
+   acRow.appendChild(labeled("勘定科目",inp("text",pol.acctItem||"",function(v){pol.acctItem=v;saveState();})));
+   c1.appendChild(acRow);
+   c1.appendChild(labeledBlock("経理処理メモ",inp("text",pol.acctMemo||"",function(v){pol.acctMemo=v;saveState();})));
+ }
  wrap.appendChild(c1);
 
  // 保障内容一覧（現在の証券）

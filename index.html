@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1715";
+var APP_VERSION="v2-0617-1735";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -114,24 +114,39 @@ function render(){
 
  // お客様・家族
  var c0=el("div","card");
- var selfRow=el("div");selfRow.style.cssText="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;";
+ // 本人＋配偶者を横並び
+ // 配偶者は family 内の最初の「配偶者」を使う（なければ生成しない＝空欄表示用の一時オブジェクト）
+ var spouse=null;for(var si=0;si<STATE.family.length;si++){if(STATE.family[si].label==="配偶者"){spouse=STATE.family[si];break;}}
+ var selfRow=el("div");selfRow.style.cssText="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end;";
  var nmCell=el("div");var nmL=el("div","muted","お客様名（ご本人）");nmL.style.marginBottom="2px";nmCell.appendChild(nmL);nmCell.appendChild(inp("text",STATE.custName||"",function(v){STATE.custName=v;saveState();}));
  selfRow.appendChild(nmCell);
  selfRow.appendChild(labeled("ご本人の生年月日",birthInput(STATE.self,function(){saveState();})));
+ // 配偶者セル
+ var spCell=el("div");var spL=el("div","muted","配偶者の生年月日");spL.style.marginBottom="2px";spCell.appendChild(spL);
+ if(spouse){
+   var spInner=el("div");spInner.style.cssText="display:flex;align-items:center;gap:6px;";
+   spInner.appendChild(birthInput(spouse,function(){saveState();}));
+   var spDel=el("button","btn","×");spDel.style.cssText="height:30px;padding:0 8px;";spDel.addEventListener("click",function(){var i=STATE.family.indexOf(spouse);if(i>=0)STATE.family.splice(i,1);saveState();render();});
+   spInner.appendChild(spDel);spCell.appendChild(spInner);
+ }else{
+   var addSp=el("button","btn","＋ 配偶者を追加");addSp.addEventListener("click",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();});spCell.appendChild(addSp);
+ }
+ selfRow.appendChild(spCell);
  c0.appendChild(selfRow);
- var fh=el("div");fh.style.cssText="font-weight:700;margin:8px 0 4px;font-size:13px;";fh.textContent="家族（続柄・年齢）";c0.appendChild(fh);
- var fnote=el("p","muted","続柄を選び生年月日を入力（本人は上を使用）。");c0.appendChild(fnote);
+ var fh=el("div");fh.style.cssText="font-weight:700;margin:8px 0 4px;font-size:13px;";fh.textContent="その他のご家族";c0.appendChild(fh);
+ var fnote=el("p","muted","続柄を選び生年月日を入力。");c0.appendChild(fnote);
  var fwrap=el("div");
  function renderFam(){
    fwrap.innerHTML="";
    fwrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;";
    STATE.family.forEach(function(f,fi){
+     if(f===spouse)return; // 配偶者は上で表示済み
      var REL=["配偶者","子","父","母","その他"];
      var row=el("div");row.style.cssText="display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:flex-end;padding:6px;border:1px solid #e2e6ee;border-radius:6px;";
      var relSelVal=(REL.indexOf(f.label)>=0)?f.label:(f.label?"その他":"");
      var relCell=el("div");relCell.style.width="74px";
      var rl=el("div","muted","続柄");rl.style.marginBottom="2px";relCell.appendChild(rl);
-     var relSel=mkSel([""].concat(REL),relSelVal,function(v){if(v==="その他"){f.label=f._free||" ";f._other=true;}else{f.label=v;f._other=false;}saveState();renderFam();});relSel.style.width="74px";relCell.appendChild(relSel);
+     var relSel=mkSel([""].concat(REL),relSelVal,function(v){if(v==="その他"){f.label=f._free||" ";f._other=true;}else{f.label=v;f._other=false;}saveState();render();});relSel.style.width="74px";relCell.appendChild(relSel);
      if(f._other||(f.label&&REL.indexOf(f.label)<0)){var fr=inp("text",(f.label===" "?"":f.label)||"",function(v){f.label=v;f._free=v;saveState();});fr.placeholder="続柄";fr.style.cssText="margin-top:4px;width:74px;";relCell.appendChild(fr);}
      row.appendChild(relCell);
      row.appendChild(labeled("生年月日",birthInput(f,function(){saveState();})));
@@ -142,7 +157,7 @@ function render(){
  }
  renderFam();
  c0.appendChild(fwrap);
- var addF=el("button","btn","＋ 家族を追加");addF.addEventListener("click",function(){STATE.family.push({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();renderFam();});
+ var addF=el("button","btn","＋ 家族を追加");addF.addEventListener("click",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();renderFam();});
  c0.appendChild(addF);
  wrap.appendChild(c0);
 
@@ -168,41 +183,28 @@ function render(){
  var pinfo=el("div");pinfo.style.cssText="font-weight:700;margin-bottom:8px;";pinfo.textContent="証券 "+letterOf(STATE.cur)+" の情報";c1.appendChild(pinfo);
  // 契約者・被保険者（登録済みの人から選択）
  var ppl=peopleList();
- var prow=el("div");prow.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;";
+ var prow=el("div");prow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;";
  prow.appendChild(labeled("契約者",mkSel(ppl,(ppl.indexOf(pol.contractor)>=0?pol.contractor:"本人"),function(v){pol.contractor=v;saveState();})));
  prow.appendChild(labeled("被保険者",mkSel(ppl,(ppl.indexOf(pol.insured)>=0?pol.insured:"本人"),function(v){pol.insured=v;saveState();})));
- c1.appendChild(prow);
- // 保険会社・保険種類（1行）
  var coVal=(COS.indexOf(pol.companySel)>=0?pol.companySel:(pol.company?"その他":""));
- var coRow=el("div");coRow.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;";
- coRow.appendChild(labeled("保険会社",mkSel([""].concat(COS),coVal,function(v){pol.companySel=v;if(v!=="その他"){pol.company=v;}saveState();render();})));
- coRow.appendChild(labeled("保険種類",mkSel([""].concat(ITS),(ITS.indexOf(pol.insType)>=0?pol.insType:""),function(v){pol.insType=v;saveState();})));
- c1.appendChild(coRow);
+ prow.appendChild(labeled("保険会社",mkSel([""].concat(COS),coVal,function(v){pol.companySel=v;if(v!=="その他"){pol.company=v;}saveState();render();})));
+ prow.appendChild(labeled("保険種類",mkSel([""].concat(ITS),(ITS.indexOf(pol.insType)>=0?pol.insType:""),function(v){pol.insType=v;saveState();})));
+ c1.appendChild(prow);
  if(pol.companySel==="その他"){c1.appendChild(labeledBlock("保険会社（自由入力）",inp("text",pol.company||"",function(v){pol.company=v;saveState();})));}
  // プラン名・主契約満了年齢（1行）
  var planRow=el("div");planRow.style.cssText="display:grid;grid-template-columns:1.6fr 1fr;gap:8px;margin-bottom:4px;";
  planRow.appendChild(labeled("プラン名（商品名）",inp("text",pol.planName||"",function(v){pol.planName=v;saveState();})));
- planRow.appendChild(labeled("主契約満了年齢",inp("number",pol.mainEndAge||"",function(v){pol.mainEndAge=v;saveState();})));
+ planRow.appendChild(ageWhole("主契約満了年齢",pol,"mainEndAge","mainEndWhole"));
  c1.appendChild(planRow);
- // 保険料・払込・通貨・払込満了・支払方法（コンパクトに2行へ）
- var crow=el("div");crow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px;";
+ // 保険料・払込回数・通貨・払込満了・支払方法（1行）
+ var crow=el("div");crow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;margin-top:4px;align-items:end;";
  crow.appendChild(labeled("保険料",inp("number",pol.premium||"",function(v){pol.premium=v;saveState();})));
  crow.appendChild(labeled("払込回数",mkSel(PAY_FREQ,pol.payFreq||"月払",function(v){pol.payFreq=v;if(v!=="前納")pol.prepayCount="";saveState();render();})));
  crow.appendChild(labeled("通貨",mkSel(CURRENCIES,pol.currency||"JPY（円）",function(v){pol.currency=v;saveState();})));
+ crow.appendChild(ageWhole("払込満了年齢",pol,"payToAge","payToWhole"));
+ crow.appendChild(labeled("支払方法",mkSel(PAY_METHOD,pol.payMethod||"口座振替",function(v){pol.payMethod=v;saveState();})));
  c1.appendChild(crow);
- if(pol.payFreq==="前納"){var prow=el("div");prow.style.cssText="margin-top:6px;";prow.appendChild(labeled("前納回数（回）",inp("number",pol.prepayCount||"",function(v){pol.prepayCount=v;saveState();})));c1.appendChild(prow);}
- var crowB=el("div");crowB.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;align-items:end;";
- // 払込満了年齢（終身可）
- var ageWrap=el("div");var agL=el("div","muted","払込満了年齢");agL.style.marginBottom="2px";ageWrap.appendChild(agL);
- var agIn=el("div");agIn.style.cssText="display:flex;align-items:center;gap:6px;";
- var agNum=inp("number",pol.payToAge||"",function(v){pol.payToAge=v;saveState();});if(pol.payToWhole){agNum.value="";agNum.disabled=true;agNum.style.background="#eef0f4";}
- var lblW=el("label");lblW.style.cssText="display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:12px;color:#555;";
- var ckW=document.createElement("input");ckW.type="checkbox";ckW.checked=!!pol.payToWhole;ckW.addEventListener("change",function(){pol.payToWhole=this.checked;if(this.checked)pol.payToAge="";saveState();render();});
- lblW.appendChild(ckW);lblW.appendChild(document.createTextNode("終身"));
- agIn.appendChild(agNum);agIn.appendChild(lblW);ageWrap.appendChild(agIn);
- crowB.appendChild(ageWrap);
- crowB.appendChild(labeled("支払方法",mkSel(PAY_METHOD,pol.payMethod||"口座振替",function(v){pol.payMethod=v;saveState();})));
- c1.appendChild(crowB);
+ if(pol.payFreq==="前納"){var prow2=el("div");prow2.style.cssText="margin-top:6px;max-width:200px;";prow2.appendChild(labeled("前納回数（回）",inp("number",pol.prepayCount||"",function(v){pol.prepayCount=v;saveState();})));c1.appendChild(prow2);}
  var crow2=el("div");crow2.style.cssText="display:flex;align-items:center;gap:8px;margin-top:8px;";
  var cl=el("span","muted","証券の色");var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:40px;height:30px;padding:0;border:1px solid #c9ced8;border-radius:4px;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});
  crow2.appendChild(cl);crow2.appendChild(ci);
@@ -266,6 +268,16 @@ function render(){
 }
 
 function labeled(label,inputEl){var d=el("div");var l=el("div","muted",label);l.style.marginBottom="2px";d.appendChild(l);d.appendChild(inputEl);return d;}
+function ageWhole(label,obj,numKey,wholeKey){
+ var w=el("div");var l=el("div","muted",label);l.style.marginBottom="2px";w.appendChild(l);
+ var inn=el("div");inn.style.cssText="display:flex;align-items:center;gap:6px;";
+ var n=document.createElement("input");n.type="number";n.value=obj[numKey]||"";n.addEventListener("input",function(){obj[numKey]=this.value;saveState();});
+ if(obj[wholeKey]){n.value="";n.disabled=true;n.style.background="#eef0f4";}
+ var lb=el("label");lb.style.cssText="display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:12px;color:#555;";
+ var ck=document.createElement("input");ck.type="checkbox";ck.checked=!!obj[wholeKey];ck.addEventListener("change",function(){obj[wholeKey]=this.checked;if(this.checked)obj[numKey]="";saveState();render();});
+ lb.appendChild(ck);lb.appendChild(document.createTextNode("終身"));
+ inn.appendChild(n);inn.appendChild(lb);w.appendChild(inn);return w;
+}
 function inp(type,val,onCh){var i=document.createElement("input");i.type=type||"text";i.value=val||"";i.addEventListener("input",function(){onCh(this.value);});return i;}
 function field(label,val,onCh,type){var d=el("div");d.style.marginBottom="8px";var l=el("div","muted",label);l.style.marginBottom="2px";d.appendChild(l);d.appendChild(inp(type,val,onCh));return d;}
 function mkSel(opts,val,onCh){var s=document.createElement("select");opts.forEach(function(o){var op=document.createElement("option");op.value=o;op.textContent=(o===""?"（選択）":o);if(o===val)op.selected=true;s.appendChild(op);});s.addEventListener("change",function(){onCh(this.value);});return s;}

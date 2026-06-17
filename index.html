@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0100";
+var APP_VERSION="v2-0618-0130";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -345,7 +345,9 @@ function render(){
  function vline(){var l=el("div");l.style.cssText="width:2px;height:10px;background:#c2cad8;margin:1px auto;";return l;}
 
  // 家系図（横スクロール対応・行は折り返さず横に並べる）
- var treeScroll=el("div");treeScroll.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;";
+ // 家系図（左）＋ 証券操作ボタン（右の空きへ移動）
+ var famFlex=el("div");famFlex.style.cssText="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;";
+ var treeScroll=el("div");treeScroll.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;flex:0 0 auto;";
  var tree=el("div");tree.style.cssText="display:inline-flex;flex-direction:column;align-items:center;gap:1px;";
  // 親世代（表示が有効なときだけ）
  if(showParents){
@@ -394,7 +396,39 @@ function render(){
    tree.appendChild(gRow);
  }
  treeScroll.appendChild(tree);
- c0.appendChild(treeScroll);
+ famFlex.appendChild(treeScroll);
+ // 右の空きスペースに証券操作ボタン（＋証券追加・撮影・画像を選ぶ）
+ var polOps=el("div");polOps.style.cssText="display:flex;flex-direction:column;gap:6px;flex:1 1 140px;min-width:130px;";
+ var addP2=el("button","btn gold","＋ 証券を追加");addP2.style.cssText="padding:7px 10px;font-size:13px;";
+ addP2.addEventListener("click",function(){STATE.policies.push(newPolicy(STATE.policies.length));STATE.cur=STATE.policies.length-1;saveState();render();});
+ polOps.appendChild(addP2);
+ var camLbl=el("label","btn");camLbl.style.cssText="cursor:pointer;padding:7px 10px;font-size:13px;background:#3a4a6b;color:#fff;text-align:center;";camLbl.textContent="📷 撮影";
+ var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";camLbl.appendChild(camFi);
+ polOps.appendChild(camLbl);
+ var libLbl=el("label","btn");libLbl.style.cssText="cursor:pointer;padding:7px 10px;font-size:13px;background:#3a4a6b;color:#fff;text-align:center;";libLbl.textContent="🖼 画像を選ぶ（複数可）";
+ var libFi=document.createElement("input");libFi.type="file";libFi.accept="image/*";libFi.multiple=true;libFi.style.display="none";libLbl.appendChild(libFi);
+ polOps.appendChild(libLbl);
+ var camMsg=el("div","muted","");camMsg.style.cssText="font-size:11px;";polOps.appendChild(camMsg);
+ function readFiles(fileList){
+   var files=[].slice.call(fileList||[]);if(!files.length)return;
+   if(!AI_API_KEY){camMsg.style.color="#c0392b";camMsg.textContent="右上の「🔑鍵」から登録を。";return;}
+   camMsg.style.color="#8089a0";camMsg.textContent=files.length+"枚 読取テスト中…";
+   var imgs=[];var done=0;
+   files.forEach(function(f,idx){var r=new FileReader();r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)sendAll();};r.onerror=function(){done++;if(done===files.length)sendAll();};r.readAsDataURL(f);});
+   function sendAll(){
+     var content=imgs.filter(Boolean).concat([{type:"text",text:"これらは1件の保険契約の証券・設計書です。何の書類か、保険会社名・保険種類・概要を日本語で2〜3行だけ答えてください。"}]);
+     fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,messages:[{role:"user",content:content}]})})
+     .then(function(res){return res.json();}).then(function(d){
+       if(d&&d.content&&d.content[0]&&d.content[0].text){camMsg.style.color="#27ae60";camMsg.textContent="✓ "+files.length+"枚読取成功："+d.content[0].text.replace(/\n/g," ").slice(0,60);}
+       else if(d&&d.error){camMsg.style.color="#c0392b";camMsg.textContent="エラー："+(d.error.message||"").slice(0,80);}
+       else{camMsg.style.color="#c0392b";camMsg.textContent="想定外の応答。";}
+     }).catch(function(e){camMsg.style.color="#c0392b";camMsg.textContent="通信エラー："+e.message;});
+   }
+ }
+ camFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
+ libFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
+ famFlex.appendChild(polOps);
+ c0.appendChild(famFlex);
  // その他の家族（続柄自由・横並び）
  if(others.length){
    var oWrap=el("div");oWrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;";
@@ -413,59 +447,20 @@ function render(){
  wrap.appendChild(c0);
 
  // 証券タブ（切替・追加）
- var tabBar=el("div","card");
- var th2=el("div");th2.style.cssText="font-weight:700;margin-bottom:6px;font-size:13px;";th2.textContent="証券（複数登録できます）";tabBar.appendChild(th2);
- var tabs=el("div");tabs.style.cssText="display:flex;flex-wrap:wrap;gap:6px;";
- STATE.policies.forEach(function(p,pi){
-   var t=el("button","btn",letterOf(pi)+(p.company?("："+p.company):""));
-   t.style.cssText="padding:6px 10px;border-left:5px solid "+p.color+";"+(pi===STATE.cur?"background:var(--color-background-secondary);font-weight:700;":"");
-   t.addEventListener("click",function(){STATE.cur=pi;saveState();render();});
-   tabs.appendChild(t);
- });
- var addP=el("button","btn gold","＋ 証券を追加");addP.style.padding="6px 10px";
- addP.addEventListener("click",function(){STATE.policies.push(newPolicy(STATE.policies.length));STATE.cur=STATE.policies.length-1;saveState();render();});
- tabs.appendChild(addP);
- // カメラ読み取り（段階1：鍵の疎通確認）— タブ行に横並び
- // 撮影ボタン（カメラ直起動・1枚）
- var camLbl=el("label","btn");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 10px;font-size:13px;background:#3a4a6b;color:#fff;";camLbl.textContent="📷 撮影";
- var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";camLbl.appendChild(camFi);
- tabs.appendChild(camLbl);
- // ライブラリボタン（複数選択可）
- var libLbl=el("label","btn");libLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 10px;font-size:13px;background:#3a4a6b;color:#fff;";libLbl.textContent="🖼 画像を選ぶ（複数可）";
- var libFi=document.createElement("input");libFi.type="file";libFi.accept="image/*";libFi.multiple=true;libFi.style.display="none";libLbl.appendChild(libFi);
- tabs.appendChild(libLbl);
- tabBar.appendChild(tabs);
- var camMsg=el("div","muted","");camMsg.style.cssText="font-size:11px;margin-top:6px;";
- // 複数画像を読み込んでまとめて1リクエストで送る（疎通テスト）
- function readFiles(fileList){
-   var files=[].slice.call(fileList||[]);
-   if(!files.length)return;
-   if(!AI_API_KEY){camMsg.style.color="#c0392b";camMsg.textContent="先に右上の「🔑鍵」からAPIキーを登録してください。";return;}
-   camMsg.style.color="#8089a0";camMsg.textContent=files.length+"枚を読み取りテスト中…";
-   var imgs=[];var done=0;
-   files.forEach(function(f,idx){
-     var r=new FileReader();
-     r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)sendAll();};
-     r.onerror=function(){done++;if(done===files.length)sendAll();};
-     r.readAsDataURL(f);
+ // 証券切替タブ（2件以上のときだけ表示）
+ if(STATE.policies.length>1){
+   var tabBar=el("div","card");
+   var tabs=el("div");tabs.style.cssText="display:flex;flex-wrap:wrap;gap:6px;align-items:center;";
+   var tlab=el("span","muted","証券：");tlab.style.cssText="font-size:12px;";tabs.appendChild(tlab);
+   STATE.policies.forEach(function(p,pi){
+     var t=el("button","btn",letterOf(pi)+(p.company?("："+p.company):""));
+     t.style.cssText="padding:6px 10px;border-left:5px solid "+p.color+";"+(pi===STATE.cur?"background:#dfe4ee;font-weight:700;":"");
+     t.addEventListener("click",function(){STATE.cur=pi;saveState();render();});
+     tabs.appendChild(t);
    });
-   function sendAll(){
-     var content=imgs.filter(Boolean).concat([{type:"text",text:"これらは1件の保険契約の証券・設計書です（複数ページの場合あり）。何の書類か、保険会社名・保険種類・分かる範囲の概要を日本語で2〜3行だけ答えてください。"}]);
-     fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,messages:[{role:"user",content:content}]})})
-     .then(function(res){return res.json();})
-     .then(function(d){
-       if(d&&d.content&&d.content[0]&&d.content[0].text){camMsg.style.color="#27ae60";camMsg.textContent="✓ "+files.length+"枚 読取成功：「"+d.content[0].text.replace(/\n/g," ").slice(0,120)+"」";}
-       else if(d&&d.error){camMsg.style.color="#c0392b";camMsg.textContent="エラー："+(d.error.message||JSON.stringify(d.error)).slice(0,140);}
-       else{camMsg.style.color="#c0392b";camMsg.textContent="想定外の応答でした。";}
-     })
-     .catch(function(e){camMsg.style.color="#c0392b";camMsg.textContent="通信エラー："+e.message;});
-   }
+   tabBar.appendChild(tabs);
+   wrap.appendChild(tabBar);
  }
- camFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
- libFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
- tabBar.appendChild(camMsg);
- var camNote=el("p","muted","※複数ページの設計書は「画像を選ぶ」で複数選択。自動入力は次段階。");camNote.style.cssText="font-size:11px;margin-top:4px;";tabBar.appendChild(camNote);
- wrap.appendChild(tabBar);
 
  // 現在の証券の基本情報
  var pol=curPol();

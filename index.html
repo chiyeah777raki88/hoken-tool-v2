@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1955";
+var APP_VERSION="v2-0617-2015";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -142,9 +142,8 @@ function render(){
  }
  function vline(){var l=el("div");l.style.cssText="width:2px;height:10px;background:#c2cad8;margin:1px auto;";return l;}
 
- // 左：家系図　右：操作ボタン縦列
- var famFlex=el("div");famFlex.style.cssText="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;";
- var tree=el("div");tree.style.cssText="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1 1 auto;min-width:260px;";
+ // 家系図（中央寄せ・追加は本人脇の＋ボタンから続柄を選ぶ）
+ var tree=el("div");tree.style.cssText="display:flex;flex-direction:column;align-items:center;gap:1px;";
  // 親世代（表示が有効なときだけ）
  if(showParents){
    var pRow=el("div");pRow.style.cssText="display:flex;gap:6px;justify-content:center;align-items:flex-start;";
@@ -153,14 +152,32 @@ function render(){
    tree.appendChild(pRow);
    tree.appendChild(vline());
  }
- // 本人（＝配偶者）
- var meRow=el("div");meRow.style.cssText="display:flex;gap:4px;justify-content:center;align-items:flex-start;";
+ // 本人（＝配偶者）＋ 追加ボタン
+ var meRow=el("div");meRow.style.cssText="display:flex;gap:4px;justify-content:center;align-items:center;flex-wrap:wrap;";
  meRow.appendChild(node("本人",STATE.self,{getName:function(){return STATE.custName||"";},setName:function(v){STATE.custName=v;}}));
  if(spouse){
    var eq=el("div");eq.style.cssText="align-self:center;font-weight:700;color:#99a;padding:0 1px;";eq.textContent="＝";meRow.appendChild(eq);
    meRow.appendChild(node("配偶者",spouse,{onDel:function(){var i=STATE.family.indexOf(spouse);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));
  }
+ // ＋ボタン（本人/配偶者の右）
+ var addBtn=el("button","btn gold","＋");addBtn.style.cssText="font-size:16px;font-weight:700;padding:2px 10px;height:34px;align-self:center;";
+ addBtn.addEventListener("click",function(){STATE._famMenu=!STATE._famMenu;saveState();render();});
+ meRow.appendChild(addBtn);
  tree.appendChild(meRow);
+ // 続柄選択メニュー（＋を押したとき）
+ if(STATE._famMenu){
+   var menu=el("div");menu.style.cssText="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px;padding:6px;background:#f3f5f9;border-radius:7px;";
+   function mBtn(lbl,fn){var b=el("button","btn",lbl);b.style.cssText="font-size:12px;padding:4px 9px;";b.addEventListener("click",function(){fn();STATE._famMenu=false;saveState();render();});return b;}
+   if(!spouse)menu.appendChild(mBtn("配偶者",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});}));
+   menu.appendChild(mBtn("子",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});}));
+   if(showGrand)menu.appendChild(mBtn("孫",function(){STATE.family.push({label:"孫",era:"西暦",y:"",m:"",d:""});}));
+   if(!showParents)menu.appendChild(mBtn("父・母（親世代）",function(){STATE.showParents=true;}));
+   else menu.appendChild(mBtn("親世代を隠す",function(){STATE.showParents=false;STATE.family=STATE.family.filter(function(f){return f!==dad&&f!==mom;});}));
+   if(!showGrand)menu.appendChild(mBtn("孫世代",function(){STATE.showGrandkids=true;}));
+   else menu.appendChild(mBtn("孫世代を隠す",function(){STATE.showGrandkids=false;STATE.family=STATE.family.filter(function(f){return f.label!=="孫";});}));
+   menu.appendChild(mBtn("その他",function(){STATE.family.push({label:" ",_other:true,era:"西暦",y:"",m:"",d:""});}));
+   tree.appendChild(menu);
+ }
  // 子世代（4人まで横一列、5人以上は折り返し）
  if(kids.length){tree.appendChild(vline());
    var kRow=el("div");
@@ -176,19 +193,7 @@ function render(){
    grandkids.forEach(function(g,gi){gRow.appendChild(node("孫"+(grandkids.length>1?(gi+1):""),g,{onDel:function(){var i=STATE.family.indexOf(g);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
    tree.appendChild(gRow);
  }
- famFlex.appendChild(tree);
- // 右脇：縦に積む追加/トグルボタン
- var fbtns=el("div");fbtns.style.cssText="display:flex;flex-direction:column;gap:4px;flex:0 0 auto;width:108px;";
- function sideBtn(label,fn){var b=el("button","btn",label);b.style.cssText="font-size:12px;padding:5px 6px;width:100%;";b.addEventListener("click",fn);return b;}
- if(!spouse)fbtns.appendChild(sideBtn("＋ 配偶者",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();}));
- fbtns.appendChild(sideBtn("＋ 子",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();}));
- if(!showParents)fbtns.appendChild(sideBtn("＋ 親世代",function(){STATE.showParents=true;saveState();render();}));
- else fbtns.appendChild(sideBtn("− 親世代",function(){STATE.showParents=false;STATE.family=STATE.family.filter(function(f){return f!==dad&&f!==mom;});saveState();render();}));
- if(!showGrand)fbtns.appendChild(sideBtn("＋ 孫世代",function(){STATE.showGrandkids=true;saveState();render();}));
- else{fbtns.appendChild(sideBtn("＋ 孫",function(){STATE.family.push({label:"孫",era:"西暦",y:"",m:"",d:""});saveState();render();}));fbtns.appendChild(sideBtn("− 孫世代",function(){STATE.showGrandkids=false;STATE.family=STATE.family.filter(function(f){return f.label!=="孫";});saveState();render();}));}
- fbtns.appendChild(sideBtn("＋ その他",function(){STATE.family.push({label:" ",_other:true,era:"西暦",y:"",m:"",d:""});saveState();render();}));
- famFlex.appendChild(fbtns);
- c0.appendChild(famFlex);
+ c0.appendChild(tree);
  // その他の家族（続柄自由・横並び）
  if(others.length){
    var oWrap=el("div");oWrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;";

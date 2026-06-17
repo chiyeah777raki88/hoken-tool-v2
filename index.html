@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-1230";
+var APP_VERSION="v2-0618-1300";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -421,6 +421,29 @@ function buildAssetsTab(){
   var note=el("p","muted","保険の解約返戻金/積立金は各証券の将来予測テーブルから自動。NISA/iDeCoは選んだ運用率で複利計算（費用控除後の試算）。");note.style.cssText="font-size:11px;margin-top:8px;";cset.appendChild(note);
   wrap.appendChild(cset);
 
+  // 保険の貯蓄性一覧（解約返戻金・積立金がある証券）
+  var cardP=el("div","card");
+  var ph=el("div");ph.style.cssText="font-weight:700;margin-bottom:6px;";ph.textContent="資産に含む保険（積立金・解約返戻金）";cardP.appendChild(ph);
+  var savPols=STATE.policies.filter(function(p){return p.hasCashValue&&p.futureVals&&p.futureVals.length;});
+  if(savPols.length){
+    STATE.policies.forEach(function(p,pi){
+      if(!p.hasCashValue||!p.futureVals||!p.futureVals.length)return;
+      var v60=polValueAt(p,60,A.scen),v65=polValueAt(p,65,A.scen),v70=polValueAt(p,70,A.scen);
+      var isVar=(p.insType&&p.insType.indexOf("変額")>=0);
+      var row=el("div");row.style.cssText="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eef0f4;font-size:12px;";
+      var dot=el("span");dot.style.cssText="width:12px;height:12px;border-radius:3px;flex:none;background:"+p.color+";";
+      var nm=el("span");nm.style.cssText="flex:1;font-weight:700;";nm.textContent=letterOf(pi)+"・"+(p.company||p.planName||"証券");
+      var val=el("span");val.style.cssText="font-size:11px;color:#475067;text-align:right;";
+      val.innerHTML=(isVar?("将来予測("+(A.scen==="6"?"6":A.scen==="45"?"4.5":"3")+"%)"):"解約返戻金")+"<br>60歳 "+v60.toLocaleString()+"万 / 65歳 "+v65.toLocaleString()+"万 / 70歳 "+v70.toLocaleString()+"万";
+      row.appendChild(dot);row.appendChild(nm);row.appendChild(val);
+      cardP.appendChild(row);
+    });
+    cardP.appendChild(el("p","muted","各証券の将来予測テーブルから自動算出。金額がおかしい場合は入力タブの将来予測を確認してください。"));
+  }else{
+    cardP.appendChild(el("p","muted","積立金・解約返戻金のある保険がありません。入力タブで各証券の「解約返戻金/積立がある」にチェックし、将来予測テーブルを入れると、ここと下のグラフに反映されます。"));
+  }
+  wrap.appendChild(cardP);
+
   // グラフ（積み上げ：預貯金＋NISA＋iDeCo＋各保険）
   var endAge=A.endAge||90;var ages=[];for(var a=baseAge;a<=endAge;a++)ages.push(a);
   var scenRatePct=A.scen==="6"?6:A.scen==="45"?4.5:3;
@@ -514,25 +537,23 @@ function convertV1Policy(v1p,idx){
   return p;
 }
 function convertV1Customer(data){
-  // v1: data.policies は {memberId:[policy,...]} または配列
+  // v1保存形式: data.polSave = {m1:[...], m2:[...], ...}（キーは家族ID）, data.famSave = 家族配列
   var allPols=[];
-  if(data.policies){
-    if(Array.isArray(data.policies))allPols=data.policies;
-    else Object.keys(data.policies).forEach(function(k){var arr=data.policies[k];if(Array.isArray(arr))allPols=allPols.concat(arr);});
-  }
+  var src=data.polSave||data.policies||{};
+  if(Array.isArray(src))allPols=src;
+  else Object.keys(src).forEach(function(k){var arr=src[k];if(Array.isArray(arr))allPols=allPols.concat(arr);});
   var policies=allPols.map(function(vp,i){return convertV1Policy(vp,i);});
   if(!policies.length)policies=[newPolicy(0)];
   // 本人名・家族
   var custName="";var self={era:"西暦",y:"",m:"",d:""};var family=[];
-  if(data.famSave&&data.famSave.length){
-    data.famSave.forEach(function(m){
-      var b={era:"西暦",y:"",m:"",d:""};
-      if(m.dob){var d=new Date(m.dob);if(!isNaN(d)){b.y=String(d.getFullYear());b.m=String(d.getMonth()+1);b.d=String(d.getDate());}}
-      if(m.relation==="本人"){custName=m.name||"";self=b;}
-      else family.push({label:m.relation||"その他",name:m.name||"",era:b.era,y:b.y,m:b.m,d:b.d});
-    });
-  }
-  return {custName:custName,self:self,family:family,policies:policies,cur:0,settings:STATE.settings||{costCut:1.5}};
+  var fam=data.famSave||data.family||[];
+  fam.forEach(function(m){
+    var b={era:"西暦",y:"",m:"",d:""};
+    if(m.dob){var d=new Date(m.dob);if(!isNaN(d)){b.y=String(d.getFullYear());b.m=String(d.getMonth()+1);b.d=String(d.getDate());}}
+    if(m.relation==="本人"){custName=m.name||"";self=b;}
+    else family.push({label:m.relation||"その他",name:m.name||"",era:b.era,y:b.y,m:b.m,d:b.d});
+  });
+  return {custName:custName,self:self,family:family,policies:policies,cur:0,settings:STATE.settings||{costCut:1.5},ansin:STATE.ansin||{},assets:STATE.assets||{savings:"",nisa:{current:"",monthly:"",startAge:""},ideco:{current:"",monthly:"",startAge:""},scen:"45",endAge:90},matrix:STATE.matrix||{kyufu:{},menjo:{},rowLabels:{}}};
 }
 // 取り込みモーダル
 function showV1Import(){
@@ -1271,7 +1292,7 @@ function render(){
  ["30px","92px","118px","82px","82px","64px","76px","84px","66px"].forEach(function(w){var co=document.createElement("col");co.style.width=w;cg.appendChild(co);});
  tbl.appendChild(cg);
  var thead=el("tr");
- ["該当","給付事由","要件・条件","保険期間","払込期間","給付金額","種類","回数","特約保険料"].forEach(function(t){thead.appendChild(el("th",null,t));});
+ ["該当","給付事由","要件・条件","保険期間","払込期間","給付金額","種類","回数","保険料"].forEach(function(t){thead.appendChild(el("th",null,t));});
  tbl.appendChild(thead);
  COV_PRESETS.forEach(function(p,i){
   var it=getItem(i);
@@ -1449,7 +1470,7 @@ function makePdf(){
  '<style>body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1a2744;padding:24px;}h1{font-size:18px;border-bottom:3px solid #1a2744;padding-bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;}h1 small{font-size:11px;color:#555;font-weight:normal;}.sub{font-size:12px;margin:6px 0 14px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1a2744;color:#fff;padding:7px;border:1px solid #1a2744;text-align:left;}td{padding:7px;border:1px solid #bbb;}tr:nth-child(even) td{background:#f4f6fa;}.ft{text-align:right;font-size:10px;color:#888;margin-top:10px;}@media print{.noprint{display:none;}}</style></head><body>'+
  '<h1>保障内容一覧表<small>'+esc(ds)+' 作成</small></h1>'+
  '<div class="sub">'+esc(STATE.custName||"")+(STATE.custName?" 様":"")+(pol.company?(" ／ "+esc(pol.company)):"")+(pol.planName?("　"+esc(pol.planName)):"")+'</div>'+
- '<table><tr><th>給付事由</th><th>要件・条件</th><th style="text-align:center">保険期間</th><th style="text-align:right">給付金額</th><th style="text-align:center">種類</th><th style="text-align:center">回数・支払</th><th style="text-align:right">特約保険料</th></tr>'+trs+'</table>'+
+ '<table><tr><th>給付事由</th><th>要件・条件</th><th style="text-align:center">保険期間</th><th style="text-align:right">給付金額</th><th style="text-align:center">種類</th><th style="text-align:center">回数・支払</th><th style="text-align:right">保険料</th></tr>'+trs+'</table>'+
  '<div class="ft">保険ツール v2</div>'+
  '<div class="noprint" style="margin-top:16px;text-align:center;"><button onclick="window.print()" style="padding:8px 18px;font-size:13px;">印刷 / PDF保存</button></div>'+
  '</body></html>');

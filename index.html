@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1835";
+var APP_VERSION="v2-0617-1900";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -108,6 +108,7 @@ function render(){
  hdr.appendChild(el("span","ttl","保険ツール v2"));
  if(STATE.custName){var nm=el("span",null,STATE.custName+" 様");nm.style.fontSize="12px";hdr.appendChild(nm);}
  var ver=el("span","ver","版 "+APP_VERSION);hdr.appendChild(ver);
+ var rst=el("button","btn","全消去");rst.style.cssText="font-size:11px;padding:3px 8px;margin-left:8px;";rst.addEventListener("click",function(){if(confirm("入力した全データ（家族・全証券）を消去して新規状態に戻します。よろしいですか？")){STATE={custName:"",self:{era:"西暦",y:"",m:"",d:""},family:[],policies:[newPolicy(0)],cur:0};saveState();render();}});hdr.appendChild(rst);
  app.appendChild(hdr);
 
  var wrap=el("div","wrap");
@@ -132,11 +133,11 @@ function render(){
    if(obj){
      var nm=document.createElement("input");nm.type="text";nm.placeholder="名前";
      nm.value=opts.getName?opts.getName():(obj.name||"");
-     nm.style.cssText="width:96px;font-size:12px;padding:2px 4px;text-align:center;margin-bottom:2px;";
+     nm.style.cssText="width:78px;font-size:11px;padding:1px 3px;text-align:center;margin-bottom:1px;";
      nm.addEventListener("input",function(){if(opts.setName)opts.setName(this.value);else obj.name=this.value;saveState();});
      b.appendChild(nm);
-     var bi=birthInput(obj,function(){saveState();});bi.style.justifyContent="center";bi.style.transform="scale(0.9)";bi.style.transformOrigin="center top";b.appendChild(bi);
-     if(opts.onDel){var x=el("button","btn","×");x.style.cssText="height:18px;padding:0 6px;margin-top:2px;font-size:11px;";x.addEventListener("click",opts.onDel);b.appendChild(x);}
+     var bi=birthInput(obj,function(){saveState();});bi.style.justifyContent="center";bi.style.transform="scale(0.82)";bi.style.transformOrigin="center top";bi.style.marginBottom="-4px";b.appendChild(bi);
+     if(opts.onDel){var x=el("button","btn","×");x.style.cssText="height:16px;padding:0 5px;margin-top:1px;font-size:10px;";x.addEventListener("click",opts.onDel);b.appendChild(x);}
    }else if(opts.onAdd){var a=el("button","btn",opts.addLabel||"＋ 追加");a.style.cssText="font-size:12px;padding:4px 8px;";a.addEventListener("click",opts.onAdd);b.appendChild(a);}
    return b;
  }
@@ -159,27 +160,27 @@ function render(){
    meRow.appendChild(node("配偶者",spouse,{onDel:function(){var i=STATE.family.indexOf(spouse);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));
  }
  tree.appendChild(meRow);
- // 子世代（3人まで横一列、4人以上は2人ずつ折り返し）
- if(kids.length){tree.appendChild(vline());
+ // 子世代（4人まで横一列、5人以上は折り返し）。末尾に＋子ノード
+ {tree.appendChild(vline());
    var kRow=el("div");
-   var twoCol=kids.length>=4;
-   kRow.style.cssText="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"+(twoCol?"max-width:264px;":"");
+   var twoCol=kids.length>=5;
+   kRow.style.cssText="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"+(twoCol?"max-width:380px;":"");
    kids.forEach(function(k,ki){kRow.appendChild(node("子"+(kids.length>1?(ki+1):""),k,{onDel:function(){var i=STATE.family.indexOf(k);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
+   kRow.appendChild(node("",null,{onAdd:function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 子"}));
    tree.appendChild(kRow);
  }
- // 孫世代（表示が有効なときだけ・同様に2列対応）
+ // 孫世代（表示が有効なときだけ・同様）
  if(showGrand){tree.appendChild(vline());
-   var gRow=el("div");var gTwo=grandkids.length>=4;
-   gRow.style.cssText="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"+(gTwo?"max-width:264px;":"");
+   var gRow=el("div");var gTwo=grandkids.length>=5;
+   gRow.style.cssText="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"+(gTwo?"max-width:380px;":"");
    grandkids.forEach(function(g,gi){gRow.appendChild(node("孫"+(grandkids.length>1?(gi+1):""),g,{onDel:function(){var i=STATE.family.indexOf(g);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
    gRow.appendChild(node("",null,{onAdd:function(){STATE.family.push({label:"孫",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 孫"}));
    tree.appendChild(gRow);
  }
  c0.appendChild(tree);
  // 操作ボタン
- var fbtns=el("div");fbtns.style.cssText="display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap;";
+ var fbtns=el("div");fbtns.style.cssText="display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap;";
  if(!spouse){var addSp=el("button","btn","＋ 配偶者");addSp.style.fontSize="12px";addSp.addEventListener("click",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();});fbtns.appendChild(addSp);}
- var addK=el("button","btn","＋ 子");addK.style.fontSize="12px";addK.addEventListener("click",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();});fbtns.appendChild(addK);
  if(!showParents){var tgP=el("button","btn","＋ 親世代");tgP.style.fontSize="12px";tgP.addEventListener("click",function(){STATE.showParents=true;saveState();render();});fbtns.appendChild(tgP);}
  else{var hgP=el("button","btn","− 親世代を隠す");hgP.style.fontSize="12px";hgP.addEventListener("click",function(){STATE.showParents=false;STATE.family=STATE.family.filter(function(f){return f!==dad&&f!==mom;});saveState();render();});fbtns.appendChild(hgP);}
  if(!showGrand){var tgG=el("button","btn","＋ 孫世代");tgG.style.fontSize="12px";tgG.addEventListener("click",function(){STATE.showGrandkids=true;saveState();render();});fbtns.appendChild(tgG);}
@@ -233,17 +234,17 @@ function render(){
  prow.appendChild(labeled("保険種類",mkSel([""].concat(ITS),(ITS.indexOf(pol.insType)>=0?pol.insType:""),function(v){pol.insType=v;saveState();})));
  c1.appendChild(prow);
  if(pol.companySel==="その他"){c1.appendChild(labeledBlock("保険会社（自由入力）",inp("text",pol.company||"",function(v){pol.company=v;saveState();})));}
- // プラン名・主契約満了年齢（1行）
- var planRow=el("div");planRow.style.cssText="display:grid;grid-template-columns:1.6fr 1fr;gap:8px;margin-bottom:4px;";
+ // プラン名・保険期間・払込期間（1行に3つ）
+ var planRow=el("div");planRow.style.cssText="display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px;margin-bottom:4px;align-items:end;";
  planRow.appendChild(labeled("プラン名（商品名）",inp("text",pol.planName||"",function(v){pol.planName=v;saveState();})));
- planRow.appendChild(ageWhole("主契約満了年齢",pol,"mainEndAge","mainEndWhole"));
+ planRow.appendChild(ageWhole("保険期間（満了年齢）",pol,"mainEndAge","mainEndWhole"));
+ planRow.appendChild(ageWhole("払込期間（満了年齢）",pol,"payToAge","payToWhole"));
  c1.appendChild(planRow);
- // 保険料・払込回数・通貨・払込満了・支払方法（1行）
- var crow=el("div");crow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:6px;margin-top:4px;align-items:end;";
+ // 保険料・払込回数・通貨・支払方法（1行）
+ var crow=el("div");crow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:4px;align-items:end;";
  crow.appendChild(labeled("保険料",inp("number",pol.premium||"",function(v){pol.premium=v;saveState();})));
  crow.appendChild(labeled("払込回数",mkSel(PAY_FREQ,pol.payFreq||"月払",function(v){pol.payFreq=v;if(v!=="前納")pol.prepayCount="";saveState();render();})));
  crow.appendChild(labeled("通貨",mkSel(CURRENCIES,pol.currency||"JPY（円）",function(v){pol.currency=v;saveState();})));
- crow.appendChild(ageWhole("払込満了年齢",pol,"payToAge","payToWhole"));
  crow.appendChild(labeled("支払方法",mkSel(PAY_METHOD,pol.payMethod||"口座振替",function(v){pol.payMethod=v;saveState();})));
  c1.appendChild(crow);
  if(pol.payFreq==="前納"){var prow2=el("div");prow2.style.cssText="margin-top:6px;max-width:200px;";prow2.appendChild(labeled("前納回数（回）",inp("number",pol.prepayCount||"",function(v){pol.prepayCount=v;saveState();})));c1.appendChild(prow2);}

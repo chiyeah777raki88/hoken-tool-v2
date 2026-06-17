@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1735";
+var APP_VERSION="v2-0617-1755";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -114,51 +114,70 @@ function render(){
 
  // お客様・家族
  var c0=el("div","card");
- // 本人＋配偶者を横並び
- // 配偶者は family 内の最初の「配偶者」を使う（なければ生成しない＝空欄表示用の一時オブジェクト）
+ var c0h=el("div");c0h.style.cssText="font-weight:700;margin-bottom:6px;font-size:13px;";c0h.textContent="ご家族（家系図）";c0.appendChild(c0h);
+ // お客様名
+ var nmCell=el("div");nmCell.style.cssText="max-width:320px;margin-bottom:8px;";var nmL=el("div","muted","お客様名（ご本人）");nmL.style.marginBottom="2px";nmCell.appendChild(nmL);nmCell.appendChild(inp("text",STATE.custName||"",function(v){STATE.custName=v;saveState();}));
+ c0.appendChild(nmCell);
+
+ // family を続柄で分類
+ function famByLabel(lbls){return STATE.family.filter(function(f){return lbls.indexOf(f.label)>=0;});}
  var spouse=null;for(var si=0;si<STATE.family.length;si++){if(STATE.family[si].label==="配偶者"){spouse=STATE.family[si];break;}}
- var selfRow=el("div");selfRow.style.cssText="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end;";
- var nmCell=el("div");var nmL=el("div","muted","お客様名（ご本人）");nmL.style.marginBottom="2px";nmCell.appendChild(nmL);nmCell.appendChild(inp("text",STATE.custName||"",function(v){STATE.custName=v;saveState();}));
- selfRow.appendChild(nmCell);
- selfRow.appendChild(labeled("ご本人の生年月日",birthInput(STATE.self,function(){saveState();})));
- // 配偶者セル
- var spCell=el("div");var spL=el("div","muted","配偶者の生年月日");spL.style.marginBottom="2px";spCell.appendChild(spL);
- if(spouse){
-   var spInner=el("div");spInner.style.cssText="display:flex;align-items:center;gap:6px;";
-   spInner.appendChild(birthInput(spouse,function(){saveState();}));
-   var spDel=el("button","btn","×");spDel.style.cssText="height:30px;padding:0 8px;";spDel.addEventListener("click",function(){var i=STATE.family.indexOf(spouse);if(i>=0)STATE.family.splice(i,1);saveState();render();});
-   spInner.appendChild(spDel);spCell.appendChild(spInner);
- }else{
-   var addSp=el("button","btn","＋ 配偶者を追加");addSp.addEventListener("click",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();});spCell.appendChild(addSp);
+ var dad=null,mom=null;for(var pi=0;pi<STATE.family.length;pi++){if(!dad&&STATE.family[pi].label==="父")dad=STATE.family[pi];if(!mom&&STATE.family[pi].label==="母")mom=STATE.family[pi];}
+ var kids=STATE.family.filter(function(f){return f.label==="子";});
+ var others=STATE.family.filter(function(f){return ["配偶者","父","母","子"].indexOf(f.label)<0;});
+
+ // コンパクトな1ノード（生年月日＋削除）
+ function node(title,obj,opts){opts=opts||{};
+   var b=el("div");b.style.cssText="border:1px solid #d6dbe5;border-radius:8px;padding:6px 8px;background:#fafbfd;display:inline-block;text-align:center;";
+   var t=el("div");t.style.cssText="font-size:12px;font-weight:700;color:#334;margin-bottom:3px;white-space:nowrap;";t.textContent=title;b.appendChild(t);
+   if(obj){
+     var bi=birthInput(obj,function(){saveState();});bi.style.justifyContent="center";b.appendChild(bi);
+     if(opts.onDel){var x=el("button","btn","×");x.style.cssText="height:22px;padding:0 7px;margin-top:4px;font-size:12px;";x.addEventListener("click",opts.onDel);b.appendChild(x);}
+   }else if(opts.onAdd){var a=el("button","btn",opts.addLabel||"＋ 追加");a.style.cssText="font-size:12px;padding:4px 8px;";a.addEventListener("click",opts.onAdd);b.appendChild(a);}
+   return b;
  }
- selfRow.appendChild(spCell);
- c0.appendChild(selfRow);
- var fh=el("div");fh.style.cssText="font-weight:700;margin:8px 0 4px;font-size:13px;";fh.textContent="その他のご家族";c0.appendChild(fh);
- var fnote=el("p","muted","続柄を選び生年月日を入力。");c0.appendChild(fnote);
- var fwrap=el("div");
- function renderFam(){
-   fwrap.innerHTML="";
-   fwrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;";
-   STATE.family.forEach(function(f,fi){
-     if(f===spouse)return; // 配偶者は上で表示済み
-     var REL=["配偶者","子","父","母","その他"];
+ function vline(){var l=el("div");l.style.cssText="width:2px;height:14px;background:#c2cad8;margin:2px auto;";return l;}
+
+ var tree=el("div");tree.style.cssText="display:flex;flex-direction:column;align-items:center;gap:2px;";
+ // 親世代（父・母）
+ var pRow=el("div");pRow.style.cssText="display:flex;gap:10px;justify-content:center;align-items:flex-start;";
+ pRow.appendChild(node("父",dad,dad?{onDel:function(){var i=STATE.family.indexOf(dad);if(i>=0)STATE.family.splice(i,1);saveState();render();}}:{onAdd:function(){STATE.family.push({label:"父",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 父"}));
+ pRow.appendChild(node("母",mom,mom?{onDel:function(){var i=STATE.family.indexOf(mom);if(i>=0)STATE.family.splice(i,1);saveState();render();}}:{onAdd:function(){STATE.family.push({label:"母",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 母"}));
+ tree.appendChild(pRow);
+ tree.appendChild(vline());
+ // 本人＝配偶者
+ var meRow=el("div");meRow.style.cssText="display:flex;gap:8px;justify-content:center;align-items:flex-start;";
+ meRow.appendChild(node("本人",STATE.self,{}));
+ var eq=el("div");eq.style.cssText="align-self:center;font-weight:700;color:#99a;padding:0 2px;";eq.textContent="＝";meRow.appendChild(eq);
+ meRow.appendChild(node("配偶者",spouse,spouse?{onDel:function(){var i=STATE.family.indexOf(spouse);if(i>=0)STATE.family.splice(i,1);saveState();render();}}:{onAdd:function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 配偶者"}));
+ tree.appendChild(meRow);
+ // 子世代
+ if(kids.length){tree.appendChild(vline());
+   var kRow=el("div");kRow.style.cssText="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;";
+   kids.forEach(function(k,ki){kRow.appendChild(node("子"+(kids.length>1?(ki+1):""),k,{onDel:function(){var i=STATE.family.indexOf(k);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
+   tree.appendChild(kRow);
+ }
+ c0.appendChild(tree);
+ // 操作ボタン（子追加・その他）
+ var fbtns=el("div");fbtns.style.cssText="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;";
+ var addK=el("button","btn","＋ 子を追加");addK.style.fontSize="12px";addK.addEventListener("click",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();});fbtns.appendChild(addK);
+ var addO=el("button","btn","＋ その他の家族");addO.style.fontSize="12px";addO.addEventListener("click",function(){STATE.family.push({label:" ",_other:true,era:"西暦",y:"",m:"",d:""});saveState();render();});fbtns.appendChild(addO);
+ c0.appendChild(fbtns);
+ // その他の家族（続柄自由・横並び）
+ if(others.length){
+   var oWrap=el("div");oWrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;";
+   others.forEach(function(f){
      var row=el("div");row.style.cssText="display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:flex-end;padding:6px;border:1px solid #e2e6ee;border-radius:6px;";
-     var relSelVal=(REL.indexOf(f.label)>=0)?f.label:(f.label?"その他":"");
-     var relCell=el("div");relCell.style.width="74px";
-     var rl=el("div","muted","続柄");rl.style.marginBottom="2px";relCell.appendChild(rl);
-     var relSel=mkSel([""].concat(REL),relSelVal,function(v){if(v==="その他"){f.label=f._free||" ";f._other=true;}else{f.label=v;f._other=false;}saveState();render();});relSel.style.width="74px";relCell.appendChild(relSel);
-     if(f._other||(f.label&&REL.indexOf(f.label)<0)){var fr=inp("text",(f.label===" "?"":f.label)||"",function(v){f.label=v;f._free=v;saveState();});fr.placeholder="続柄";fr.style.cssText="margin-top:4px;width:74px;";relCell.appendChild(fr);}
+     var relCell=el("div");relCell.style.width="84px";var rl=el("div","muted","続柄");rl.style.marginBottom="2px";relCell.appendChild(rl);
+     var fr=inp("text",(f.label===" "?"":f.label)||"",function(v){f.label=v;f._free=v;saveState();});fr.placeholder="続柄";fr.style.width="84px";relCell.appendChild(fr);
      row.appendChild(relCell);
      row.appendChild(labeled("生年月日",birthInput(f,function(){saveState();})));
-     var del=el("button","btn","×");del.style.cssText="height:30px;padding:0 8px;";del.addEventListener("click",function(){STATE.family.splice(fi,1);saveState();renderFam();});
+     var del=el("button","btn","×");del.style.cssText="height:30px;padding:0 8px;";del.addEventListener("click",function(){var i=STATE.family.indexOf(f);if(i>=0)STATE.family.splice(i,1);saveState();render();});
      row.appendChild(del);
-     fwrap.appendChild(row);
+     oWrap.appendChild(row);
    });
+   c0.appendChild(oWrap);
  }
- renderFam();
- c0.appendChild(fwrap);
- var addF=el("button","btn","＋ 家族を追加");addF.addEventListener("click",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();renderFam();});
- c0.appendChild(addF);
  wrap.appendChild(c0);
 
  // 証券タブ（切替・追加）

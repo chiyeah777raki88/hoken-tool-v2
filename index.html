@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1935";
+var APP_VERSION="v2-0617-1955";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -126,18 +126,17 @@ function render(){
  var showParents=!!STATE.showParents||!!dad||!!mom;
  var showGrand=!!STATE.showGrandkids||grandkids.length>0;
 
- // コンパクトな1ノード（続柄＋名前＋生年月日＋削除）。getName/setNameで名前ソースを切替
+ // コンパクトな1ノード（名前＋生年月日＋削除）。続柄はplaceholderで示す
  function node(title,obj,opts){opts=opts||{};
-   var b=el("div");b.style.cssText="border:1px solid #d6dbe5;border-radius:7px;padding:4px 5px;background:#fafbfd;display:inline-block;text-align:center;vertical-align:top;";
-   var t=el("div");t.style.cssText="font-size:11px;font-weight:700;color:#334;margin-bottom:2px;white-space:nowrap;line-height:1.2;";t.textContent=title;b.appendChild(t);
+   var b=el("div");b.style.cssText="border:1px solid #d6dbe5;border-radius:6px;padding:3px 4px;background:#fafbfd;display:inline-block;text-align:center;vertical-align:top;";
    if(obj){
-     var nm=document.createElement("input");nm.type="text";nm.placeholder="名前";
+     var nm=document.createElement("input");nm.type="text";nm.placeholder=title||"名前";
      nm.value=opts.getName?opts.getName():(obj.name||"");
-     nm.style.cssText="width:78px;font-size:11px;padding:1px 3px;text-align:center;margin-bottom:1px;";
+     nm.style.cssText="width:72px;font-size:11px;padding:1px 3px;text-align:center;margin-bottom:1px;";
      nm.addEventListener("input",function(){if(opts.setName)opts.setName(this.value);else obj.name=this.value;saveState();});
      b.appendChild(nm);
-     var bi=birthInput(obj,function(){saveState();});bi.style.justifyContent="center";bi.style.transform="scale(0.82)";bi.style.transformOrigin="center top";bi.style.marginBottom="-4px";b.appendChild(bi);
-     if(opts.onDel){var x=el("button","btn","×");x.style.cssText="height:16px;padding:0 5px;margin-top:1px;font-size:10px;";x.addEventListener("click",opts.onDel);b.appendChild(x);}
+     var bi=birthInput(obj,function(){saveState();});bi.style.justifyContent="center";bi.style.transform="scale(0.78)";bi.style.transformOrigin="center top";bi.style.margin="0 -10px -6px";b.appendChild(bi);
+     if(opts.onDel){var x=el("button","btn","×");x.style.cssText="height:15px;padding:0 5px;font-size:10px;line-height:1;";x.addEventListener("click",opts.onDel);b.appendChild(x);}
    }else if(opts.onAdd){var a=el("button","btn",opts.addLabel||"＋ 追加");a.style.cssText="font-size:12px;padding:4px 8px;";a.addEventListener("click",opts.onAdd);b.appendChild(a);}
    return b;
  }
@@ -162,21 +161,19 @@ function render(){
    meRow.appendChild(node("配偶者",spouse,{onDel:function(){var i=STATE.family.indexOf(spouse);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));
  }
  tree.appendChild(meRow);
- // 子世代（4人まで横一列、5人以上は折り返し）。末尾に＋子ノード
- {tree.appendChild(vline());
+ // 子世代（4人まで横一列、5人以上は折り返し）
+ if(kids.length){tree.appendChild(vline());
    var kRow=el("div");
    var twoCol=kids.length>=5;
-   kRow.style.cssText="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"+(twoCol?"max-width:380px;":"");
+   kRow.style.cssText="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"+(twoCol?"max-width:360px;":"");
    kids.forEach(function(k,ki){kRow.appendChild(node("子"+(kids.length>1?(ki+1):""),k,{onDel:function(){var i=STATE.family.indexOf(k);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
-   kRow.appendChild(node("",null,{onAdd:function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 子"}));
    tree.appendChild(kRow);
  }
- // 孫世代（表示が有効なときだけ・同様）
+ // 孫世代（表示が有効なときだけ）
  if(showGrand){tree.appendChild(vline());
    var gRow=el("div");var gTwo=grandkids.length>=5;
-   gRow.style.cssText="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"+(gTwo?"max-width:380px;":"");
+   gRow.style.cssText="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"+(gTwo?"max-width:360px;":"");
    grandkids.forEach(function(g,gi){gRow.appendChild(node("孫"+(grandkids.length>1?(gi+1):""),g,{onDel:function(){var i=STATE.family.indexOf(g);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
-   gRow.appendChild(node("",null,{onAdd:function(){STATE.family.push({label:"孫",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 孫"}));
    tree.appendChild(gRow);
  }
  famFlex.appendChild(tree);
@@ -184,10 +181,11 @@ function render(){
  var fbtns=el("div");fbtns.style.cssText="display:flex;flex-direction:column;gap:4px;flex:0 0 auto;width:108px;";
  function sideBtn(label,fn){var b=el("button","btn",label);b.style.cssText="font-size:12px;padding:5px 6px;width:100%;";b.addEventListener("click",fn);return b;}
  if(!spouse)fbtns.appendChild(sideBtn("＋ 配偶者",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();}));
+ fbtns.appendChild(sideBtn("＋ 子",function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();}));
  if(!showParents)fbtns.appendChild(sideBtn("＋ 親世代",function(){STATE.showParents=true;saveState();render();}));
  else fbtns.appendChild(sideBtn("− 親世代",function(){STATE.showParents=false;STATE.family=STATE.family.filter(function(f){return f!==dad&&f!==mom;});saveState();render();}));
  if(!showGrand)fbtns.appendChild(sideBtn("＋ 孫世代",function(){STATE.showGrandkids=true;saveState();render();}));
- else fbtns.appendChild(sideBtn("− 孫世代",function(){STATE.showGrandkids=false;STATE.family=STATE.family.filter(function(f){return f.label!=="孫";});saveState();render();}));
+ else{fbtns.appendChild(sideBtn("＋ 孫",function(){STATE.family.push({label:"孫",era:"西暦",y:"",m:"",d:""});saveState();render();}));fbtns.appendChild(sideBtn("− 孫世代",function(){STATE.showGrandkids=false;STATE.family=STATE.family.filter(function(f){return f.label!=="孫";});saveState();render();}));}
  fbtns.appendChild(sideBtn("＋ その他",function(){STATE.family.push({label:" ",_other:true,era:"西暦",y:"",m:"",d:""});saveState();render();}));
  famFlex.appendChild(fbtns);
  c0.appendChild(famFlex);
@@ -336,13 +334,21 @@ function birthInput(obj,onCh){
  if(!obj.era)obj.era="西暦";
  var w=el("div");w.style.cssText="display:flex;align-items:center;gap:3px;flex-wrap:nowrap;";
  var era=mkSel(["西暦","昭和","平成","令和"],obj.era,function(v){obj.era=v;onCh();upd();});era.style.cssText="width:64px;flex:none;";
- function num(val,ph,max,len,next){var i=document.createElement("input");i.type="tel";i.inputMode="numeric";i.value=val||"";i.placeholder=ph;i.maxLength=len;i.style.cssText="width:"+(len>2?54:38)+"px;flex:none;text-align:center;";i.addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"");if(this.value.length>=len&&next&&next())next().focus();onChVal();});return i;}
+ function num(val,ph,max,len,next,smart){var i=document.createElement("input");i.type="tel";i.inputMode="numeric";i.value=val||"";i.placeholder=ph;i.maxLength=len;i.style.cssText="width:"+(len>2?54:38)+"px;flex:none;text-align:center;";
+   i.addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"");
+     var v=this.value;
+     // smart=true（月/日）：1桁目が大きく2桁目があり得ない場合は即送り（例 月:2-9 → 即確定、日:4-9 → 即確定）
+     if(smart&&v.length===1){var n=parseInt(v,10);var thresh=(max===12)?1:3;if(n>thresh){if(next&&next())next().focus();}}
+     if(v.length>=len&&next&&next())next().focus();
+     onChVal();});
+   if(smart){i.addEventListener("blur",function(){var v=this.value;if(v.length===1&&v!=="0"){this.value="0"+v;onChVal();}});}
+   return i;}
  var yi,mi,di,ageSpan;
  function onChVal(){obj.y=yi.value;obj.m=mi.value;obj.d=di.value;onCh();upd();}
  function upd(){var a=ageFromBirth(obj);ageSpan.textContent=(a!=null?("（"+a+"歳）"):"");}
  yi=num(obj.y,"年",9999,4,function(){return mi;});
- mi=num(obj.m,"月",12,2,function(){return di;});
- di=num(obj.d,"日",31,2,null);
+ mi=num(obj.m,"月",12,2,function(){return di;},true);
+ di=num(obj.d,"日",31,2,null,true);
  ageSpan=el("span","muted","");ageSpan.style.cssText="font-size:11px;white-space:nowrap;";
  w.appendChild(era);w.appendChild(yi);w.appendChild(el("span","muted","/"));w.appendChild(mi);w.appendChild(el("span","muted","/"));w.appendChild(di);w.appendChild(ageSpan);
  upd();

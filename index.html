@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2200";
+var APP_VERSION="v2-0617-2220";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
@@ -238,12 +238,12 @@ function render(){
  var addP=el("button","btn gold","＋ 証券を追加");addP.style.padding="6px 10px";
  addP.addEventListener("click",function(){STATE.policies.push(newPolicy(STATE.policies.length));STATE.cur=STATE.policies.length-1;saveState();render();});
  tabs.appendChild(addP);
- tabBar.appendChild(tabs);
- // カメラ読み取り（段階1：鍵の疎通確認）
- var camWrap=el("div");camWrap.style.cssText="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
- var camLbl=el("label","btn gold");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 12px;font-size:13px;";camLbl.textContent="📷 証券・設計書を読み取る";
+ // カメラ読み取り（段階1：鍵の疎通確認）— タブ行に横並び
+ var camLbl=el("label","btn");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 10px;font-size:13px;background:#3a4a6b;color:#fff;";camLbl.textContent="📷 読み取り";
  var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.style.display="none";camLbl.appendChild(camFi);
- var camMsg=el("span","muted","");camMsg.style.fontSize="11px";
+ tabs.appendChild(camLbl);
+ tabBar.appendChild(tabs);
+ var camMsg=el("div","muted","");camMsg.style.cssText="font-size:11px;margin-top:6px;";
  camFi.addEventListener("change",function(){
    var f=this.files&&this.files[0];if(!f)return;
    if(!AI_API_KEY){camMsg.textContent="先に右上の「🔑鍵」からAPIキーを登録してください。";camMsg.style.color="#c0392b";return;}
@@ -263,9 +263,8 @@ function render(){
    r.readAsDataURL(f);
    this.value="";
  });
- camWrap.appendChild(camLbl);camWrap.appendChild(camMsg);
- tabBar.appendChild(camWrap);
- var camNote=el("p","muted","※今は鍵の疎通確認のみ。実際の自動入力（各項目への反映）は次の段階で実装します。");camNote.style.cssText="font-size:11px;margin-top:6px;";tabBar.appendChild(camNote);
+ tabBar.appendChild(camMsg);
+ var camNote=el("p","muted","※今は鍵の疎通確認のみ。実際の自動入力（各項目への反映）は次の段階で実装します。");camNote.style.cssText="font-size:11px;margin-top:4px;";tabBar.appendChild(camNote);
  wrap.appendChild(tabBar);
 
  // 現在の証券の基本情報
@@ -277,12 +276,13 @@ function render(){
  var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:32px;height:22px;padding:0;border:1px solid #c9ced8;border-radius:4px;flex:none;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});pinfo.appendChild(ci);
  // 契約形態（個人/法人）を見出し行に
  var isCorp=(pol.contractType==="法人");
- var ctWrap=el("span");ctWrap.style.cssText="display:inline-flex;align-items:center;gap:8px;margin-left:6px;border-left:1px solid #dde;padding-left:10px;";
+ var ctWrap=el("span");ctWrap.style.cssText="display:inline-flex;align-items:center;gap:12px;margin-left:6px;border-left:1px solid #dde;padding-left:12px;flex:none;";
  ["個人","法人"].forEach(function(t){
-   var lb=el("label");lb.style.cssText="display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:400;cursor:pointer;white-space:nowrap;";
-   var r=document.createElement("input");r.type="radio";r.name="ctype"+STATE.cur;r.checked=(t==="法人"?isCorp:!isCorp);r.style.cssText="flex:none;margin:0;";
+   var lb=el("label");lb.style.cssText="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:400;cursor:pointer;white-space:nowrap;flex:none;";
+   var r=document.createElement("input");r.type="radio";r.name="ctype"+STATE.cur;r.checked=(t==="法人"?isCorp:!isCorp);r.style.cssText="flex:none;margin:0;width:16px;height:16px;";
    r.addEventListener("change",function(){pol.contractType=t;saveState();render();});
-   lb.appendChild(r);lb.appendChild(document.createTextNode(t));ctWrap.appendChild(lb);
+   var tx=el("span",null,t);tx.style.cssText="flex:none;white-space:nowrap;";
+   lb.appendChild(r);lb.appendChild(tx);ctWrap.appendChild(lb);
  });
  pinfo.appendChild(ctWrap);
  if(STATE.policies.length>1){var delP=el("button","btn","削除");delP.style.cssText="margin-left:auto;font-size:12px;padding:4px 8px;flex:none;";delP.addEventListener("click",function(){if(confirm("証券 "+letterOf(STATE.cur)+" を削除しますか？")){STATE.policies.splice(STATE.cur,1);STATE.cur=0;saveState();render();}});pinfo.appendChild(delP);}

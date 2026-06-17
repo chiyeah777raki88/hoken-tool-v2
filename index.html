@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0245";
+var APP_VERSION="v2-0618-0315";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -119,10 +119,10 @@ var COV_PRESETS=[
  {t:"入院一時金",r1:["1日でも入院で","1泊2日以上","5日以上","所定日数以上"]},
  {t:"退院一時金",r1:["入院日数の条件なし","所定の入院日数以上"]},
  {t:"手術",dual:true,r1:["公的保険連動","倍率型","一律型"]},
- {t:"女性手術",r1:["公的保険連動","一律型"]},
  {t:"通院",r1:["退院後180日以内","退院後120日以内","入院前後","通院のみ"],r2:["30日分まで","60日分まで","90日分まで"]},
  {t:"ケガ",r1:["外来通院","骨折・断裂","両方を補償"]},
  {t:"女性特約",r1:["女性疾病入院","女性がん","出産関連"],r2:["日額","一時金"]},
+ {t:"女性手術",r1:["公的保険連動","一律型"]},
  {t:"がん診断一時金",r1:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
  {t:"がん入院",r1:["無制限","日数制限あり"]},
  {t:"がん通院",r1:["手術","放射線","抗がん剤","通院","自由診療含む"]},
@@ -307,18 +307,19 @@ function scanBasic(files,setMsg,onReflect){
   files.forEach(function(f,idx){var r=new FileReader();r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)go();};r.onerror=function(){done++;if(done===files.length)go();};r.readAsDataURL(f);});
   function go(){
     var content=imgs.filter(Boolean).concat([{type:"text",text:SCAN_PROMPT}]);
-    fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-opus-4-8",max_tokens:4000,messages:[{role:"user",content:content}]})})
+    fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4000,messages:[{role:"user",content:content}]})})
     .then(function(res){return res.json();})
     .then(function(d){
-      if(d&&d.error){setMsg("エラー："+(d.error.message||"").slice(0,80),"#c0392b");return;}
+      if(d&&d.error){setMsg("エラー："+(d.error.message||"").slice(0,120),"#c0392b");alert("読み取りエラー：\n"+(d.error.message||JSON.stringify(d.error)));return;}
       var txt=(d&&d.content&&d.content[0]&&d.content[0].text)||"";
+      if(!txt){setMsg("応答が空でした。","#c0392b");alert("応答が空でした。画像を減らすか、もう一度お試しください。");return;}
       var js=txt.replace(/```json/g,"").replace(/```/g,"").trim();
       var parsed=null;try{parsed=JSON.parse(js);}catch(e){var m=js.match(/\{[\s\S]*\}/);if(m){try{parsed=JSON.parse(m[0]);}catch(e2){}}}
-      if(!parsed){setMsg("読取結果の解析に失敗。もう一度お試しください。","#c0392b");return;}
-      setMsg("✓ 読み取り完了。内容を確認してください。","#27ae60");
+      if(!parsed){setMsg("解析に失敗。","#c0392b");alert("読み取り結果をうまく変換できませんでした。\n\nAIの返答（先頭）:\n"+txt.slice(0,300));return;}
+      setMsg("✓ 読み取り完了。確認画面へ。","#27ae60");
       showScanConfirm(parsed,onReflect);
     })
-    .catch(function(e){setMsg("通信エラー："+e.message,"#c0392b");});
+    .catch(function(e){setMsg("通信エラー："+e.message,"#c0392b");alert("通信エラー："+e.message);});
   }
 }
 
@@ -533,17 +534,17 @@ function render(){
  treeScroll.appendChild(tree);
  famFlex.appendChild(treeScroll);
  // 右の空きスペースに証券操作ボタン（＋証券追加・撮影・画像を選ぶ）
- var polOps=el("div");polOps.style.cssText="display:flex;flex-direction:column;gap:4px;flex:1 1 120px;min-width:110px;";
- var addP2=el("button","btn gold","＋ 証券");addP2.style.cssText="padding:5px 8px;font-size:12px;";
+ var polOps=el("div");polOps.style.cssText="display:flex;flex-direction:row;flex-wrap:wrap;gap:4px;flex:1 1 auto;align-items:flex-start;";
+ var addP2=el("button","btn gold","＋証券");addP2.style.cssText="padding:5px 7px;font-size:11px;white-space:nowrap;";
  addP2.addEventListener("click",function(){STATE.policies.push(newPolicy(STATE.policies.length));STATE.cur=STATE.policies.length-1;saveState();render();});
  polOps.appendChild(addP2);
- var camLbl=el("label","btn");camLbl.style.cssText="cursor:pointer;padding:5px 8px;font-size:12px;background:#3a4a6b;color:#fff;text-align:center;";camLbl.textContent="📷 撮影";
+ var camLbl=el("label","btn");camLbl.style.cssText="cursor:pointer;padding:5px 7px;font-size:11px;background:#3a4a6b;color:#fff;white-space:nowrap;";camLbl.textContent="📷撮影";
  var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";camLbl.appendChild(camFi);
  polOps.appendChild(camLbl);
- var libLbl=el("label","btn");libLbl.style.cssText="cursor:pointer;padding:5px 8px;font-size:12px;background:#3a4a6b;color:#fff;text-align:center;";libLbl.textContent="🖼 画像（複数可）";
+ var libLbl=el("label","btn");libLbl.style.cssText="cursor:pointer;padding:5px 7px;font-size:11px;background:#3a4a6b;color:#fff;white-space:nowrap;";libLbl.textContent="🖼画像";
  var libFi=document.createElement("input");libFi.type="file";libFi.accept="image/*";libFi.multiple=true;libFi.style.display="none";libLbl.appendChild(libFi);
  polOps.appendChild(libLbl);
- var camMsg=el("div","muted","");camMsg.style.cssText="font-size:10px;";polOps.appendChild(camMsg);
+ var camMsg=el("div","muted","");camMsg.style.cssText="font-size:10px;flex-basis:100%;";polOps.appendChild(camMsg);
  function readFiles(fileList){
    var files=[].slice.call(fileList||[]);if(!files.length)return;
    scanBasic(files,function(t,c){camMsg.style.color=c||"#8089a0";camMsg.textContent=t;},reflectBasic);

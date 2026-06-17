@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1205";
+var APP_VERSION="v2-0617-1235";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -57,7 +57,7 @@ var COV_PRESETS=[
  {t:"心疾患",r1:["急性心筋梗塞のみ","心疾患全般"],r2:["60日所定","入院1日","入院10日","入院20日","診断で即時"]},
  {t:"脳血管疾患",r1:["脳卒中のみ","脳血管疾患全般"],r2:["60日所定","入院1日","入院10日","入院20日","診断で即時"]},
  {t:"大病一時金",r1:["3大疾病","5大疾病","7大疾病","8大疾病"],r2:["60日所定","入院1日","入院10日","入院20日","診断で即時"]},
- {t:"先進医療",r1:["通算上限あり","技術料実費"]},
+ {t:"先進医療",r1:["技術料実費＋一時金あり","技術料実費（一時金なし）"],r2:["通算1000万まで","通算2000万まで","上限記載なし"]},
  {t:"祝金・生存給付",celeb:true,r1:["〇年ごと","満期"]},
  {t:"保険料免除",r1:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]},
  {t:"その他（自由入力）",free:true,r1:[]}

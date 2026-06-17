@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0945";
+var APP_VERSION="v2-0618-1000";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -261,7 +261,7 @@ function mxEmphasize(text,tc,colId){
   var kws;
   if(colId==="f"){kws=["入院"];}        // ⑥ 入院しただけで出る（緩い）
   else if(colId==="g"){kws=["通院"];}    // ⑦ 通院で出る（最も緩い）
-  else{kws=["悪性新生物","急性心筋梗塞","脳卒中","労働制限","所定の状態","20日","10日"];}
+  else{kws=["悪性新生物","急性心筋梗塞","脳卒中","労働制限","所定の状態","60日","20日","10日"];}
   kws.sort(function(a,b){return b.length-a.length;});
   kws.forEach(function(k){var re=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");esc=esc.replace(re,"\u0001"+k+"\u0002");});
   esc=esc.replace(/\u0001/g,"<b style='color:"+(tc||"#1a2744")+";'>").replace(/\u0002/g,"</b>");
@@ -280,7 +280,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
   if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
   tbl.appendChild(hr1);
   var hr2=el("tr");
-  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:"+(noSecond?"118px":"84px")+";color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
+  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:"+(noSecond?"124px":"108px")+";color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
   if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(l){var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:1px 3px;text-align:center;font-size:10px;min-width:60px;color:#166534;";th.textContent=l;hr2.appendChild(th);});
   tbl.appendChild(hr2);
   rows.forEach(function(row){
@@ -294,10 +294,10 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var defText=(row.def&&row.def[col.id])||"";
       var cd=mxEnsure(data,ck,defText);
       var rc={bg:"#ffffff",tc:"#1a2744"};
-      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;background:"+rc.bg+";";
+      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"124px":"108px"))+";position:relative;background:"+rc.bg+";";
       if(cd.na){
         var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;cursor:pointer;";naWrap.title="クリックで入力に戻す";
-        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:11px;color:#bbb;white-space:pre-wrap;";naTxt.innerHTML=mxEmphasize(cd.text||(row.def&&row.def[col.id])||"","#bbb",col.id);
+        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:11px;color:#bbb;white-space:normal;word-break:keep-all;overflow-wrap:break-word;text-align:center;line-height:1.3;";naTxt.innerHTML=mxEmphasize(cd.text||(row.def&&row.def[col.id])||"","#bbb",col.id);
         naWrap.appendChild(naTxt);
         var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;";
         var l1=document.createElementNS("http://www.w3.org/2000/svg","line");l1.setAttribute("x1","2");l1.setAttribute("y1","2");l1.setAttribute("x2","98%");l1.setAttribute("y2","98%");l1.setAttribute("stroke","#e74c3c");l1.setAttribute("stroke-width","2");
@@ -307,7 +307,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
         td.appendChild(naWrap);
       }else{
         // 表示モード（印刷で消えない・色分け・キーワード太字）＋タップで編集
-        var disp=el("div");disp.style.cssText="padding:3px 4px;font-size:11px;color:"+rc.tc+";white-space:pre-wrap;min-height:24px;cursor:text;line-height:1.3;";
+        var disp=el("div");disp.style.cssText="padding:3px 4px;font-size:11px;color:"+rc.tc+";white-space:normal;word-break:keep-all;overflow-wrap:break-word;min-height:24px;cursor:text;line-height:1.3;text-align:center;";
         disp.innerHTML=mxEmphasize(cd.text||"",rc.tc,col.id)||"<span style='color:#bbb;'>入力...</span>";
         disp.title="タップで編集";
         disp.addEventListener("click",function(){

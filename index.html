@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1920";
+var APP_VERSION="v2-0617-1935";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -227,7 +227,12 @@ function render(){
  // 現在の証券の基本情報
  var pol=curPol();
  var c1=el("div","card");
- var pinfo=el("div");pinfo.style.cssText="font-weight:700;margin-bottom:8px;";pinfo.textContent="証券 "+letterOf(STATE.cur)+" の情報";c1.appendChild(pinfo);
+ var pinfo=el("div");pinfo.style.cssText="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;";
+ var pttl=el("span","","証券 "+letterOf(STATE.cur)+" の情報");pinfo.appendChild(pttl);
+ var clab=el("span","muted","色");clab.style.cssText="font-size:12px;margin-left:6px;";pinfo.appendChild(clab);
+ var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:34px;height:24px;padding:0;border:1px solid #c9ced8;border-radius:4px;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});pinfo.appendChild(ci);
+ if(STATE.policies.length>1){var delP=el("button","btn","削除");delP.style.cssText="margin-left:auto;font-size:12px;padding:4px 8px;";delP.addEventListener("click",function(){if(confirm("証券 "+letterOf(STATE.cur)+" を削除しますか？")){STATE.policies.splice(STATE.cur,1);STATE.cur=0;saveState();render();}});pinfo.appendChild(delP);}
+ c1.appendChild(pinfo);
  // 契約者・被保険者（登録済みの人から選択）
  var ppl=peopleList();
  var prow=el("div");prow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;";
@@ -252,11 +257,6 @@ function render(){
  crow.appendChild(labeled("支払方法",mkSel(PAY_METHOD,pol.payMethod||"口座振替",function(v){pol.payMethod=v;saveState();})));
  c1.appendChild(crow);
  if(pol.payFreq==="前納"){var prow2=el("div");prow2.style.cssText="margin-top:6px;max-width:200px;";prow2.appendChild(labeled("前納回数（回）",inp("number",pol.prepayCount||"",function(v){pol.prepayCount=v;saveState();})));c1.appendChild(prow2);}
- var crow2=el("div");crow2.style.cssText="display:flex;align-items:center;gap:8px;margin-top:8px;";
- var cl=el("span","muted","証券の色");var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:40px;height:30px;padding:0;border:1px solid #c9ced8;border-radius:4px;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});
- crow2.appendChild(cl);crow2.appendChild(ci);
- if(STATE.policies.length>1){var delP=el("button","btn","この証券を削除");delP.style.marginLeft="auto";delP.addEventListener("click",function(){if(confirm("証券 "+letterOf(STATE.cur)+" を削除しますか？")){STATE.policies.splice(STATE.cur,1);STATE.cur=0;saveState();render();}});crow2.appendChild(delP);}
- c1.appendChild(crow2);
  wrap.appendChild(c1);
 
  // 保障内容一覧（現在の証券）

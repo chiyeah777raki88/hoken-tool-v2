@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1655";
+var APP_VERSION="v2-0617-1715";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -114,24 +114,28 @@ function render(){
 
  // お客様・家族
  var c0=el("div","card");
- c0.appendChild(field("お客様名（ご本人）",STATE.custName,function(v){STATE.custName=v;saveState();}));
- c0.appendChild(labeledBlock("ご本人の生年月日",birthInput(STATE.self,function(){saveState();})));
+ var selfRow=el("div");selfRow.style.cssText="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;";
+ var nmCell=el("div");var nmL=el("div","muted","お客様名（ご本人）");nmL.style.marginBottom="2px";nmCell.appendChild(nmL);nmCell.appendChild(inp("text",STATE.custName||"",function(v){STATE.custName=v;saveState();}));
+ selfRow.appendChild(nmCell);
+ selfRow.appendChild(labeled("ご本人の生年月日",birthInput(STATE.self,function(){saveState();})));
+ c0.appendChild(selfRow);
  var fh=el("div");fh.style.cssText="font-weight:700;margin:8px 0 4px;font-size:13px;";fh.textContent="家族（続柄・年齢）";c0.appendChild(fh);
- var fnote=el("p","muted","配偶者やお子様などの続柄を選び、現在の年齢を入れます（本人は上の年齢を使います）。タイムラインの下に年齢が並びます。");c0.appendChild(fnote);
+ var fnote=el("p","muted","続柄を選び生年月日を入力（本人は上を使用）。");c0.appendChild(fnote);
  var fwrap=el("div");
  function renderFam(){
    fwrap.innerHTML="";
+   fwrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;";
    STATE.family.forEach(function(f,fi){
      var REL=["配偶者","子","父","母","その他"];
-     var row=el("div");row.style.cssText="display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px;align-items:flex-end;margin-bottom:6px;";
+     var row=el("div");row.style.cssText="display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:flex-end;padding:6px;border:1px solid #e2e6ee;border-radius:6px;";
      var relSelVal=(REL.indexOf(f.label)>=0)?f.label:(f.label?"その他":"");
-     var relCell=el("div");
+     var relCell=el("div");relCell.style.width="74px";
      var rl=el("div","muted","続柄");rl.style.marginBottom="2px";relCell.appendChild(rl);
-     relCell.appendChild(mkSel([""].concat(REL),relSelVal,function(v){if(v==="その他"){f.label=f._free||" ";f._other=true;}else{f.label=v;f._other=false;}saveState();renderFam();}));
-     if(f._other||(f.label&&REL.indexOf(f.label)<0)){var fr=inp("text",(f.label===" "?"":f.label)||"",function(v){f.label=v;f._free=v;saveState();});fr.placeholder="続柄を入力";fr.style.marginTop="4px";relCell.appendChild(fr);}
+     var relSel=mkSel([""].concat(REL),relSelVal,function(v){if(v==="その他"){f.label=f._free||" ";f._other=true;}else{f.label=v;f._other=false;}saveState();renderFam();});relSel.style.width="74px";relCell.appendChild(relSel);
+     if(f._other||(f.label&&REL.indexOf(f.label)<0)){var fr=inp("text",(f.label===" "?"":f.label)||"",function(v){f.label=v;f._free=v;saveState();});fr.placeholder="続柄";fr.style.cssText="margin-top:4px;width:74px;";relCell.appendChild(fr);}
      row.appendChild(relCell);
      row.appendChild(labeled("生年月日",birthInput(f,function(){saveState();})));
-     var del=el("button","btn","×");del.style.cssText="height:32px;padding:0 10px;";del.addEventListener("click",function(){STATE.family.splice(fi,1);saveState();renderFam();});
+     var del=el("button","btn","×");del.style.cssText="height:30px;padding:0 8px;";del.addEventListener("click",function(){STATE.family.splice(fi,1);saveState();renderFam();});
      row.appendChild(del);
      fwrap.appendChild(row);
    });
@@ -168,14 +172,18 @@ function render(){
  prow.appendChild(labeled("契約者",mkSel(ppl,(ppl.indexOf(pol.contractor)>=0?pol.contractor:"本人"),function(v){pol.contractor=v;saveState();})));
  prow.appendChild(labeled("被保険者",mkSel(ppl,(ppl.indexOf(pol.insured)>=0?pol.insured:"本人"),function(v){pol.insured=v;saveState();})));
  c1.appendChild(prow);
- // 保険会社（選択＋その他自由入力）
+ // 保険会社・保険種類（1行）
  var coVal=(COS.indexOf(pol.companySel)>=0?pol.companySel:(pol.company?"その他":""));
- c1.appendChild(labeledBlock("保険会社",mkSel([""].concat(COS),coVal,function(v){pol.companySel=v;if(v!=="その他"){pol.company=v;}saveState();render();})));
+ var coRow=el("div");coRow.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;";
+ coRow.appendChild(labeled("保険会社",mkSel([""].concat(COS),coVal,function(v){pol.companySel=v;if(v!=="その他"){pol.company=v;}saveState();render();})));
+ coRow.appendChild(labeled("保険種類",mkSel([""].concat(ITS),(ITS.indexOf(pol.insType)>=0?pol.insType:""),function(v){pol.insType=v;saveState();})));
+ c1.appendChild(coRow);
  if(pol.companySel==="その他"){c1.appendChild(labeledBlock("保険会社（自由入力）",inp("text",pol.company||"",function(v){pol.company=v;saveState();})));}
- // 保険種類
- c1.appendChild(labeledBlock("保険種類",mkSel([""].concat(ITS),(ITS.indexOf(pol.insType)>=0?pol.insType:""),function(v){pol.insType=v;saveState();})));
- c1.appendChild(field("プラン名（商品名）",pol.planName,function(v){pol.planName=v;saveState();}));
- c1.appendChild(field("主契約の保険期間（満了年齢）",pol.mainEndAge,function(v){pol.mainEndAge=v;saveState();},"number"));
+ // プラン名・主契約満了年齢（1行）
+ var planRow=el("div");planRow.style.cssText="display:grid;grid-template-columns:1.6fr 1fr;gap:8px;margin-bottom:4px;";
+ planRow.appendChild(labeled("プラン名（商品名）",inp("text",pol.planName||"",function(v){pol.planName=v;saveState();})));
+ planRow.appendChild(labeled("主契約満了年齢",inp("number",pol.mainEndAge||"",function(v){pol.mainEndAge=v;saveState();})));
+ c1.appendChild(planRow);
  // 保険料・払込・通貨・払込満了・支払方法（コンパクトに2行へ）
  var crow=el("div");crow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px;";
  crow.appendChild(labeled("保険料",inp("number",pol.premium||"",function(v){pol.premium=v;saveState();})));

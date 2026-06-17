@@ -39,7 +39,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0030";
+var APP_VERSION="v2-0618-0045";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -344,7 +344,7 @@ function render(){
 
  // 家系図（横スクロール対応・行は折り返さず横に並べる）
  var treeScroll=el("div");treeScroll.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;";
- var tree=el("div");tree.style.cssText="display:inline-flex;flex-direction:column;align-items:center;gap:1px;min-width:100%;";
+ var tree=el("div");tree.style.cssText="display:inline-flex;flex-direction:column;align-items:center;gap:1px;";
  // 親世代（表示が有効なときだけ）
  if(showParents){
    var pRow=el("div");pRow.style.cssText="display:flex;gap:6px;justify-content:center;align-items:flex-start;flex-wrap:nowrap;";

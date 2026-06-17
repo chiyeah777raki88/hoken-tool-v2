@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-1000";
+var APP_VERSION="v2-0618-1030";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -353,6 +353,75 @@ function mxPolPopup(e,cd){
   pop.appendChild(off);
   document.body.appendChild(pop);
   setTimeout(function(){document.addEventListener("click",function h(ev){if(!pop.contains(ev.target)){pop.remove();document.removeEventListener("click",h);}});},50);
+}
+
+function buildGraphTab(){
+  var wrap=el("div","wrap");
+  var pols=STATE.policies;
+  var baseAge=ageFromBirth(STATE.self)||40;
+  var ages=[];for(var a=baseAge;a<=100;a++)ages.push(a);
+  // 死亡・高度障害のindex
+  var deathIdx=-1;for(var i=0;i<COV_PRESETS.length;i++){if(COV_PRESETS[i].t==="死亡・高度障害"){deathIdx=i;break;}}
+  // ① 死亡保障推移（積み上げ）
+  var card1=el("div","card");
+  var h1=el("div");h1.style.cssText="font-weight:700;margin-bottom:6px;";h1.textContent="死亡保障の推移（積み上げ）";card1.appendChild(h1);
+  var dSets=[];
+  pols.forEach(function(p,pi){
+    var it=(p.items&&deathIdx>=0)?p.items[deathIdx]:null;
+    if(!it||!it.on)return;
+    var amt=+String(it.amount||"").replace(/[^0-9.]/g,"")||0;
+    if(amt<=0)return;
+    var endAge=p.mainEndWhole?120:(+p.mainEndAge||100);
+    var data=ages.map(function(ag){return (ag<=endAge)?amt:null;});
+    dSets.push({label:letterOf(pi)+(p.company?("・"+p.company):""),data:data,backgroundColor:p.color,borderColor:p.color,borderWidth:1,stack:"s"});
+  });
+  if(dSets.length){
+    var cv1=document.createElement("canvas");var box1=el("div");box1.style.cssText="position:relative;height:280px;";box1.appendChild(cv1);card1.appendChild(box1);
+    setTimeout(function(){if(typeof Chart==="undefined")return;try{new Chart(cv1,{type:"bar",data:{labels:ages.map(function(a){return a+"歳";}),datasets:dSets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:10},boxWidth:12}}},scales:{x:{stacked:true,ticks:{maxTicksLimit:12,font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}}}});}catch(e){box1.textContent="グラフエラー";}},80);
+  }else{card1.appendChild(el("p","muted","死亡保障（金額入力済み）の証券がありません。"));}
+  wrap.appendChild(card1);
+
+  // ② 月払保険料の推移（払込満了で各証券が抜ける）
+  var card2=el("div","card");
+  var h2=el("div");h2.style.cssText="font-weight:700;margin-bottom:6px;";h2.textContent="月払保険料の推移";card2.appendChild(h2);
+  var pSets=[];
+  pols.forEach(function(p,pi){
+    var m=premToMonthly(p);if(m<=0)return;
+    var payEnd=p.payToWhole?120:(+p.payToAge||(p.mainEndWhole?120:(+p.mainEndAge||100)));
+    var data=ages.map(function(ag){return (ag<=payEnd)?Math.round(m):null;});
+    pSets.push({label:letterOf(pi)+(p.company?("・"+p.company):""),data:data,backgroundColor:p.color,borderColor:p.color,borderWidth:1,stack:"p"});
+  });
+  if(pSets.length){
+    var cv2=document.createElement("canvas");var box2=el("div");box2.style.cssText="position:relative;height:220px;";box2.appendChild(cv2);card2.appendChild(box2);
+    setTimeout(function(){if(typeof Chart==="undefined")return;try{new Chart(cv2,{type:"bar",data:{labels:ages.map(function(a){return a+"歳";}),datasets:pSets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:10},boxWidth:12}}},scales:{x:{stacked:true,ticks:{maxTicksLimit:12,font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}}}});}catch(e){box2.textContent="グラフエラー";}},120);
+  }else{card2.appendChild(el("p","muted","月払の保険料が入力された証券がありません。"));}
+  wrap.appendChild(card2);
+
+  // ③ 保険料の累計（払った保険料の積み上がり）
+  var card3=el("div","card");
+  var h3=el("div");h3.style.cssText="font-weight:700;margin-bottom:6px;";h3.textContent="保険料の累計（払込総額の推移）";card3.appendChild(h3);
+  var cumSets=[];var anyCum=false;
+  pols.forEach(function(p,pi){
+    var m=premToMonthly(p);
+    var payEnd=p.payToWhole?120:(+p.payToAge||(p.mainEndWhole?120:(+p.mainEndAge||100)));
+    var cum=0,prev=baseAge;
+    var lump=(p.payFreq==="一時払"||p.payFreq==="前納")?(+p.premium||0):0;
+    if(m<=0&&lump<=0)return;anyCum=true;
+    var data=ages.map(function(ag){
+      if(ag===baseAge&&lump>0)cum+=lump;
+      if(m>0&&ag<=payEnd)cum+=m*12;
+      return Math.round(cum);
+    });
+    cumSets.push({label:letterOf(pi)+(p.company?("・"+p.company):""),data:data,borderColor:p.color,backgroundColor:p.color+"22",borderWidth:2,fill:false,pointRadius:0,tension:0.1,stack:"c"});
+  });
+  if(anyCum){
+    var cv3=document.createElement("canvas");var box3=el("div");box3.style.cssText="position:relative;height:220px;";box3.appendChild(cv3);card3.appendChild(box3);
+    setTimeout(function(){if(typeof Chart==="undefined")return;try{new Chart(cv3,{type:"line",data:{labels:ages.map(function(a){return a+"歳";}),datasets:cumSets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:10},boxWidth:12}}},scales:{x:{ticks:{maxTicksLimit:12,font:{size:9}}},y:{ticks:{font:{size:9}}}}}});}catch(e){box3.textContent="グラフエラー";}},160);
+    card3.appendChild(el("p","muted","各証券の払込総額が年齢とともにどう増えるか。通貨が混在する場合は数値のまま合算しません（証券別の線）。"));
+  }else{card3.appendChild(el("p","muted","保険料が入力された証券がありません。"));}
+  wrap.appendChild(card3);
+
+  return wrap;
 }
 
 function buildCheckTab(){
@@ -687,6 +756,9 @@ function render(){
  // 保障チェックタブ
  if(CUR_TAB==="check"){app.appendChild(buildCheckTab());return;}
 
+ // 保障グラフタブ
+ if(CUR_TAB==="graph"){app.appendChild(buildGraphTab());return;}
+
  // 基準設定タブ（お客様に見せない内部設定）
  if(CUR_TAB==="settings"){
    var sw=el("div","wrap");
@@ -732,7 +804,7 @@ function render(){
  // 未移植タブはスタブ
  if(CUR_TAB!=="input"){
    var stub=el("div","tab-stub");
-   var names={graph:"保障グラフ",proposal:"提案",assets:"資産・老後",print:"印刷"};
+   var names={proposal:"提案",assets:"資産・老後",print:"印刷"};
    stub.innerHTML="<div style='font-size:14px;font-weight:700;color:#475067;margin-bottom:6px;'>「"+(names[CUR_TAB]||CUR_TAB)+"」タブ</div><div>この機能はv1から順次移植します。</div>";
    app.appendChild(stub);
    return;

@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0130";
+var APP_VERSION="v2-0618-0145";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -398,17 +398,17 @@ function render(){
  treeScroll.appendChild(tree);
  famFlex.appendChild(treeScroll);
  // 右の空きスペースに証券操作ボタン（＋証券追加・撮影・画像を選ぶ）
- var polOps=el("div");polOps.style.cssText="display:flex;flex-direction:column;gap:6px;flex:1 1 140px;min-width:130px;";
- var addP2=el("button","btn gold","＋ 証券を追加");addP2.style.cssText="padding:7px 10px;font-size:13px;";
+ var polOps=el("div");polOps.style.cssText="display:flex;flex-direction:column;gap:4px;flex:1 1 120px;min-width:110px;";
+ var addP2=el("button","btn gold","＋ 証券");addP2.style.cssText="padding:5px 8px;font-size:12px;";
  addP2.addEventListener("click",function(){STATE.policies.push(newPolicy(STATE.policies.length));STATE.cur=STATE.policies.length-1;saveState();render();});
  polOps.appendChild(addP2);
- var camLbl=el("label","btn");camLbl.style.cssText="cursor:pointer;padding:7px 10px;font-size:13px;background:#3a4a6b;color:#fff;text-align:center;";camLbl.textContent="📷 撮影";
+ var camLbl=el("label","btn");camLbl.style.cssText="cursor:pointer;padding:5px 8px;font-size:12px;background:#3a4a6b;color:#fff;text-align:center;";camLbl.textContent="📷 撮影";
  var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";camLbl.appendChild(camFi);
  polOps.appendChild(camLbl);
- var libLbl=el("label","btn");libLbl.style.cssText="cursor:pointer;padding:7px 10px;font-size:13px;background:#3a4a6b;color:#fff;text-align:center;";libLbl.textContent="🖼 画像を選ぶ（複数可）";
+ var libLbl=el("label","btn");libLbl.style.cssText="cursor:pointer;padding:5px 8px;font-size:12px;background:#3a4a6b;color:#fff;text-align:center;";libLbl.textContent="🖼 画像（複数可）";
  var libFi=document.createElement("input");libFi.type="file";libFi.accept="image/*";libFi.multiple=true;libFi.style.display="none";libLbl.appendChild(libFi);
  polOps.appendChild(libLbl);
- var camMsg=el("div","muted","");camMsg.style.cssText="font-size:11px;";polOps.appendChild(camMsg);
+ var camMsg=el("div","muted","");camMsg.style.cssText="font-size:10px;";polOps.appendChild(camMsg);
  function readFiles(fileList){
    var files=[].slice.call(fileList||[]);if(!files.length)return;
    if(!AI_API_KEY){camMsg.style.color="#c0392b";camMsg.textContent="右上の「🔑鍵」から登録を。";return;}

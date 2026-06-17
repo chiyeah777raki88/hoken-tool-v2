@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-1330";
+var APP_VERSION="v2-0618-1345";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -492,7 +492,14 @@ function convertV1Policy(v1p,idx,insuredLabel){
   p.insType=(ITS.indexOf(v1p.insType)>=0)?v1p.insType:(v1p.insType?"その他":"");
   p.planName=v1p.polName||"";
   if(v1p.dlPeriodType==="終身"){p.mainEndWhole=true;}else if(v1p.dlPeriodEnd){p.mainEndAge=String(v1p.dlPeriodEnd);}
-  if(v1p.dlPayEnd){p.payToAge=String(v1p.dlPayEnd);}
+  var pt=v1p.dlPayType||"";
+  if(v1p.dlPayEnd&&+v1p.dlPayEnd>0&&+v1p.dlPayEnd<120){p.payToAge=String(v1p.dlPayEnd);}
+  else if(pt.indexOf("終身払")>=0){p.payToWhole=true;}
+  else if(pt.indexOf("60歳")>=0){p.payToAge="60";}
+  else if(pt.indexOf("65歳")>=0){p.payToAge="65";}
+  else if(pt.indexOf("70歳")>=0){p.payToAge="70";}
+  else if(pt==="保険期間と同じ"){if(v1p.dlPeriodType==="終身")p.payToWhole=true;else if(v1p.dlPeriodEnd)p.payToAge=String(v1p.dlPeriodEnd);}
+  else p.payToWhole=true;
   p.premium=v1p.premAmount?String(v1p.premAmount):"";
   var u=(v1p.premUnit||"").trim();
   p.payFreq=(u.indexOf("年")>=0?"年払":u.indexOf("一時")>=0?"一時払":u.indexOf("半年")>=0?"半年払":"月払");
@@ -534,7 +541,14 @@ function convertV1Policy(v1p,idx,insuredLabel){
       if(isVar)return {age:r.age||"",paid:r.paid||"",val:"",v3:r.v3||"",v45:r.v5||r.v45||"",v6:r.v6||""};
       return {age:r.age||"",paid:r.paid||"",val:r.v3||r.val||"",v3:"",v45:"",v6:""};
     });
-  }else if(v1p.currentVal){p.hasCashValue=true;p.futureVals=[];}
+  }else if(v1p.currentVal&&+v1p.currentVal>0){
+    p.hasCashValue=true;
+    var nowAge=ageFromBirth(STATE.self)||60;
+    p.futureVals=[{age:String(nowAge),paid:"",val:String(v1p.currentVal),v3:"",v45:"",v6:""}];
+  }else if(v1p.refundVal&&+v1p.refundVal>0&&v1p.refundAge){
+    p.hasCashValue=true;
+    p.futureVals=[{age:String(v1p.refundAge),paid:"",val:String(v1p.refundVal),v3:"",v45:"",v6:""}];
+  }
   return p;
 }
 function convertV1Customer(data){

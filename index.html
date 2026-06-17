@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1035";
+var APP_VERSION="v2-0617-1105";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -59,7 +59,8 @@ var COV_PRESETS=[
  {t:"大病一時金",r1:["3大疾病","5大疾病","7大疾病","8大疾病"],r2:["60日所定","入院1日","入院10日","入院20日","診断で即時"]},
  {t:"先進医療",r1:["通算上限あり","技術料実費"]},
  {t:"祝金・生存給付",r1:["〇年ごと","満期"]},
- {t:"保険料免除",r1:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]}
+ {t:"保険料免除",r1:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]},
+ {t:"その他（自由入力）",free:true,r1:[]}
 ];
 var AMT_TYPES=["日額(円)","月額(万)","一時金(万)","年額(万)","上限(万)"];
 
@@ -72,7 +73,7 @@ if(!STATE.items)STATE.items=[];
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;}
 
 function getItem(i){
- if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,req1:"",req2:"",periodType:"主契約と同じ",endAge:"",amount:"",amount2:"",amountType:"一時金(万)",freq:"1回",interval:"",premium:""};
+ if(!STATE.items[i])STATE.items[i]={on:false,trigger:COV_PRESETS[i].t,triggerFree:"",req1:"",req2:"",periodType:"主契約と同じ",endAge:"",amount:"",amount2:"",amountType:"一時金(万)",freq:"1回",interval:"",premium:""};
  var _it=STATE.items[i];if(_it.req1===undefined)_it.req1=_it.req||"";if(_it.req2===undefined)_it.req2="";if(_it.periodType===undefined)_it.periodType=(_it.endAge?"歳指定":"主契約と同じ");if(_it.amountType==="一時金(万円)")_it.amountType="一時金(万)";
  return STATE.items[i];
 }
@@ -114,8 +115,12 @@ function render(){
   var tr=el("tr");if(!it.on)tr.className="off";
   // 該当
   var tdc=el("td","c");var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!it.on;cb.addEventListener("change",function(){it.on=this.checked;saveState();render();});tdc.appendChild(cb);tr.appendChild(tdc);
-  // 給付事由
-  tr.appendChild(el("td",null,p.t));
+  // 給付事由（自由入力行は手入力可）
+  if(p.free){
+    var tdt0=el("td");var ti=document.createElement("input");ti.type="text";ti.value=it.triggerFree||"";ti.placeholder="給付事由を入力";ti.addEventListener("input",function(){it.triggerFree=this.value;it.trigger=this.value||"その他";saveState();});tdt0.appendChild(ti);tr.appendChild(tdt0);
+  }else{
+    tr.appendChild(el("td",null,p.t));
+  }
   if(it.on){
    // 要件（2段：範囲＋条件）
    var tdr=el("td");
@@ -190,7 +195,7 @@ function makePdf(){
  var amtLabel=function(it){var u=esc(it.amountType||"");if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString())+" "+u;}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString())+" "+u;};
  var periodLabel=function(it){if(it.periodType==="終身")return "終身";if(it.periodType==="歳指定"&&it.endAge)return esc(it.endAge)+"歳";return "主契約と同じ";};
  var reqLabel=function(it){var parts=[];if(it.req1)parts.push(it.req1);if(it.req2)parts.push(it.req2);if(it.freq&&it.freq!=="1回"){parts.push(it.freq+((it.interval&&(it.freq==="複数回"||it.freq==="各々複数回"))?("・"+it.interval):""));}return esc(parts.join("／"));};
- var trs=rows.map(function(it){return "<tr><td>"+esc(it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+periodLabel(it)+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
+ var trs=rows.map(function(it){return "<tr><td>"+esc(it.triggerFree||it.trigger)+"</td><td>"+reqLabel(it)+"</td><td style='text-align:center'>"+periodLabel(it)+"</td><td style='text-align:right'>"+amtLabel(it)+"</td></tr>";}).join("");
  var today=new Date();var ds=today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
  w.document.write('<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>保障内容一覧表</title>'+
  '<style>body{font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1a2744;padding:24px;}h1{font-size:18px;border-bottom:3px solid #1a2744;padding-bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;}h1 small{font-size:11px;color:#555;font-weight:normal;}.sub{font-size:12px;margin:6px 0 14px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1a2744;color:#fff;padding:7px;border:1px solid #1a2744;text-align:left;}td{padding:7px;border:1px solid #bbb;}tr:nth-child(even) td{background:#f4f6fa;}.ft{text-align:right;font-size:10px;color:#888;margin-top:10px;}@media print{.noprint{display:none;}}</style></head><body>'+

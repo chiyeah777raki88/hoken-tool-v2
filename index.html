@@ -29,12 +29,76 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 .btn.gold{background:#c9a84c;}
 .muted{color:#8a8a8a;font-size:11px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2245";
+var APP_VERSION="v2-0617-2300";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
+
+// ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
+var SB_URL="https://phxmhnuivsizcydsyptv.supabase.co";
+var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoeG1obnVpdnNpemN5ZHN5cHR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NDk0NTIsImV4cCI6MjA5NzEyNTQ1Mn0.Iszcs41Xe7VtDye0xKIoKkc9MVvmAVumqaI1cEWh4ag";
+var sbClient=null, sbUser=null, SYNC_ON=false;
+function sbInit(){try{if(window.supabase&&window.supabase.createClient){sbClient=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});return true;}}catch(e){}return false;}
+// クラウドから鍵を読み込み（user_settings.api_key、v1と共有）
+async function sbLoadApiKey(){
+  if(!sbClient||!sbUser)return;
+  try{
+    var r=await sbClient.from("user_settings").select("api_key").eq("user_id",sbUser.id).maybeSingle();
+    if(r&&r.data&&r.data.api_key){AI_API_KEY=r.data.api_key;try{localStorage.setItem("ins_ai_api_key",AI_API_KEY);}catch(e){}}
+  }catch(e){}
+}
+// クラウドへ鍵を保存（他端末へ反映）
+function sbSaveApiKey(v){
+  if(!sbClient||!sbUser)return;
+  try{sbClient.from("user_settings").upsert({user_id:sbUser.id,api_key:v||"",updated_at:new Date().toISOString()}).then(function(){},function(){});}catch(e){}
+}
+function sbSyncLabel(){return SYNC_ON?"☁同期中":"☁同期する";}
+
+// ログイン画面
+function showLogin(onDone){
+  var ov=document.createElement("div");
+  ov.style.cssText="position:fixed;inset:0;background:rgba(26,39,68,0.97);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;";
+  var box=document.createElement("div");
+  box.style.cssText="background:#fff;border-radius:12px;padding:24px;max-width:360px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);";
+  box.innerHTML='<div style="font-size:18px;font-weight:800;color:#1a2744;margin-bottom:4px;">同期ログイン</div>'+
+    '<div style="font-size:12px;color:#666;margin-bottom:16px;">v1と同じメール・パスワードでログインすると、鍵やデータがPC・スマホ共通になります。</div>'+
+    '<input id="sbEmail" type="email" placeholder="メールアドレス" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;">'+
+    '<input id="sbPass" type="password" placeholder="パスワード" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;">'+
+    '<button id="sbLoginBtn" style="width:100%;padding:11px;background:#c9a84c;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;">ログイン</button>'+
+    '<button id="sbCancelBtn" style="width:100%;padding:8px;background:transparent;color:#888;border:none;font-size:12px;cursor:pointer;text-decoration:underline;">この端末だけで使う（同期しない）</button>'+
+    '<div id="sbMsg" style="font-size:12px;margin-top:10px;text-align:center;min-height:16px;"></div>';
+  ov.appendChild(box);document.body.appendChild(ov);
+  var msg=box.querySelector("#sbMsg");
+  function setMsg(t,err){msg.textContent=t;msg.style.color=err?"#c0392b":"#27ae60";}
+  if(!sbInit()){setMsg("サーバー接続の準備に失敗。ネット接続を確認してください。",true);}
+  box.querySelector("#sbLoginBtn").addEventListener("click",async function(){
+    var em=box.querySelector("#sbEmail").value.trim();var pw=box.querySelector("#sbPass").value;
+    if(!em||!pw){setMsg("メールとパスワードを入れてください",true);return;}
+    setMsg("ログイン中...",false);
+    try{
+      var r=await sbClient.auth.signInWithPassword({email:em,password:pw});
+      if(r.error){setMsg("ログイン失敗："+r.error.message,true);return;}
+      sbUser=r.data.user;SYNC_ON=true;
+      setMsg("鍵を読み込み中...",false);
+      await sbLoadApiKey();
+      ov.remove();if(onDone)onDone();
+    }catch(e){setMsg("エラー："+e.message,true);}
+  });
+  box.querySelector("#sbCancelBtn").addEventListener("click",function(){ov.remove();if(onDone)onDone();});
+}
+// 起動時に既存セッションがあれば自動ログイン
+function sbRestore(cb){
+  if(!sbInit()){cb&&cb();return;}
+  try{
+    sbClient.auth.getSession().then(async function(r){
+      if(r&&r.data&&r.data.session){sbUser=r.data.session.user;SYNC_ON=true;await sbLoadApiKey();}
+      cb&&cb();
+    },function(){cb&&cb();});
+  }catch(e){cb&&cb();}
+}
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -121,10 +185,17 @@ function render(){
    if(v===null)return;
    v=v.trim();AI_API_KEY=v;
    try{if(v){localStorage.setItem("ins_ai_api_key",v);}else{localStorage.removeItem("ins_ai_api_key");}}catch(e){}
-   alert(v?"鍵を登録しました。カメラ読み取りが使えます。":"鍵の登録を解除しました。");
+   if(SYNC_ON)sbSaveApiKey(v);
+   alert(v?(SYNC_ON?"鍵を登録し、同期しました。他の端末にも反映されます。":"鍵を登録しました。（同期するには☁同期ボタンからログイン）"):"鍵の登録を解除しました。");
    render();
  });
  hdr.appendChild(keyBtn);
+ var syncBtn=el("button","btn",SYNC_ON?"☁同期中":"☁同期");syncBtn.style.cssText="font-size:11px;padding:3px 8px;margin-left:6px;background:"+(SYNC_ON?"#27ae60":"#7c3aed")+";color:#fff;border:none;";
+ syncBtn.addEventListener("click",function(){
+   if(SYNC_ON){alert("ログイン中です（同期オン）。鍵やデータはこのアカウントで端末間共有されます。");return;}
+   showLogin(function(){render();});
+ });
+ hdr.appendChild(syncBtn);
  var rst=el("button","btn","全消去");rst.style.cssText="font-size:11px;padding:3px 8px;margin-left:6px;";rst.addEventListener("click",function(){if(confirm("入力した全データ（家族・全証券）を消去して新規状態に戻します。よろしいですか？")){STATE={custName:"",self:{era:"西暦",y:"",m:"",d:""},family:[],policies:[newPolicy(0)],cur:0};saveState();render();}});hdr.appendChild(rst);
  app.appendChild(hdr);
 
@@ -478,7 +549,7 @@ function makePdf(){
  w.document.close();
 }
 
-render();
+sbRestore(function(){render();});
 
 </script>
 </body>

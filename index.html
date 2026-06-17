@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0410";
+var APP_VERSION="v2-0618-0430";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -345,22 +345,28 @@ function showScanConfirm(data,onReflect){
     i.addEventListener("input",function(){edited[f[0]]=this.value;});edited[f[0]]=i.value;
     w.appendChild(i);box.appendChild(w);
   });
-  // 保障サマリー（読み取れた分）
+  // 保障サマリー（チェックで個別に除外できる）
+  var covChecks=[];
   if(covs.length){
-    var ch=el("div");ch.style.cssText="font-weight:700;font-size:13px;margin:10px 0 4px;";ch.textContent="読み取れた保障（"+covs.length+"件）";box.appendChild(ch);
+    var ch=el("div");ch.style.cssText="font-weight:700;font-size:13px;margin:10px 0 4px;";ch.textContent="読み取れた保障（"+covs.length+"件・不要はチェックを外す）";box.appendChild(ch);
     var cl=el("div");cl.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px;";
-    cl.innerHTML=covs.map(function(c){return "・"+(c.type||"?")+"："+(c.amount!=null?c.amount:"")+(c.amount2!=null?("/"+c.amount2):"")+(c.amountType?("("+c.amountType+")"):"");}).join("<br>");
+    covs.forEach(function(c,ci){
+      var row=el("label");row.style.cssText="display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer;";
+      var cb=document.createElement("input");cb.type="checkbox";cb.checked=true;cb.style.flex="none";covChecks[ci]=cb;
+      var tx=el("span",null,(c.type||"?")+"："+(c.amount!=null&&c.amount!==""?c.amount:"—")+(c.amount2!=null&&c.amount2!==""?("/"+c.amount2):"")+(c.amountType?("("+c.amountType+")"):""));
+      row.appendChild(cb);row.appendChild(tx);cl.appendChild(row);
+    });
     box.appendChild(cl);
   }
   if(fvs.length){
     var fh2=el("div");fh2.style.cssText="font-weight:700;font-size:13px;margin:10px 0 4px;";fh2.textContent="読み取れた将来予測（"+fvs.length+"行）";box.appendChild(fh2);
     var fl=el("div");fl.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px;";
-    fl.innerHTML=fvs.map(function(r){return "・"+(r.age||"?")+"歳：返戻"+(r.val!=null?r.val:(r.v3!=null?("3%"+r.v3):"?"));}).join("<br>");
+    fl.innerHTML=fvs.map(function(r){return "・"+(r.age!=null&&r.age!==""?r.age:"?")+"歳：返戻"+(r.val!=null&&r.val!==""?Math.round(+r.val):(r.v3!=null&&r.v3!==""?("3%"+Math.round(+r.v3)):"?"));}).join("<br>");
     box.appendChild(fl);
   }
   var btnRow=el("div");btnRow.style.cssText="display:flex;gap:8px;margin-top:14px;";
   var ok=el("button","btn gold","この内容を反映");ok.style.cssText="flex:1;padding:10px;font-size:14px;";
-  ok.addEventListener("click",function(){onReflect(edited,covs,fvs);ov.remove();});
+  ok.addEventListener("click",function(){var keptCovs=covs.filter(function(c,ci){return !covChecks[ci]||covChecks[ci].checked;});onReflect(edited,keptCovs,fvs);ov.remove();});
   var cancel=el("button","btn","やめる");cancel.style.cssText="padding:10px 14px;font-size:14px;background:#888;";
   cancel.addEventListener("click",function(){ov.remove();});
   btnRow.appendChild(ok);btnRow.appendChild(cancel);box.appendChild(btnRow);
@@ -395,9 +401,10 @@ function reflectBasic(d,covs,fvs){
       if(c.note&&String(c.note).trim())it.req1=c.note;
     });
   }
-  // 将来予測の反映
+  // 将来予測の反映（金額は小数を丸める）
   if(fvs&&fvs.length){
-    p.hasCashValue=true;p.futureVals=fvs.map(function(r){return {age:r.age||"",paid:(r.paid!=null?r.paid:""),val:(r.val!=null?r.val:""),v3:(r.v3!=null?r.v3:""),v45:(r.v45!=null?r.v45:""),v6:(r.v6!=null?r.v6:"")};});
+    function rd(v){if(v==null||v==="")return "";var n=+v;return isNaN(n)?"":Math.round(n);}
+    p.hasCashValue=true;p.futureVals=fvs.map(function(r){return {age:(r.age!=null?String(r.age).replace(/[^0-9]/g,""):""),paid:rd(r.paid),val:rd(r.val),v3:rd(r.v3),v45:rd(r.v45),v6:rd(r.v6)};});
   }
   saveState();render();
 }

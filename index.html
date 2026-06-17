@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1135";
+var APP_VERSION="v2-0617-1205";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -58,7 +58,7 @@ var COV_PRESETS=[
  {t:"脳血管疾患",r1:["脳卒中のみ","脳血管疾患全般"],r2:["60日所定","入院1日","入院10日","入院20日","診断で即時"]},
  {t:"大病一時金",r1:["3大疾病","5大疾病","7大疾病","8大疾病"],r2:["60日所定","入院1日","入院10日","入院20日","診断で即時"]},
  {t:"先進医療",r1:["通算上限あり","技術料実費"]},
- {t:"祝金・生存給付",r1:["〇年ごと","満期"]},
+ {t:"祝金・生存給付",celeb:true,r1:["〇年ごと","満期"]},
  {t:"保険料免除",r1:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]},
  {t:"その他（自由入力）",free:true,r1:[]}
 ];
@@ -130,6 +130,12 @@ function render(){
    if(p.r2&&p.r2.length){
     var s2=mkSel([""].concat(p.r2),it.req2||"",function(v){it.req2=v;saveState();});s2.style.marginTop="4px";tdr.appendChild(s2);
    }
+   if(p.celeb&&it.req1==="〇年ごと"){
+    var wy=el("div");wy.style.cssText="display:flex;align-items:center;gap:3px;margin-top:4px;";
+    var yi=document.createElement("input");yi.type="number";yi.value=it.celebYears||"";yi.placeholder="何年";yi.addEventListener("input",function(){it.celebYears=this.value;saveState();});
+    var yl=el("span",null,"年ごと");yl.style.cssText="font-size:10px;color:#888;white-space:nowrap;";
+    wy.appendChild(yi);wy.appendChild(yl);tdr.appendChild(wy);
+   }
    if(!(p.r1&&p.r1.length)&&!(p.r2&&p.r2.length)){
     var fi2=document.createElement("input");fi2.type="text";fi2.value=it.req1||"";fi2.placeholder="（任意）";fi2.addEventListener("input",function(){it.req1=this.value;saveState();});tdr.appendChild(fi2);
    }
@@ -194,7 +200,7 @@ function makePdf(){
  var esc=function(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
  var amtLabel=function(it){var u=esc(it.amountType||"");if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString())+" "+u;}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString())+" "+u;};
  var periodLabel=function(it){if(it.periodType==="終身")return "終身";if(it.periodType==="歳指定"&&it.endAge)return esc(it.endAge)+"歳";return "主契約と同じ";};
- var reqLabel=function(it){var parts=[];if(it.req1)parts.push(it.req1);if(it.req2)parts.push(it.req2);return esc(parts.join("／"));};
+ var reqLabel=function(it){var parts=[];if(it.req1){if(it.req1==="〇年ごと"&&it.celebYears){parts.push(it.celebYears+"年ごと");}else{parts.push(it.req1);}}if(it.req2)parts.push(it.req2);return esc(parts.join("／"));};
  var freqLabel=function(it){if(!it.freq)return "";var x=it.freq;if((it.freq==="複数回"||it.freq==="各々複数回")&&it.interval)x+="・"+it.interval;return esc(x);};
  var premLabel=function(it){return it.premium?(esc(Number(it.premium).toLocaleString())+" 円"):"";};
  var amtNum=function(it){if(it.amount&&it.amount2){return "入院 "+esc(Number(it.amount).toLocaleString())+" / 外来 "+esc(Number(it.amount2).toLocaleString());}if(!it.amount)return "";return esc(Number(it.amount).toLocaleString());};

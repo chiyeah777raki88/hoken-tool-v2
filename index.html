@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0800";
+var APP_VERSION="v2-0618-0830";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -227,6 +227,25 @@ var MX_ROWS_MENJO=[
 function mxData(){if(!STATE.matrix)STATE.matrix={kyufu:{},menjo:{},rowLabels:{}};if(!STATE.matrix.kyufu)STATE.matrix.kyufu={};if(!STATE.matrix.menjo)STATE.matrix.menjo={};if(!STATE.matrix.rowLabels)STATE.matrix.rowLabels={};return STATE.matrix;}
 function mxEnsure(data,ck,defText){if(!data[ck]){data[ck]={text:defText||"",polIdxs:[],na:false};}if(!data[ck].polIdxs)data[ck].polIdxs=[];return data[ck];}
 function mxBorder(cd){if(cd.na)return "1px solid #ccc";if(cd.polIdxs&&cd.polIdxs.length>=1)return "3px solid "+(STATE.policies[cd.polIdxs[0]]?STATE.policies[cd.polIdxs[0]].color:"#1a2744");return "1px solid #ddd";}
+// 疾病ごとの色（老眼でも区別しやすい配色。bg=薄背景, tc=文字色）
+var MX_ROW_COLORS={
+ cancer:{bg:"#fdeef2",tc:"#b03060"},m_cancer:{bg:"#fdeef2",tc:"#b03060"},
+ heart:{bg:"#fdecec",tc:"#c0392b"},m_heart:{bg:"#fdecec",tc:"#c0392b"},
+ brain:{bg:"#eef2fd",tc:"#2c4fa0"},m_brain:{bg:"#eef2fd",tc:"#2c4fa0"},
+ diabetes:{bg:"#fef6e8",tc:"#9a6b1e"},hypertension:{bg:"#f3f0fb",tc:"#6b4ba0"},
+ liver:{bg:"#eef7ee",tc:"#3a7d44"},kidney:{bg:"#eef7f7",tc:"#2a7d7d"},
+ pancreas:{bg:"#f7eef2",tc:"#8b3a6b"},
+ dis:{bg:"#f0f4f8",tc:"#3a4a6b"},dis_grade:{bg:"#f0f4f8",tc:"#3a4a6b"},welfare:{bg:"#f0f4f8",tc:"#3a4a6b"},
+ care:{bg:"#fef3ec",tc:"#b5651d"},m_dis_grade:{bg:"#f0f4f8",tc:"#3a4a6b"},m_welfare:{bg:"#f0f4f8",tc:"#3a4a6b"},m_care:{bg:"#fef3ec",tc:"#b5651d"}
+};
+// 条件文のキーワードを強調（太字＋濃色）
+function mxEmphasize(text,tc){
+  if(!text)return "";
+  var esc=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  var kws=["急性心筋梗塞","悪性新生物","上皮内がん","脳卒中","脳血管疾患","心疾患","労働制限","所定の状態","診断","入院or手術","手術","入院","通院","外来","要介護4","要介護3","要介護2","要介護1","60日","20日以上","10日以上","1級","2級","3級","4級"];
+  kws.forEach(function(k){var re=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");esc=esc.replace(re,"<b style='color:"+(tc||"#1a2744")+";'>"+k+"</b>");});
+  return esc;
+}
 function mxBuildTable(tableType,rows,title,hColor,noSecond){
   var M=mxData();var data=M[tableType];
   var visCOLS=noSecond?MX_COLS.filter(function(c){return c.g!=="second";}):MX_COLS;
@@ -253,10 +272,11 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var ck=tableType+"|"+row.id+"|"+col.id;
       var defText=(row.def&&row.def[col.id])||"";
       var cd=mxEnsure(data,ck,defText);
-      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;";
+      var rc=MX_ROW_COLORS[row.id]||{bg:"#ffffff",tc:"#1a2744"};
+      var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;background:"+rc.bg+";";
       if(cd.na){
-        var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;background:#fff5f5;cursor:pointer;";naWrap.title="クリックで入力に戻す";
-        var naTxt=el("div");naTxt.style.cssText="padding:2px 3px;font-size:11px;color:#999;white-space:pre-wrap;";naTxt.textContent=cd.text||(row.def&&row.def[col.id])||"";
+        var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;cursor:pointer;";naWrap.title="クリックで入力に戻す";
+        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:11px;color:#bbb;white-space:pre-wrap;";naTxt.innerHTML=mxEmphasize(cd.text||(row.def&&row.def[col.id])||"","#bbb");
         naWrap.appendChild(naTxt);
         var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;";
         var l1=document.createElementNS("http://www.w3.org/2000/svg","line");l1.setAttribute("x1","2");l1.setAttribute("y1","2");l1.setAttribute("x2","98%");l1.setAttribute("y2","98%");l1.setAttribute("stroke","#e74c3c");l1.setAttribute("stroke-width","2");
@@ -265,14 +285,22 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
         naWrap.addEventListener("click",function(){cd.na=false;saveState();render();});
         td.appendChild(naWrap);
       }else{
-        var ta=document.createElement("textarea");ta.value=cd.text||"";ta.rows=2;ta.placeholder="入力...";ta.style.cssText="width:100%;border:none;background:transparent;font-size:11px;color:#1a2744;resize:none;padding:2px 3px;min-height:26px;box-sizing:border-box;outline:none;font-family:inherit;display:block;line-height:1.25;";
-        ta.addEventListener("input",function(){cd.text=this.value;saveState();});
-        td.appendChild(ta);
+        // 表示モード（印刷で消えない・色分け・キーワード太字）＋タップで編集
+        var disp=el("div");disp.style.cssText="padding:3px 4px;font-size:11px;color:"+rc.tc+";white-space:pre-wrap;min-height:24px;cursor:text;line-height:1.3;";
+        disp.innerHTML=mxEmphasize(cd.text||"",rc.tc)||"<span style='color:#bbb;'>入力...</span>";
+        disp.title="タップで編集";
+        disp.addEventListener("click",function(){
+          var ta=document.createElement("textarea");ta.value=cd.text||"";ta.rows=2;ta.style.cssText="width:100%;border:1px solid #2980b9;background:#fff;font-size:11px;color:#1a2744;resize:none;padding:3px;box-sizing:border-box;outline:none;font-family:inherit;line-height:1.3;";
+          disp.replaceWith(ta);ta.focus();
+          ta.addEventListener("input",function(){cd.text=this.value;saveState();});
+          ta.addEventListener("blur",function(){render();});
+        });
+        td.appendChild(disp);
         var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:2px;padding:0 2px 2px;align-items:center;";
         (cd.polIdxs||[]).forEach(function(pi){var dt=el("span");dt.style.cssText="width:10px;height:10px;border-radius:2px;flex:none;background:"+(STATE.policies[pi]?STATE.policies[pi].color:"#999")+";";dotRow.appendChild(dt);});
-        var addB=el("button");addB.textContent="＋証券";addB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #cbd2de;border-radius:3px;background:#f3f5f9;color:#475067;cursor:pointer;";
+        var addB=el("button");addB.textContent="＋証券";addB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #cbd2de;border-radius:3px;background:#fff;color:#475067;cursor:pointer;";
         addB.addEventListener("click",function(e){e.stopPropagation();mxPolPopup(e,cd);});
-        var naB=el("button");naB.textContent="✕";naB.title="非該当";naB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #ddd;border-radius:3px;background:#f8f8f8;color:#999;cursor:pointer;";
+        var naB=el("button");naB.textContent="✕";naB.title="非該当";naB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #ddd;border-radius:3px;background:#fff;color:#999;cursor:pointer;";
         naB.addEventListener("click",function(e){e.stopPropagation();cd.na=true;saveState();render();});
         dotRow.appendChild(addB);dotRow.appendChild(naB);
         td.appendChild(dotRow);

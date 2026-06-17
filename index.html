@@ -355,6 +355,101 @@ function mxPolPopup(e,cd){
   setTimeout(function(){document.addEventListener("click",function h(ev){if(!pop.contains(ev.target)){pop.remove();document.removeEventListener("click",h);}});},50);
 }
 
+// ===== 資産・老後シミュレーション =====
+// 複利計算：現在値b(万)＋毎月積立m(万/月)を年率r%でy年運用 → 万円
+function fvCalc(b,m,r,y){var rate=r/100/12,n=Math.round(y*12);if(n<=0)return Math.round(b);if(rate===0)return Math.round(b+m*n);return Math.round(b*Math.pow(1+rate,n)+m*((Math.pow(1+rate,n)-1)/rate));}
+// 通貨→円換算（原通貨の万→円万。為替は簡易150）
+function curRate(cur){if(!cur)return 1;if(cur.indexOf("USD")>=0)return 150;if(cur.indexOf("EUR")>=0)return 160;if(cur.indexOf("AUD")>=0)return 100;return 1;}
+function toJPYman(p,amtMan){if(!amtMan)return 0;var c=p.currency||"JPY（円）";if(c.indexOf("JPY")>=0)return amtMan;return Math.round(amtMan*curRate(c));}
+// 証券の指定年齢時点の解約返戻金/積立金（万・円換算）。scen="3"|"45"|"6"
+function polValueAt(p,age,scen){
+  if(!p.hasCashValue||!p.futureVals||!p.futureVals.length)return 0;
+  var rows=p.futureVals.filter(function(r){return r.age!=null&&r.age!=="";}).slice().sort(function(a,b){return (+a.age)-(+b.age);});
+  if(!rows.length)return 0;
+  var isVar=(p.insType&&p.insType.indexOf("変額")>=0);
+  function valOf(r){if(isVar){var v=scen==="6"?r.v6:scen==="45"?r.v45:r.v3;if(!(+v>0))v=r.v3||r.v45||r.v6;return +v||0;}return +r.val||0;}
+  // 線形補間
+  var prev=null,next=null;
+  for(var i=0;i<rows.length;i++){if(+rows[i].age<=age)prev=rows[i];else if(!next)next=rows[i];}
+  var raw;
+  if(prev&&next){var ratio=(age-(+prev.age))/((+next.age)-(+prev.age));raw=valOf(prev)+(valOf(next)-valOf(prev))*ratio;}
+  else if(prev)raw=valOf(prev);
+  else raw=0;
+  return toJPYman(p,Math.round(raw));
+}
+// NISA/iDeCo口座の指定年齢時点の評価額（万）
+function acctValueAt(acc,age,baseAge,ratePct){
+  if(!acc)return 0;
+  var start=+acc.startAge||baseAge;
+  if(age<start)return +acc.current||0;
+  var yrs=age-start;
+  return fvCalc(+acc.current||0,(+acc.monthly||0)/10,ratePct,yrs); // monthlyは円→万に
+}
+function buildAssetsTab(){
+  var wrap=el("div","wrap");
+  var baseAge=ageFromBirth(STATE.self)||40;
+  if(!STATE.assets)STATE.assets={savings:"",nisa:{current:"",monthly:"",startAge:""},ideco:{current:"",monthly:"",startAge:""},scen:"45",endAge:90};
+  var A=STATE.assets;
+  // 設定カード
+  var cset=el("div","card");
+  var sh=el("div");sh.style.cssText="font-weight:700;margin-bottom:8px;";sh.textContent="資産・老後シミュレーション（平時：積み上げ）";cset.appendChild(sh);
+  // 運用シナリオ
+  var scRow=el("div");scRow.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;";
+  scRow.appendChild(el("span","muted","運用シナリオ（NISA/iDeCo）："));
+  [["3","3%"],["45","4.5%"],["6","6%"]].forEach(function(s){
+    var b=el("button","btn",s[1]);b.style.cssText="padding:5px 12px;font-size:12px;"+(A.scen===s[0]?"background:#c9a84c;":"background:#dfe4ee;color:#475067;");
+    b.addEventListener("click",function(){A.scen=s[0];saveState();render();});
+    scRow.appendChild(b);
+  });
+  cset.appendChild(scRow);
+  // 終age
+  var endRow=el("div");endRow.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:10px;";
+  endRow.appendChild(el("span","muted","グラフ終了年齢："));
+  [80,90,100].forEach(function(ea){var b=el("button","btn",ea+"歳");b.style.cssText="padding:5px 12px;font-size:12px;"+(A.endAge===ea?"background:#3a4a6b;color:#fff;":"background:#dfe4ee;color:#475067;");b.addEventListener("click",function(){A.endAge=ea;saveState();render();});endRow.appendChild(b);});
+  cset.appendChild(endRow);
+  // 預貯金・NISA・iDeCo入力
+  var grid=el("div");grid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;";
+  grid.appendChild(labeled("預貯金など（万円）",inp("number",A.savings||"",function(v){A.savings=v;saveState();})));
+  var blank=el("div");grid.appendChild(blank);
+  // NISA
+  grid.appendChild(labeled("NISA 現在額（万円）",inp("number",A.nisa.current||"",function(v){A.nisa.current=v;saveState();})));
+  grid.appendChild(labeled("NISA 積立（万円/月）",inp("number",A.nisa.monthly||"",function(v){A.nisa.monthly=v;saveState();})));
+  // iDeCo
+  grid.appendChild(labeled("iDeCo 現在額（万円）",inp("number",A.ideco.current||"",function(v){A.ideco.current=v;saveState();})));
+  grid.appendChild(labeled("iDeCo 積立（万円/月）",inp("number",A.ideco.monthly||"",function(v){A.ideco.monthly=v;saveState();})));
+  cset.appendChild(grid);
+  var note=el("p","muted","保険の解約返戻金/積立金は各証券の将来予測テーブルから自動。NISA/iDeCoは選んだ運用率で複利計算（費用控除後の試算）。");note.style.cssText="font-size:11px;margin-top:8px;";cset.appendChild(note);
+  wrap.appendChild(cset);
+
+  // グラフ（積み上げ：預貯金＋NISA＋iDeCo＋各保険）
+  var endAge=A.endAge||90;var ages=[];for(var a=baseAge;a<=endAge;a++)ages.push(a);
+  var scenRatePct=A.scen==="6"?6:A.scen==="45"?4.5:3;
+  var sets=[];
+  // 預貯金（一定）
+  var sav=+A.savings||0;
+  if(sav>0)sets.push({label:"預貯金など",data:ages.map(function(){return sav;}),backgroundColor:"#9aa3b2",stack:"a"});
+  // NISA
+  var hasN=(+A.nisa.current||+A.nisa.monthly);
+  if(hasN)sets.push({label:"NISA",data:ages.map(function(ag){return acctValueAt({current:A.nisa.current,monthly:A.nisa.monthly,startAge:baseAge},ag,baseAge,scenRatePct);}),backgroundColor:"#2e8b8b",stack:"a"});
+  var hasI=(+A.ideco.current||+A.ideco.monthly);
+  if(hasI)sets.push({label:"iDeCo",data:ages.map(function(ag){return acctValueAt({current:A.ideco.current,monthly:A.ideco.monthly,startAge:baseAge},ag,baseAge,scenRatePct);}),backgroundColor:"#b5651d",stack:"a"});
+  // 各保険の積立/返戻金
+  STATE.policies.forEach(function(p,pi){
+    if(!p.hasCashValue||!p.futureVals||!p.futureVals.length)return;
+    var data=ages.map(function(ag){return polValueAt(p,ag,A.scen)||null;});
+    if(data.some(function(v){return v;}))sets.push({label:letterOf(pi)+(p.company?("・"+p.company):""),data:data,backgroundColor:p.color,stack:"a"});
+  });
+  var cardG=el("div","card");
+  var gh=el("div");gh.style.cssText="font-weight:700;margin-bottom:6px;";gh.textContent="資産の推移（"+scenRatePct+"％シナリオ）";cardG.appendChild(gh);
+  if(sets.length){
+    var cv=document.createElement("canvas");var box=el("div");box.style.cssText="position:relative;height:320px;";box.appendChild(cv);cardG.appendChild(box);
+    setTimeout(function(){if(typeof Chart==="undefined")return;try{new Chart(cv,{type:"bar",data:{labels:ages.map(function(a){return a+"歳";}),datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:10},boxWidth:12}}},scales:{x:{stacked:true,ticks:{maxTicksLimit:12,font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}}}});}catch(e){box.textContent="グラフエラー";}},80);
+    cardG.appendChild(el("p","muted","縦は資産額（万円）。お客様向けに「費用控除後の試算」とご理解ください。外貨は円換算（概算レート）。"));
+  }else{cardG.appendChild(el("p","muted","資産データ（預貯金・NISA・iDeCo・保険の積立金）を入力するとグラフが出ます。"));}
+  wrap.appendChild(cardG);
+  return wrap;
+}
+
 function buildGraphTab(){
   var wrap=el("div","wrap");
   var pols=STATE.policies;
@@ -759,6 +854,9 @@ function render(){
  // 保障グラフタブ
  if(CUR_TAB==="graph"){app.appendChild(buildGraphTab());return;}
 
+ // 資産・老後タブ
+ if(CUR_TAB==="assets"){app.appendChild(buildAssetsTab());return;}
+
  // 基準設定タブ（お客様に見せない内部設定）
  if(CUR_TAB==="settings"){
    var sw=el("div","wrap");
@@ -804,7 +902,7 @@ function render(){
  // 未移植タブはスタブ
  if(CUR_TAB!=="input"){
    var stub=el("div","tab-stub");
-   var names={proposal:"提案",assets:"資産・老後",print:"印刷"};
+   var names={proposal:"提案",print:"印刷"};
    stub.innerHTML="<div style='font-size:14px;font-weight:700;color:#475067;margin-bottom:6px;'>「"+(names[CUR_TAB]||CUR_TAB)+"」タブ</div><div>この機能はv1から順次移植します。</div>";
    app.appendChild(stub);
    return;

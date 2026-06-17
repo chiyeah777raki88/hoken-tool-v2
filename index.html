@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0315";
+var APP_VERSION="v2-0618-0345";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -165,6 +165,7 @@ if(!STATE.self)STATE.self={era:"西暦",y:"",m:"",d:""};
 if(!STATE.family)STATE.family=[];
 if(!STATE.policies||!STATE.policies.length)STATE.policies=[newPolicy(0)];
 if(STATE.cur===undefined||STATE.cur>=STATE.policies.length)STATE.cur=0;
+if(!STATE.settings)STATE.settings={costCut:1.5};
 var CUR_TAB="input";
 
 function curPol(){return STATE.policies[STATE.cur];}
@@ -274,10 +275,11 @@ var SCAN_PROMPT=
 "4. 会社名・プラン名は正確に読み取る\n\n"+
 "【読み取り精度の厳守事項】\n"+
 "A. 数字は1文字ずつ慎重に読む。0と6と8、1と7、3と8を取り違えないこと\n"+
-"B. 金額の単位を必ず確認。『円』『万円』『千円』を混同しない。入院日額等は円、保険金・給付金は万円\n"+
+"B. 金額の単位を必ず確認。『円』『万円』『千円』を混同しない。入院日額等は円、保険金・給付金は万円。出力では万円のものは万円単位の数値（145万円→145、1,450,000円→145）。桁・カンマ位置を必ず再確認し、10倍100倍の取り違えをしない\n"+
 "C. はっきり読めない文字・数字は推測で埋めず、その項目はnull\n"+
 "D. 複数ページや表は全ページ突き合わせ、最新・正式な数値を優先\n"+
-"E. チェック欄や特約あり/なしを見て該当を判定。空欄や取消線は『なし』とみなす\n\n"+
+"E. 保険料免除特約は、書面に『保険料払込免除』『払込免除特約』等の記載が明確にある場合のみ coverages に含める。記載が無い・確認できない場合は絶対に含めない（無いものを有るとしない）。同様に各保障も、明確な記載があるものだけを含め、推測で追加しない\n"+
+"F. 変額保険の『現在の積立金』『基本保険金額』『解約返戻金』は別物。混同しない。積立金額・解約返戻金は万円単位に正しく換算（例 1,450,000円→145）\n\n"+
 "【出力JSON構造】\n"+
 "{\n"+
 "  \"basic\": {\n"+
@@ -430,7 +432,7 @@ function render(){
 
  // タブバー
  var tabBar2=el("div","tabs");
- [["input","入力・編集"],["summary","詳細一覧"],["graph","保障グラフ"],["proposal","提案"],["compare","比較"],["assets","資産・老後"],["print","印刷"]].forEach(function(t){
+ [["input","入力・編集"],["summary","詳細一覧"],["graph","保障グラフ"],["proposal","提案"],["compare","比較"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
    var b=el("button","tab-btn"+(CUR_TAB===t[0]?" active":""),t[1]);
    b.addEventListener("click",function(){CUR_TAB=t[0];render();});
    tabBar2.appendChild(b);
@@ -439,6 +441,31 @@ function render(){
 
  // 詳細一覧タブ
  if(CUR_TAB==="summary"){app.appendChild(buildSummaryTab());return;}
+
+ // 基準設定タブ（お客様に見せない内部設定）
+ if(CUR_TAB==="settings"){
+   var sw=el("div","wrap");
+   var sc=el("div","card");
+   var sh=el("div");sh.style.cssText="font-weight:700;margin-bottom:6px;font-size:14px;";sh.textContent="基準設定（営業用・お客様には表示されません）";sc.appendChild(sh);
+   // 変額の費用控除幅
+   var b1=el("div");b1.style.cssText="margin-bottom:14px;";
+   var b1h=el("div");b1h.style.cssText="font-weight:700;font-size:13px;margin-bottom:4px;";b1h.textContent="変額保険の費用控除幅";b1.appendChild(b1h);
+   var b1d=el("p","muted","設計書が無い変額保険の将来予測で使います。表示率からこの幅を引いた『正味率』で積立金を伸ばします（例：表示6% − 1.5% = 内部4.5%）。設計書の数値が入っている証券では使いません。");b1.appendChild(b1d);
+   var cutRow=el("div");cutRow.style.cssText="display:flex;align-items:center;gap:8px;margin-top:6px;";
+   cutRow.appendChild(el("span",null,"控除幅（％）："));
+   var cutI=document.createElement("input");cutI.type="number";cutI.step="0.1";cutI.value=(STATE.settings.costCut!=null?STATE.settings.costCut:1.5);cutI.style.cssText="width:80px;text-align:right;padding:6px;";
+   cutI.addEventListener("input",function(){STATE.settings.costCut=this.value===""?0:+this.value;saveState();});
+   cutRow.appendChild(cutI);
+   b1.appendChild(cutRow);
+   var ex=el("p","muted","");ex.style.cssText="font-size:11px;margin-top:6px;";
+   var cc=(STATE.settings.costCut!=null?STATE.settings.costCut:1.5);
+   ex.innerHTML="現在の控除幅での内部計算：表示6%→"+(6-cc).toFixed(1)+"%、表示4.5%→"+(4.5-cc).toFixed(1)+"%、表示3%→"+(3-cc).toFixed(1)+"%";
+   b1.appendChild(ex);
+   sc.appendChild(b1);
+   sw.appendChild(sc);
+   app.appendChild(sw);
+   return;
+ }
 
  // 未移植タブはスタブ
  if(CUR_TAB!=="input"){
@@ -757,13 +784,7 @@ function render(){
    var addRow=el("button","btn","＋ 行を追加");addRow.style.cssText="font-size:12px;margin-top:6px;";
    addRow.addEventListener("click",function(){var last=pol.futureVals.length?pol.futureVals[pol.futureVals.length-1]:null;var na=last&&last.age?(+last.age+5):60;pol.futureVals.push({age:na,paid:"",val:"",v3:"",v45:"",v6:""});saveState();render();});
    cFV.appendChild(addRow);
-   if(isVar){
-     var cutWrap=el("div");cutWrap.style.cssText="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;";
-     cutWrap.appendChild(el("span","muted","表示率からの費用控除幅（％）"));
-     var cutI=document.createElement("input");cutI.type="number";cutI.step="0.1";cutI.value=(pol.fvCostCut!=null?pol.fvCostCut:1.5);cutI.style.cssText="width:60px;text-align:right;";cutI.addEventListener("input",function(){pol.fvCostCut=this.value===""?0:+this.value;saveState();});
-     cutWrap.appendChild(cutI);cutWrap.appendChild(el("span","muted","（設計書が無いとき、表示率−この幅で概算。表に数値があればそちら優先）"));
-     cFV.appendChild(cutWrap);
-   }
+   // 費用控除幅は「基準設定」タブへ移動（お客様に見せないため）
    // グラフ
    var fvChartBox=el("div");fvChartBox.style.cssText="position:relative;height:300px;margin-top:12px;";
    var fvCanvas=document.createElement("canvas");fvChartBox.appendChild(fvCanvas);cFV.appendChild(fvChartBox);

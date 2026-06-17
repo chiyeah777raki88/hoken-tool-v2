@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0725";
+var APP_VERSION="v2-0618-0745";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -233,20 +233,20 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
   var sec2=el("div");sec2.style.cssText="margin-bottom:16px;";
   var sh=el("div");sh.style.cssText="background:"+hColor+";color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:4px 4px 0 0;";sh.textContent=title;sec2.appendChild(sh);
   var outer=el("div");outer.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;";
-  var tbl=document.createElement("table");tbl.style.cssText="border-collapse:collapse;font-size:9px;white-space:nowrap;";
+  var tbl=document.createElement("table");tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
   var hr1=el("tr");
-  var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:9px;min-width:64px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
-  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:10px;font-weight:700;color:#1e40af;";th1.textContent="1回目";hr1.appendChild(th1);
-  if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:3px;text-align:center;font-size:10px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
+  var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:3px 5px;font-size:11px;min-width:58px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
+  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#1e40af;";th1.textContent="1回目";hr1.appendChild(th1);
+  if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
   tbl.appendChild(hr1);
   var hr2=el("tr");
-  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 4px;text-align:center;font-size:9px;min-width:72px;color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
-  if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(l){var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 4px;text-align:center;font-size:9px;min-width:55px;color:#166534;";th.textContent=l;hr2.appendChild(th);});
+  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:84px;color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
+  if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(l){var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:1px 3px;text-align:center;font-size:10px;min-width:60px;color:#166534;";th.textContent=l;hr2.appendChild(th);});
   tbl.appendChild(hr2);
   rows.forEach(function(row){
     var tr=el("tr");
-    var nameTd=el("td");nameTd.style.cssText="padding:3px 6px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:9px;text-align:center;vertical-align:middle;";
-    if(row.editable){var ni=document.createElement("input");ni.type="text";ni.value=M.rowLabels[row.id]||"";ni.placeholder="手入力";ni.style.cssText="border:none;background:transparent;font-size:9px;font-weight:600;width:56px;text-align:center;";ni.addEventListener("change",function(){M.rowLabels[row.id]=this.value;saveState();});nameTd.appendChild(ni);}
+    var nameTd=el("td");nameTd.style.cssText="padding:2px 4px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:11px;text-align:center;vertical-align:middle;";
+    if(row.editable){var ni=document.createElement("input");ni.type="text";ni.value=M.rowLabels[row.id]||"";ni.placeholder="手入力";ni.style.cssText="border:none;background:transparent;font-size:11px;font-weight:600;width:54px;text-align:center;";ni.addEventListener("change",function(){M.rowLabels[row.id]=this.value;saveState();});nameTd.appendChild(ni);}
     else nameTd.textContent=row.label;
     tr.appendChild(nameTd);
     visCOLS.forEach(function(col){
@@ -255,8 +255,8 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var cd=mxEnsure(data,ck,defText);
       var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"55px":"72px")+";position:relative;";
       if(cd.na){
-        var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:36px;background:#fff5f5;cursor:pointer;";naWrap.title="クリックで入力に戻す";
-        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:9px;color:#999;white-space:pre-wrap;";naTxt.textContent=cd.text||(row.def&&row.def[col.id])||"";
+        var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;background:#fff5f5;cursor:pointer;";naWrap.title="クリックで入力に戻す";
+        var naTxt=el("div");naTxt.style.cssText="padding:2px 3px;font-size:11px;color:#999;white-space:pre-wrap;";naTxt.textContent=cd.text||(row.def&&row.def[col.id])||"";
         naWrap.appendChild(naTxt);
         var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;";
         var l1=document.createElementNS("http://www.w3.org/2000/svg","line");l1.setAttribute("x1","2");l1.setAttribute("y1","2");l1.setAttribute("x2","98%");l1.setAttribute("y2","98%");l1.setAttribute("stroke","#e74c3c");l1.setAttribute("stroke-width","2");
@@ -265,10 +265,10 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
         naWrap.addEventListener("click",function(){cd.na=false;saveState();render();});
         td.appendChild(naWrap);
       }else{
-        var ta=document.createElement("textarea");ta.value=cd.text||"";ta.rows=2;ta.placeholder="入力...";ta.style.cssText="width:100%;border:none;background:transparent;font-size:9px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:block;";
+        var ta=document.createElement("textarea");ta.value=cd.text||"";ta.rows=2;ta.placeholder="入力...";ta.style.cssText="width:100%;border:none;background:transparent;font-size:11px;color:#1a2744;resize:none;padding:2px 3px;min-height:26px;box-sizing:border-box;outline:none;font-family:inherit;display:block;line-height:1.25;";
         ta.addEventListener("input",function(){cd.text=this.value;saveState();});
         td.appendChild(ta);
-        var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:2px;padding:1px 3px 3px;align-items:center;";
+        var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:2px;padding:0 2px 2px;align-items:center;";
         (cd.polIdxs||[]).forEach(function(pi){var dt=el("span");dt.style.cssText="width:10px;height:10px;border-radius:2px;flex:none;background:"+(STATE.policies[pi]?STATE.policies[pi].color:"#999")+";";dotRow.appendChild(dt);});
         var addB=el("button");addB.textContent="＋証券";addB.style.cssText="font-size:8px;padding:0 4px;line-height:15px;border:1px solid #cbd2de;border-radius:3px;background:#f3f5f9;color:#475067;cursor:pointer;";
         addB.addEventListener("click",function(e){e.stopPropagation();mxPolPopup(e,cd);});
@@ -311,7 +311,7 @@ function buildCheckTab(){
   var card=el("div","card");
   var h=el("div");h.style.cssText="font-weight:700;font-size:15px;margin-bottom:4px;";h.textContent="保障チェック";card.appendChild(h);
   var sub=el("p","muted","各証券で出る金額を表示。安心ラインを入れると過不足が出ます（赤字＝不足）。単位は保障ごと（一時金=万 / 日額=円 など）。");card.appendChild(sub);
-  var checkCats=["死亡・高度障害","災害死亡","入院（疾病）","入院一時金","手術","通院","先進医療","がん診断一時金","がん入院","心疾患","脳血管疾患","大病一時金","就業不能","介護","女性特約","保険料免除"];
+  var checkCats=COV_PRESETS.map(function(c){return c.t;}).filter(function(t){return t!=="その他（自由入力）";});
   var pols=STATE.policies;
   if(!pols.length){card.appendChild(el("p","muted","証券が未登録です。"));wrap.appendChild(card);return wrap;}
   if(!STATE.ansin)STATE.ansin={};

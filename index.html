@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0530";
+var APP_VERSION="v2-0618-0600";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -194,6 +194,68 @@ function getItem(i){
  if(!pol.items[i])pol.items[i]={on:false,trigger:COV_PRESETS[i].t,triggerFree:"",req1:"",req2:"",periodType:"主契約と同じ",endAge:"",payPeriod:"主契約と同じ",payEndAge:"",amount:"",amount2:"",amountType:"一時金(万)",freq:"1回",interval:"",premium:""};
  var _it=pol.items[i];if(_it.req1===undefined)_it.req1=_it.req||"";if(_it.req2===undefined)_it.req2="";if(_it.periodType===undefined)_it.periodType=(_it.endAge?"歳指定":"主契約と同じ");
  return pol.items[i];
+}
+
+function buildCheckTab(){
+  var wrap=el("div","wrap");
+  var card=el("div","card");
+  var h=el("div");h.style.cssText="font-weight:700;font-size:15px;margin-bottom:4px;";h.textContent="保障チェック";card.appendChild(h);
+  var sub=el("p","muted","縦が保障、横が各証券。●＝あり / △＝条件つき・一部 / ✕＝なし。✕や空欄が「保障の穴」です。");card.appendChild(sub);
+  // チェック対象の主要保障（穴を見せたい代表項目）
+  var checkCats=["死亡・高度障害","災害死亡","入院（疾病）","入院一時金","手術","通院","先進医療","がん診断一時金","がん入院","心疾患","脳血管疾患","大病一時金","就業不能","介護","女性特約","保険料免除"];
+  var pols=STATE.policies;
+  if(!pols.length){card.appendChild(el("p","muted","証券が未登録です。"));wrap.appendChild(card);return wrap;}
+  var sc=el("div");sc.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px;";
+  var tbl=el("table");tbl.style.cssText="border-collapse:collapse;font-size:12px;min-width:100%;";
+  // ヘッダ
+  var hr=el("tr");
+  var th0=el("th",null,"保障");th0.style.cssText="border:1px solid #d8dde6;padding:5px 8px;background:#1a2744;color:#fff;text-align:left;position:sticky;left:0;white-space:nowrap;";hr.appendChild(th0);
+  pols.forEach(function(p,i){var th=el("th",null,letterOf(i)+(p.company?("\n"+p.company):""));th.style.cssText="border:1px solid #d8dde6;padding:5px 6px;background:#2a3a5c;color:#fff;white-space:nowrap;border-bottom:3px solid "+p.color+";font-size:11px;";hr.appendChild(th);});
+  // 全体（合算で1つでも●があるか）
+  var thAll=el("th",null,"合計");thAll.style.cssText="border:1px solid #d8dde6;padding:5px 8px;background:#c9a84c;color:#fff;white-space:nowrap;";hr.appendChild(thAll);
+  tbl.appendChild(hr);
+  // 各保障行
+  checkCats.forEach(function(cat){
+    var idx=-1;for(var i=0;i<COV_PRESETS.length;i++){if(COV_PRESETS[i].t===cat){idx=i;break;}}
+    var tr=el("tr");
+    var td0=el("td",null,cat);td0.style.cssText="border:1px solid #d8dde6;padding:5px 8px;font-weight:700;background:#f3f5f9;position:sticky;left:0;white-space:nowrap;";tr.appendChild(td0);
+    var anyOn=false;
+    pols.forEach(function(p){
+      var it=(p.items&&idx>=0)?p.items[idx]:null;
+      var on=it&&it.on;
+      var mark="✕",bg="#fdecec",col="#c0392b";
+      if(on){
+        anyOn=true;
+        // 金額や条件があれば●、onだけなら△
+        var hasAmt=it&&((it.amount&&String(it.amount).trim())||(it.amount2&&String(it.amount2).trim()));
+        if(hasAmt){mark="●";bg="#e8f6ee";col="#1f9d6b";}
+        else{mark="△";bg="#fdf6e3";col="#b8860b";}
+      }
+      var td=el("td",null,mark);td.style.cssText="border:1px solid #d8dde6;padding:5px;text-align:center;font-size:15px;font-weight:700;background:"+bg+";color:"+col+";";
+      tr.appendChild(td);
+    });
+    var tdAll=el("td",null,anyOn?"●":"✕");tdAll.style.cssText="border:1px solid #d8dde6;padding:5px;text-align:center;font-size:15px;font-weight:700;background:"+(anyOn?"#e8f6ee":"#fdecec")+";color:"+(anyOn?"#1f9d6b":"#c0392b")+";";
+    tr.appendChild(tdAll);
+    tbl.appendChild(tr);
+  });
+  sc.appendChild(tbl);card.appendChild(sc);
+  // 穴のまとめ
+  var holes=[];
+  checkCats.forEach(function(cat){
+    var idx=-1;for(var i=0;i<COV_PRESETS.length;i++){if(COV_PRESETS[i].t===cat){idx=i;break;}}
+    var any=pols.some(function(p){var it=(p.items&&idx>=0)?p.items[idx]:null;return it&&it.on;});
+    if(!any)holes.push(cat);
+  });
+  if(holes.length){
+    var hbox=el("div");hbox.style.cssText="margin-top:12px;background:#fdecec;border:1px solid #f5c6c6;border-radius:8px;padding:10px;";
+    var hh=el("div");hh.style.cssText="font-weight:700;color:#c0392b;margin-bottom:4px;";hh.textContent="現状でカバーされていない保障（"+holes.length+"件）";hbox.appendChild(hh);
+    var hl=el("div");hl.style.cssText="font-size:13px;color:#8a3232;";hl.textContent=holes.join(" ／ ");hbox.appendChild(hl);
+    card.appendChild(hbox);
+  }else{
+    var okbox=el("div");okbox.style.cssText="margin-top:12px;background:#e8f6ee;border:1px solid #b6e3cb;border-radius:8px;padding:10px;color:#1f7d56;font-weight:700;";okbox.textContent="主要な保障はひと通りカバーされています。";card.appendChild(okbox);
+  }
+  wrap.appendChild(card);
+  return wrap;
 }
 
 function buildSummaryTab(){
@@ -445,7 +507,7 @@ function render(){
 
  // タブバー
  var tabBar2=el("div","tabs");
- [["input","入力・編集"],["summary","詳細一覧"],["graph","保障グラフ"],["proposal","提案"],["compare","比較"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
+ [["input","入力・編集"],["summary","詳細一覧"],["graph","保障グラフ"],["proposal","提案"],["check","保障チェック"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
    var b=el("button","tab-btn"+(CUR_TAB===t[0]?" active":""),t[1]);
    b.addEventListener("click",function(){CUR_TAB=t[0];render();});
    tabBar2.appendChild(b);
@@ -454,6 +516,9 @@ function render(){
 
  // 詳細一覧タブ
  if(CUR_TAB==="summary"){app.appendChild(buildSummaryTab());return;}
+
+ // 保障チェックタブ
+ if(CUR_TAB==="check"){app.appendChild(buildCheckTab());return;}
 
  // 基準設定タブ（お客様に見せない内部設定）
  if(CUR_TAB==="settings"){
@@ -500,7 +565,7 @@ function render(){
  // 未移植タブはスタブ
  if(CUR_TAB!=="input"){
    var stub=el("div","tab-stub");
-   var names={graph:"保障グラフ",proposal:"提案",compare:"比較",assets:"資産・老後",print:"印刷"};
+   var names={graph:"保障グラフ",proposal:"提案",assets:"資産・老後",print:"印刷"};
    stub.innerHTML="<div style='font-size:14px;font-weight:700;color:#475067;margin-bottom:6px;'>「"+(names[CUR_TAB]||CUR_TAB)+"」タブ</div><div>この機能はv1から順次移植します。</div>";
    app.appendChild(stub);
    return;

@@ -13,8 +13,8 @@ body{margin:0;font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",
 .hdr{background:#1a2744;color:#fff;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:10;}
 .hdr .ttl{color:#e8c977;font-weight:700;font-size:14px;}
 .hdr .ver{margin-left:auto;color:#c9a84c;font-weight:700;font-size:11px;}
-.wrap{max-width:900px;margin:0 auto;padding:12px;}
-.card{background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:12px;margin-bottom:12px;}
+.wrap{max-width:900px;margin:0 auto;padding:8px;}
+.card{background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:10px;margin-bottom:8px;}
 .tbl-scroll{overflow-x:auto;border:1px solid #c9ced8;border-radius:6px;}
 table.cov{width:100%;border-collapse:collapse;font-size:11px;min-width:670px;table-layout:fixed;}
 table.cov th,table.cov td{border:1px solid #d8dde6;padding:4px 4px;text-align:left;overflow:hidden;}
@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-1900";
+var APP_VERSION="v2-0617-1920";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -143,17 +143,19 @@ function render(){
  }
  function vline(){var l=el("div");l.style.cssText="width:2px;height:10px;background:#c2cad8;margin:1px auto;";return l;}
 
- var tree=el("div");tree.style.cssText="display:flex;flex-direction:column;align-items:center;gap:1px;";
+ // 左：家系図　右：操作ボタン縦列
+ var famFlex=el("div");famFlex.style.cssText="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;";
+ var tree=el("div");tree.style.cssText="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1 1 auto;min-width:260px;";
  // 親世代（表示が有効なときだけ）
  if(showParents){
-   var pRow=el("div");pRow.style.cssText="display:flex;gap:8px;justify-content:center;align-items:flex-start;";
+   var pRow=el("div");pRow.style.cssText="display:flex;gap:6px;justify-content:center;align-items:flex-start;";
    pRow.appendChild(node("父",dad,dad?{onDel:function(){var i=STATE.family.indexOf(dad);if(i>=0)STATE.family.splice(i,1);saveState();render();}}:{onAdd:function(){STATE.family.push({label:"父",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 父"}));
    pRow.appendChild(node("母",mom,mom?{onDel:function(){var i=STATE.family.indexOf(mom);if(i>=0)STATE.family.splice(i,1);saveState();render();}}:{onAdd:function(){STATE.family.push({label:"母",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 母"}));
    tree.appendChild(pRow);
    tree.appendChild(vline());
  }
  // 本人（＝配偶者）
- var meRow=el("div");meRow.style.cssText="display:flex;gap:6px;justify-content:center;align-items:flex-start;";
+ var meRow=el("div");meRow.style.cssText="display:flex;gap:4px;justify-content:center;align-items:flex-start;";
  meRow.appendChild(node("本人",STATE.self,{getName:function(){return STATE.custName||"";},setName:function(v){STATE.custName=v;}}));
  if(spouse){
    var eq=el("div");eq.style.cssText="align-self:center;font-weight:700;color:#99a;padding:0 1px;";eq.textContent="＝";meRow.appendChild(eq);
@@ -164,7 +166,7 @@ function render(){
  {tree.appendChild(vline());
    var kRow=el("div");
    var twoCol=kids.length>=5;
-   kRow.style.cssText="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"+(twoCol?"max-width:380px;":"");
+   kRow.style.cssText="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"+(twoCol?"max-width:380px;":"");
    kids.forEach(function(k,ki){kRow.appendChild(node("子"+(kids.length>1?(ki+1):""),k,{onDel:function(){var i=STATE.family.indexOf(k);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
    kRow.appendChild(node("",null,{onAdd:function(){STATE.family.push({label:"子",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 子"}));
    tree.appendChild(kRow);
@@ -172,21 +174,23 @@ function render(){
  // 孫世代（表示が有効なときだけ・同様）
  if(showGrand){tree.appendChild(vline());
    var gRow=el("div");var gTwo=grandkids.length>=5;
-   gRow.style.cssText="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"+(gTwo?"max-width:380px;":"");
+   gRow.style.cssText="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"+(gTwo?"max-width:380px;":"");
    grandkids.forEach(function(g,gi){gRow.appendChild(node("孫"+(grandkids.length>1?(gi+1):""),g,{onDel:function(){var i=STATE.family.indexOf(g);if(i>=0)STATE.family.splice(i,1);saveState();render();}}));});
    gRow.appendChild(node("",null,{onAdd:function(){STATE.family.push({label:"孫",era:"西暦",y:"",m:"",d:""});saveState();render();},addLabel:"＋ 孫"}));
    tree.appendChild(gRow);
  }
- c0.appendChild(tree);
- // 操作ボタン
- var fbtns=el("div");fbtns.style.cssText="display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap;";
- if(!spouse){var addSp=el("button","btn","＋ 配偶者");addSp.style.fontSize="12px";addSp.addEventListener("click",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();});fbtns.appendChild(addSp);}
- if(!showParents){var tgP=el("button","btn","＋ 親世代");tgP.style.fontSize="12px";tgP.addEventListener("click",function(){STATE.showParents=true;saveState();render();});fbtns.appendChild(tgP);}
- else{var hgP=el("button","btn","− 親世代を隠す");hgP.style.fontSize="12px";hgP.addEventListener("click",function(){STATE.showParents=false;STATE.family=STATE.family.filter(function(f){return f!==dad&&f!==mom;});saveState();render();});fbtns.appendChild(hgP);}
- if(!showGrand){var tgG=el("button","btn","＋ 孫世代");tgG.style.fontSize="12px";tgG.addEventListener("click",function(){STATE.showGrandkids=true;saveState();render();});fbtns.appendChild(tgG);}
- else{var hgG=el("button","btn","− 孫世代を隠す");hgG.style.fontSize="12px";hgG.addEventListener("click",function(){STATE.showGrandkids=false;STATE.family=STATE.family.filter(function(f){return f.label!=="孫";});saveState();render();});fbtns.appendChild(hgG);}
- var addO=el("button","btn","＋ その他");addO.style.fontSize="12px";addO.addEventListener("click",function(){STATE.family.push({label:" ",_other:true,era:"西暦",y:"",m:"",d:""});saveState();render();});fbtns.appendChild(addO);
- c0.appendChild(fbtns);
+ famFlex.appendChild(tree);
+ // 右脇：縦に積む追加/トグルボタン
+ var fbtns=el("div");fbtns.style.cssText="display:flex;flex-direction:column;gap:4px;flex:0 0 auto;width:108px;";
+ function sideBtn(label,fn){var b=el("button","btn",label);b.style.cssText="font-size:12px;padding:5px 6px;width:100%;";b.addEventListener("click",fn);return b;}
+ if(!spouse)fbtns.appendChild(sideBtn("＋ 配偶者",function(){STATE.family.unshift({label:"配偶者",era:"西暦",y:"",m:"",d:""});saveState();render();}));
+ if(!showParents)fbtns.appendChild(sideBtn("＋ 親世代",function(){STATE.showParents=true;saveState();render();}));
+ else fbtns.appendChild(sideBtn("− 親世代",function(){STATE.showParents=false;STATE.family=STATE.family.filter(function(f){return f!==dad&&f!==mom;});saveState();render();}));
+ if(!showGrand)fbtns.appendChild(sideBtn("＋ 孫世代",function(){STATE.showGrandkids=true;saveState();render();}));
+ else fbtns.appendChild(sideBtn("− 孫世代",function(){STATE.showGrandkids=false;STATE.family=STATE.family.filter(function(f){return f.label!=="孫";});saveState();render();}));
+ fbtns.appendChild(sideBtn("＋ その他",function(){STATE.family.push({label:" ",_other:true,era:"西暦",y:"",m:"",d:""});saveState();render();}));
+ famFlex.appendChild(fbtns);
+ c0.appendChild(famFlex);
  // その他の家族（続柄自由・横並び）
  if(others.length){
    var oWrap=el("div");oWrap.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;";

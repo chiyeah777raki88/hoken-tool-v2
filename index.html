@@ -450,6 +450,122 @@ function buildAssetsTab(){
   return wrap;
 }
 
+// ===== v1顧客データの取り込み（v1形式→v2形式に変換）=====
+// v1の顧客リスト・データを読む
+async function sbLoadV1List(){
+  if(!sbClient||!sbUser)return null;
+  try{var r=await sbClient.from("customers").select("*");return (r&&r.data)?r.data:[];}catch(e){return null;}
+}
+async function sbLoadV1Data(cid){
+  if(!sbClient||!sbUser)return null;
+  try{var r=await sbClient.from("customer_data").select("*").eq("customer_id",cid).maybeSingle();return (r&&r.data&&r.data.data)?(typeof r.data.data==="string"?JSON.parse(r.data.data):r.data.data):null;}catch(e){return null;}
+}
+// v1の証券1件 → v2のpolicy
+function convertV1Policy(v1p,idx){
+  var p=newPolicy(idx);
+  p.company=v1p.company==="その他"?(v1p.companyCustom||""):(v1p.company||"");
+  p.companySel=(COS.indexOf(p.company)>=0)?p.company:(p.company?"その他":"");
+  p.insType=(ITS.indexOf(v1p.insType)>=0)?v1p.insType:(v1p.insType?"その他":"");
+  p.planName=v1p.polName||"";
+  if(v1p.dlPeriodType==="終身"){p.mainEndWhole=true;}else if(v1p.dlPeriodEnd){p.mainEndAge=String(v1p.dlPeriodEnd);}
+  if(v1p.dlPayEnd){p.payToAge=String(v1p.dlPayEnd);}
+  p.premium=v1p.premAmount?String(v1p.premAmount):"";
+  var u=(v1p.premUnit||"").trim();
+  p.payFreq=(u.indexOf("年")>=0?"年払":u.indexOf("一時")>=0?"一時払":u.indexOf("半年")>=0?"半年払":"月払");
+  p.currency=(v1p.currency&&v1p.currency!=="JPY")?(v1p.currency==="USD"?"USD（米ドル）":v1p.currency==="EUR"?"EUR（ユーロ）":v1p.currency==="AUD"?"AUD（豪ドル）":"JPY（円）"):"JPY（円）";
+  p.contractDate=v1p.contractDate||"";
+  // 保障 items に変換
+  function setItem(cat,amount,amountType,req1){
+    var ci=-1;for(var i=0;i<COV_PRESETS.length;i++){if(COV_PRESETS[i].t===cat){ci=i;break;}}
+    if(ci<0)return;
+    if(!p.items[ci])p.items[ci]={on:false,trigger:cat,triggerFree:"",req1:"",req2:"",periodType:"主契約と同じ",endAge:"",payPeriod:"主契約と同じ",payEndAge:"",amount:"",amount2:"",amountType:"一時金(万)",freq:"1回",interval:"",premium:""};
+    var it=p.items[ci];it.on=true;
+    if(amount!=null&&amount!=="")it.amount=String(amount);
+    if(amountType)it.amountType=amountType;
+    if(req1)it.req1=req1;
+  }
+  if(v1p.deathType&&v1p.deathType!=="none"&&v1p.dlAmount)setItem("死亡・高度障害",v1p.dlAmount,"一時金(万)");
+  if(v1p.hospDaily)setItem("入院（疾病）",v1p.hospDaily,"日額(円)");
+  if(v1p.hospLumpIn)setItem("入院一時金",v1p.hospLumpIn,"一時金(万)");
+  if(v1p.hospLumpOut)setItem("退院一時金",v1p.hospLumpOut,"一時金(万)");
+  if(v1p.surgInp)setItem("手術",v1p.surgInp,"一時金(万)");
+  if(v1p.outAmount)setItem("通院",v1p.outAmount,"日額(円)");
+  if(v1p.injuryAmount)setItem("ケガ",v1p.injuryAmount,"一時金(万)");
+  if(v1p.advancedMedical)setItem("先進医療",v1p.advancedMedicalAmount||"","上限(万)");
+  if(v1p.cancerOn&&v1p.c1st)setItem("がん診断一時金",v1p.c1st,"一時金(万)");
+  if(v1p.cancerHosp)setItem("がん入院",v1p.cancerHosp,"日額(円)");
+  if(v1p.cancerOut2)setItem("がん通院",v1p.cancerOut2,"日額(円)");
+  if(v1p.bigOn&&v1p.h1st)setItem("心疾患",v1p.h1st,"一時金(万)",v1p.hCond||"");
+  if(v1p.bigOn&&v1p.b1st)setItem("脳血管疾患",v1p.b1st,"一時金(万)",v1p.bCond||"");
+  if(v1p.bigOn&&v1p.bigCount)setItem("大病一時金",Math.max(+v1p.h1st||0,+v1p.b1st||0,+v1p.c1st||0),"一時金(万)",v1p.bigCount);
+  if(v1p.disType&&v1p.disMonthly)setItem("就業不能",v1p.disMonthly,"月額(万)");
+  if(v1p.careType&&v1p.careType!=="none")setItem("介護",v1p.careMonthly||v1p.careLump||"",v1p.careMonthly?"月額(万)":"一時金(万)");
+  if(v1p.premExemptType&&v1p.premExemptType!=="none"&&v1p.premExemptType!=="")setItem("保険料免除","","一時金(万)",v1p.premExemptDetail||v1p.premExemptType);
+  if(v1p.celebAmount)setItem("祝金・生存給付",v1p.celebAmount,"一時金(万)","〇年ごと");
+  // 将来予測・積立金
+  if(v1p.futureVals&&v1p.futureVals.length){
+    p.hasCashValue=true;
+    var isVar=(p.insType&&p.insType.indexOf("変額")>=0);
+    p.futureVals=v1p.futureVals.map(function(r){
+      if(isVar)return {age:r.age||"",paid:r.paid||"",val:"",v3:r.v3||"",v45:r.v5||r.v45||"",v6:r.v6||""};
+      return {age:r.age||"",paid:r.paid||"",val:r.v3||r.val||"",v3:"",v45:"",v6:""};
+    });
+  }else if(v1p.currentVal){p.hasCashValue=true;p.futureVals=[];}
+  return p;
+}
+function convertV1Customer(data){
+  // v1: data.policies は {memberId:[policy,...]} または配列
+  var allPols=[];
+  if(data.policies){
+    if(Array.isArray(data.policies))allPols=data.policies;
+    else Object.keys(data.policies).forEach(function(k){var arr=data.policies[k];if(Array.isArray(arr))allPols=allPols.concat(arr);});
+  }
+  var policies=allPols.map(function(vp,i){return convertV1Policy(vp,i);});
+  if(!policies.length)policies=[newPolicy(0)];
+  // 本人名・家族
+  var custName="";var self={era:"西暦",y:"",m:"",d:""};var family=[];
+  if(data.famSave&&data.famSave.length){
+    data.famSave.forEach(function(m){
+      var b={era:"西暦",y:"",m:"",d:""};
+      if(m.dob){var d=new Date(m.dob);if(!isNaN(d)){b.y=String(d.getFullYear());b.m=String(d.getMonth()+1);b.d=String(d.getDate());}}
+      if(m.relation==="本人"){custName=m.name||"";self=b;}
+      else family.push({label:m.relation||"その他",name:m.name||"",era:b.era,y:b.y,m:b.m,d:b.d});
+    });
+  }
+  return {custName:custName,self:self,family:family,policies:policies,cur:0,settings:STATE.settings||{costCut:1.5}};
+}
+// 取り込みモーダル
+function showV1Import(){
+  if(!SYNC_ON){alert("先に右上の「☁同期」からログインしてください。");return;}
+  var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;background:rgba(26,39,68,0.6);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;";
+  var box=document.createElement("div");box.style.cssText="background:#fff;border-radius:12px;padding:18px;max-width:420px;width:100%;margin-top:30px;";
+  box.innerHTML="<div style='font-size:16px;font-weight:700;margin-bottom:6px;'>v1の顧客データを取り込み</div><div style='font-size:12px;color:#888;margin-bottom:10px;'>読み込み中…</div>";
+  ov.appendChild(box);document.body.appendChild(ov);
+  sbLoadV1List().then(function(list){
+    if(!list){box.innerHTML="<div style='color:#c0392b;'>読み込みに失敗しました。同期ログインを確認してください。</div><button id='c'>閉じる</button>";box.querySelector("#c").onclick=function(){ov.remove();};return;}
+    if(!list.length){box.innerHTML="<div>v1の顧客データが見つかりませんでした。</div><button id='c'>閉じる</button>";box.querySelector("#c").onclick=function(){ov.remove();};return;}
+    box.innerHTML="<div style='font-size:16px;font-weight:700;margin-bottom:4px;'>v1の顧客を選択（"+list.length+"件）</div><div style='font-size:12px;color:#888;margin-bottom:10px;'>取り込むと今の入力内容は置き換わります。</div>";
+    var ul=el("div");ul.style.cssText="max-height:50vh;overflow:auto;";
+    list.sort(function(a,b){return (a.name||"").localeCompare(b.name||"");});
+    list.forEach(function(c){
+      var b=el("button","btn",(c.name||"無名")+(c.furigana?("（"+c.furigana+"）"):""));
+      b.style.cssText="display:block;width:100%;text-align:left;margin-bottom:5px;padding:9px 12px;background:#f3f5f9;color:#1a2744;font-weight:400;";
+      b.addEventListener("click",function(){
+        b.textContent="読み込み中…";
+        sbLoadV1Data(c.id).then(function(data){
+          if(!data){alert("このお客様のデータを取得できませんでした。");return;}
+          var conv=convertV1Customer(data);
+          STATE=conv;saveState();ov.remove();render();
+          alert("「"+(conv.custName||c.name||"")+"」を取り込みました。各タブで確認してください。");
+        });
+      });
+      ul.appendChild(b);
+    });
+    box.appendChild(ul);
+    var cl=el("button","btn","閉じる");cl.style.cssText="margin-top:8px;background:#888;";cl.onclick=function(){ov.remove();};box.appendChild(cl);
+  });
+}
+
 function buildGraphTab(){
   var wrap=el("div","wrap");
   var pols=STATE.policies;
@@ -833,6 +949,9 @@ function render(){
    showLogin(function(){render();});
  });
  hdr.appendChild(syncBtn);
+ var impBtn=el("button","btn","v1取込");impBtn.style.cssText="font-size:11px;padding:3px 8px;margin-left:6px;background:#2e7d6b;color:#fff;border:none;";
+ impBtn.addEventListener("click",function(){showV1Import();});
+ hdr.appendChild(impBtn);
  var rst=el("button","btn","全消去");rst.style.cssText="font-size:11px;padding:3px 8px;margin-left:6px;";rst.addEventListener("click",function(){if(confirm("入力した全データ（家族・全証券）を消去して新規状態に戻します。よろしいですか？")){STATE={custName:"",self:{era:"西暦",y:"",m:"",d:""},family:[],policies:[newPolicy(0)],cur:0};saveState();render();}});hdr.appendChild(rst);
  app.appendChild(hdr);
 

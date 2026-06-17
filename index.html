@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0930";
+var APP_VERSION="v2-0618-0945";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -254,11 +254,14 @@ function mxSeverityByText(text){
  if(/手術|入院/.test(text))return 4;
  return null;
 }
-// 条件文のキーワードを強調（太字は重い条件キーワードのみに厳選）
-function mxEmphasize(text,tc){
+// 条件文のキーワードを強調（列に応じて太字を変える）
+function mxEmphasize(text,tc,colId){
   if(!text)return "";
   var esc=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  var kws=["悪性新生物","急性心筋梗塞","脳卒中","労働制限","所定の状態","20日","10日","1泊"];
+  var kws;
+  if(colId==="f"){kws=["入院"];}        // ⑥ 入院しただけで出る（緩い）
+  else if(colId==="g"){kws=["通院"];}    // ⑦ 通院で出る（最も緩い）
+  else{kws=["悪性新生物","急性心筋梗塞","脳卒中","労働制限","所定の状態","20日","10日"];}
   kws.sort(function(a,b){return b.length-a.length;});
   kws.forEach(function(k){var re=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");esc=esc.replace(re,"\u0001"+k+"\u0002");});
   esc=esc.replace(/\u0001/g,"<b style='color:"+(tc||"#1a2744")+";'>").replace(/\u0002/g,"</b>");
@@ -273,7 +276,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
   var tbl=document.createElement("table");tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
   var hr1=el("tr");
   var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:3px 5px;font-size:11px;min-width:58px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
-  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px 6px;font-size:11px;font-weight:700;color:#1e40af;";th1.innerHTML="<div style='display:flex;justify-content:space-between;align-items:center;'><span style='color:#c0392b;'>← 厳しい</span><span>1回目</span><span style='color:#1f7d56;'>緩い →</span></div>";hr1.appendChild(th1);
+  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px 6px;font-size:11px;font-weight:700;color:#1e40af;";th1.innerHTML="<div style='display:flex;justify-content:space-between;align-items:center;'><span>← 厳しい</span><span>1回目</span><span>緩い →</span></div>";hr1.appendChild(th1);
   if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
   tbl.appendChild(hr1);
   var hr2=el("tr");
@@ -294,7 +297,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;background:"+rc.bg+";";
       if(cd.na){
         var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;cursor:pointer;";naWrap.title="クリックで入力に戻す";
-        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:11px;color:#bbb;white-space:pre-wrap;";naTxt.innerHTML=mxEmphasize(cd.text||(row.def&&row.def[col.id])||"","#bbb");
+        var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:11px;color:#bbb;white-space:pre-wrap;";naTxt.innerHTML=mxEmphasize(cd.text||(row.def&&row.def[col.id])||"","#bbb",col.id);
         naWrap.appendChild(naTxt);
         var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;";
         var l1=document.createElementNS("http://www.w3.org/2000/svg","line");l1.setAttribute("x1","2");l1.setAttribute("y1","2");l1.setAttribute("x2","98%");l1.setAttribute("y2","98%");l1.setAttribute("stroke","#e74c3c");l1.setAttribute("stroke-width","2");
@@ -305,7 +308,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       }else{
         // 表示モード（印刷で消えない・色分け・キーワード太字）＋タップで編集
         var disp=el("div");disp.style.cssText="padding:3px 4px;font-size:11px;color:"+rc.tc+";white-space:pre-wrap;min-height:24px;cursor:text;line-height:1.3;";
-        disp.innerHTML=mxEmphasize(cd.text||"",rc.tc)||"<span style='color:#bbb;'>入力...</span>";
+        disp.innerHTML=mxEmphasize(cd.text||"",rc.tc,col.id)||"<span style='color:#bbb;'>入力...</span>";
         disp.title="タップで編集";
         disp.addEventListener("click",function(){
           var ta=document.createElement("textarea");ta.value=cd.text||"";ta.rows=2;ta.style.cssText="width:100%;border:1px solid #2980b9;background:#fff;font-size:11px;color:#1a2744;resize:none;padding:3px;box-sizing:border-box;outline:none;font-family:inherit;line-height:1.3;";

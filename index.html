@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2100";
+var APP_VERSION="v2-0617-2115";
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
 var COV_PRESETS=[
@@ -231,23 +231,22 @@ function render(){
  // 現在の証券の基本情報
  var pol=curPol();
  var c1=el("div","card");
- var pinfo=el("div");pinfo.style.cssText="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;";
+ var pinfo=el("div");pinfo.style.cssText="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
  var pttl=el("span","","証券 "+letterOf(STATE.cur)+" の情報");pinfo.appendChild(pttl);
- var clab=el("span","muted","色");clab.style.cssText="font-size:12px;margin-left:6px;";pinfo.appendChild(clab);
- var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:34px;height:24px;padding:0;border:1px solid #c9ced8;border-radius:4px;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});pinfo.appendChild(ci);
- if(STATE.policies.length>1){var delP=el("button","btn","削除");delP.style.cssText="margin-left:auto;font-size:12px;padding:4px 8px;";delP.addEventListener("click",function(){if(confirm("証券 "+letterOf(STATE.cur)+" を削除しますか？")){STATE.policies.splice(STATE.cur,1);STATE.cur=0;saveState();render();}});pinfo.appendChild(delP);}
- c1.appendChild(pinfo);
- // 契約形態（個人 / 法人）
+ var clab=el("span","muted","色");clab.style.cssText="font-size:12px;margin-left:4px;";pinfo.appendChild(clab);
+ var ci=document.createElement("input");ci.type="color";ci.value=pol.color;ci.style.cssText="width:32px;height:22px;padding:0;border:1px solid #c9ced8;border-radius:4px;flex:none;";ci.addEventListener("input",function(){pol.color=this.value;saveState();render();});pinfo.appendChild(ci);
+ // 契約形態（個人/法人）を見出し行に
  var isCorp=(pol.contractType==="法人");
- var ctRow=el("div");ctRow.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:8px;";
- var ctL=el("span","muted","契約形態");ctL.style.fontSize="12px";ctRow.appendChild(ctL);
+ var ctWrap=el("span");ctWrap.style.cssText="display:inline-flex;align-items:center;gap:8px;margin-left:6px;border-left:1px solid #dde;padding-left:10px;";
  ["個人","法人"].forEach(function(t){
-   var lb=el("label");lb.style.cssText="display:flex;align-items:center;gap:3px;font-size:13px;cursor:pointer;";
-   var r=document.createElement("input");r.type="radio";r.name="ctype"+STATE.cur;r.checked=(t==="法人"?isCorp:!isCorp);
+   var lb=el("label");lb.style.cssText="display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:400;cursor:pointer;white-space:nowrap;";
+   var r=document.createElement("input");r.type="radio";r.name="ctype"+STATE.cur;r.checked=(t==="法人"?isCorp:!isCorp);r.style.cssText="flex:none;margin:0;";
    r.addEventListener("change",function(){pol.contractType=t;saveState();render();});
-   lb.appendChild(r);lb.appendChild(document.createTextNode(t));ctRow.appendChild(lb);
+   lb.appendChild(r);lb.appendChild(document.createTextNode(t));ctWrap.appendChild(lb);
  });
- c1.appendChild(ctRow);
+ pinfo.appendChild(ctWrap);
+ if(STATE.policies.length>1){var delP=el("button","btn","削除");delP.style.cssText="margin-left:auto;font-size:12px;padding:4px 8px;flex:none;";delP.addEventListener("click",function(){if(confirm("証券 "+letterOf(STATE.cur)+" を削除しますか？")){STATE.policies.splice(STATE.cur,1);STATE.cur=0;saveState();render();}});pinfo.appendChild(delP);}
+ c1.appendChild(pinfo);
  // 法人契約：法人情報
  if(isCorp){
    var corpRow=el("div");corpRow.style.cssText="display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-bottom:8px;";

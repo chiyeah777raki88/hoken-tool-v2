@@ -33,7 +33,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2220";
+var APP_VERSION="v2-0617-2245";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 window.onerror=function(msg,src,line){if(!msg||msg==="Script error."||!line||line===0){return true;}var a=document.getElementById('app');if(a&&(!a.innerHTML||a.innerHTML.trim().length<50)){a.innerHTML='<div style="padding:20px;color:#c0392b;">エラー: '+msg+'<br>行: '+line+'<br><button onclick="location.reload()">再読み込み</button></div>';}return true;};
 
@@ -73,6 +73,8 @@ var PAY_METHOD=["口座振替","クレジットカード","給与天引","団体
 var CURRENCIES=["JPY（円）","USD（米ドル）","EUR（ユーロ）","AUD（豪ドル）"];
 var CORP_PURPOSE=["","事業保障","退職金準備（役員）","退職金準備（従業員）","福利厚生","弔慰金・見舞金","事業承継","その他"];
 var CORP_ACCT=["","全額損金","1/2損金","1/3損金","1/4損金","全額資産計上","資産計上＋取崩","その他"];
+var CORP_KIND=["","株式会社","有限会社","合同会社","合名会社","合資会社","一般社団法人","医療法人","その他"];
+var CORP_KIND_SHORT={"株式会社":"㈱","有限会社":"㈲","合同会社":"(同)","合名会社":"(名)","合資会社":"(資)","一般社団法人":"(一社)","医療法人":"(医)"};
 var RELATIONS=["本人","配偶者","子","父","母","その他"];
 function letterOf(i){return String.fromCharCode(65+i);}
 
@@ -289,21 +291,35 @@ function render(){
  c1.appendChild(pinfo);
  // 法人契約：法人情報
  if(isCorp){
-   var corpRow=el("div");corpRow.style.cssText="display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-bottom:8px;";
-   corpRow.appendChild(labeled("法人名",inp("text",pol.corpName||"",function(v){pol.corpName=v;saveState();})));
-   corpRow.appendChild(labeled("加入目的",mkSel(CORP_PURPOSE,pol.corpPurpose||"",function(v){pol.corpPurpose=v;saveState();render();})));
+   // 法人格・前後位置・法人名
+   var corpRow=el("div");corpRow.style.cssText="display:grid;grid-template-columns:1fr 0.7fr 1.6fr;gap:8px;margin-bottom:8px;align-items:end;";
+   corpRow.appendChild(labeled("法人格",mkSel(CORP_KIND,pol.corpKind||"",function(v){pol.corpKind=v;saveState();render();})));
+   corpRow.appendChild(labeled("位置",mkSel(["前","後"],pol.corpKindPos||"前",function(v){pol.corpKindPos=v;saveState();render();})));
+   corpRow.appendChild(labeled("法人名（屋号）",inp("text",pol.corpName||"",function(v){pol.corpName=v;saveState();render();})));
    c1.appendChild(corpRow);
-   if(pol.corpPurpose==="その他"){c1.appendChild(labeledBlock("加入目的（自由入力）",inp("text",pol.corpPurposeFree||"",function(v){pol.corpPurposeFree=v;saveState();})));}
-   var corpRow2=el("div");corpRow2.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;";
-   corpRow2.appendChild(labeled("代表者・担当",inp("text",pol.corpRep||"",function(v){pol.corpRep=v;saveState();})));
-   corpRow2.appendChild(labeled("名義変更予定",inp("text",pol.corpTransfer||"",function(v){pol.corpTransfer=v;saveState();})));
+   // 完成形プレビュー（㈱○○ / ○○㈱）
+   if(pol.corpName||pol.corpKind){
+     var shortK=CORP_KIND_SHORT[pol.corpKind]||(pol.corpKind||"");
+     var full=(pol.corpKindPos==="後")?((pol.corpName||"")+shortK):(shortK+(pol.corpName||""));
+     var pv=el("div","muted","表記："+full);pv.style.cssText="font-size:12px;margin:-2px 0 8px;color:#3a4a6b;";c1.appendChild(pv);
+   }
+   var corpRow2=el("div");corpRow2.style.cssText="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px;";
+   corpRow2.appendChild(labeled("加入目的",mkSel(CORP_PURPOSE,pol.corpPurpose||"",function(v){pol.corpPurpose=v;saveState();render();})));
    c1.appendChild(corpRow2);
+   if(pol.corpPurpose==="その他"){c1.appendChild(labeledBlock("加入目的（自由入力）",inp("text",pol.corpPurposeFree||"",function(v){pol.corpPurposeFree=v;saveState();})));}
+   // 控えめな出口メモ（任意・営業の頭の整理用）
+   var exitWrap=el("div");exitWrap.style.cssText="margin-bottom:8px;";
+   var exitL=el("div","muted","出口メモ（任意・将来の活用イメージなど）");exitL.style.cssText="font-size:11px;margin-bottom:2px;color:#9aa3b2;";
+   exitWrap.appendChild(exitL);exitWrap.appendChild(inp("text",pol.corpExit||"",function(v){pol.corpExit=v;saveState();}));
+   c1.appendChild(exitWrap);
  }
  // 契約者・被保険者
  var ppl=peopleList();
  var prow=el("div");prow.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;";
  if(isCorp){
-   var ctDisp=document.createElement("input");ctDisp.type="text";ctDisp.value=pol.corpName?("（法人）"+pol.corpName):"（法人）";ctDisp.disabled=true;ctDisp.style.background="#eef0f4";
+   var shortK2=CORP_KIND_SHORT[pol.corpKind]||(pol.corpKind||"");
+   var fullName=(pol.corpKindPos==="後")?((pol.corpName||"")+shortK2):(shortK2+(pol.corpName||""));
+   var ctDisp=document.createElement("input");ctDisp.type="text";ctDisp.value=fullName?fullName:"（法人）";ctDisp.disabled=true;ctDisp.style.background="#eef0f4";
    prow.appendChild(labeled("契約者",ctDisp));
  }else{
    prow.appendChild(labeled("契約者",mkSel(ppl,(ppl.indexOf(pol.contractor)>=0?pol.contractor:"本人"),function(v){pol.contractor=v;saveState();})));

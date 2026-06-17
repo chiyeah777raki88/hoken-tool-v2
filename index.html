@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-1300";
+var APP_VERSION="v2-0618-1330";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -484,8 +484,9 @@ async function sbLoadV1Data(cid){
   try{var r=await sbClient.from("customer_data").select("*").eq("customer_id",cid).maybeSingle();return (r&&r.data&&r.data.data)?(typeof r.data.data==="string"?JSON.parse(r.data.data):r.data.data):null;}catch(e){return null;}
 }
 // v1の証券1件 → v2のpolicy
-function convertV1Policy(v1p,idx){
+function convertV1Policy(v1p,idx,insuredLabel){
   var p=newPolicy(idx);
+  if(insuredLabel){p.insured=insuredLabel;p.contractor=insuredLabel;}
   p.company=v1p.company==="その他"?(v1p.companyCustom||""):(v1p.company||"");
   p.companySel=(COS.indexOf(p.company)>=0)?p.company:(p.company?"その他":"");
   p.insType=(ITS.indexOf(v1p.insType)>=0)?v1p.insType:(v1p.insType?"その他":"");
@@ -538,15 +539,25 @@ function convertV1Policy(v1p,idx){
 }
 function convertV1Customer(data){
   // v1保存形式: data.polSave = {m1:[...], m2:[...], ...}（キーは家族ID）, data.famSave = 家族配列
-  var allPols=[];
+  var fam=data.famSave||data.family||[];
+  // 家族ID → 被保険者ラベル（本人 or 続柄）のマップ
+  var idToLabel={};
+  fam.forEach(function(m){idToLabel[m.id]=(m.relation==="本人")?"本人":(m.relation||"その他");});
+  // 同じ続柄が複数いる場合に備え、続柄＋名前で区別はせず続柄ラベルを使う（v2の被保険者選択に合わせる）
   var src=data.polSave||data.policies||{};
-  if(Array.isArray(src))allPols=src;
-  else Object.keys(src).forEach(function(k){var arr=src[k];if(Array.isArray(arr))allPols=allPols.concat(arr);});
-  var policies=allPols.map(function(vp,i){return convertV1Policy(vp,i);});
+  var policies=[];
+  if(Array.isArray(src)){
+    src.forEach(function(vp,i){policies.push(convertV1Policy(vp,policies.length,"本人"));});
+  }else{
+    Object.keys(src).forEach(function(k){
+      var arr=src[k];if(!Array.isArray(arr))return;
+      var label=idToLabel[k]||"本人";
+      arr.forEach(function(vp){policies.push(convertV1Policy(vp,policies.length,label));});
+    });
+  }
   if(!policies.length)policies=[newPolicy(0)];
   // 本人名・家族
   var custName="";var self={era:"西暦",y:"",m:"",d:""};var family=[];
-  var fam=data.famSave||data.family||[];
   fam.forEach(function(m){
     var b={era:"西暦",y:"",m:"",d:""};
     if(m.dob){var d=new Date(m.dob);if(!isNaN(d)){b.y=String(d.getFullYear());b.m=String(d.getMonth()+1);b.d=String(d.getDate());}}

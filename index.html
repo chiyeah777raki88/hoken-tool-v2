@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0830";
+var APP_VERSION="v2-0618-0900";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -227,23 +227,41 @@ var MX_ROWS_MENJO=[
 function mxData(){if(!STATE.matrix)STATE.matrix={kyufu:{},menjo:{},rowLabels:{}};if(!STATE.matrix.kyufu)STATE.matrix.kyufu={};if(!STATE.matrix.menjo)STATE.matrix.menjo={};if(!STATE.matrix.rowLabels)STATE.matrix.rowLabels={};return STATE.matrix;}
 function mxEnsure(data,ck,defText){if(!data[ck]){data[ck]={text:defText||"",polIdxs:[],na:false};}if(!data[ck].polIdxs)data[ck].polIdxs=[];return data[ck];}
 function mxBorder(cd){if(cd.na)return "1px solid #ccc";if(cd.polIdxs&&cd.polIdxs.length>=1)return "3px solid "+(STATE.policies[cd.polIdxs[0]]?STATE.policies[cd.polIdxs[0]].color:"#1a2744");return "1px solid #ddd";}
-// 疾病ごとの色（老眼でも区別しやすい配色。bg=薄背景, tc=文字色）
-var MX_ROW_COLORS={
- cancer:{bg:"#fdeef2",tc:"#b03060"},m_cancer:{bg:"#fdeef2",tc:"#b03060"},
- heart:{bg:"#fdecec",tc:"#c0392b"},m_heart:{bg:"#fdecec",tc:"#c0392b"},
- brain:{bg:"#eef2fd",tc:"#2c4fa0"},m_brain:{bg:"#eef2fd",tc:"#2c4fa0"},
- diabetes:{bg:"#fef6e8",tc:"#9a6b1e"},hypertension:{bg:"#f3f0fb",tc:"#6b4ba0"},
- liver:{bg:"#eef7ee",tc:"#3a7d44"},kidney:{bg:"#eef7f7",tc:"#2a7d7d"},
- pancreas:{bg:"#f7eef2",tc:"#8b3a6b"},
- dis:{bg:"#f0f4f8",tc:"#3a4a6b"},dis_grade:{bg:"#f0f4f8",tc:"#3a4a6b"},welfare:{bg:"#f0f4f8",tc:"#3a4a6b"},
- care:{bg:"#fef3ec",tc:"#b5651d"},m_dis_grade:{bg:"#f0f4f8",tc:"#3a4a6b"},m_welfare:{bg:"#f0f4f8",tc:"#3a4a6b"},m_care:{bg:"#fef3ec",tc:"#b5651d"}
-};
+// 列位置による「厳しさ」の基本色（①厳しい=赤 → ⑦緩い=緑のグラデーション）
+var MX_COL_SEVERITY={a:0,b:1,c:2,d:3,e:4,f:5,g:6,s1:6,s2:4,s3:2,s4:0};
+function mxSeverityColor(level){
+ // level 0(厳しい/出にくい)→6(緩い/出やすい)
+ var scale=[
+  {bg:"#fdd8d8",tc:"#a01818"}, // 0 最も厳しい 濃い赤
+  {bg:"#fde4d6",tc:"#a0481a"}, // 1 オレンジ赤
+  {bg:"#fdeed6",tc:"#9a6b1e"}, // 2 オレンジ
+  {bg:"#fbf6d6",tc:"#8a7d1e"}, // 3 黄
+  {bg:"#eef6d6",tc:"#5e7d1e"}, // 4 黄緑
+  {bg:"#e0f3df",tc:"#3a7d44"}, // 5 緑
+  {bg:"#d2f0e4",tc:"#1f7d56"}  // 6 最も緩い 濃い緑
+ ];
+ if(level<0)level=0;if(level>6)level=6;return scale[level];
+}
+// 条件文のキーワードから厳しさを判定（列位置より優先）
+function mxSeverityByText(text){
+ if(!text)return null;
+ // 厳しい（出にくい）キーワード
+ if(/悪性新生物|急性心筋梗塞|脳卒中|60日|労働制限|所定の状態|要介護4|1級/.test(text))return 0;
+ if(/20日以上|要介護3|2級/.test(text))return 2;
+ if(/入院or手術|10日以上|要介護2|3級/.test(text))return 3;
+ // 緩い（出やすい）キーワード
+ if(/上皮内がん|診断|全般|疾患全般|外来|通院|1泊|要介護1|4級|無し/.test(text))return 6;
+ if(/手術|入院/.test(text))return 4;
+ return null;
+}
 // 条件文のキーワードを強調（太字＋濃色）
 function mxEmphasize(text,tc){
   if(!text)return "";
   var esc=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  var kws=["急性心筋梗塞","悪性新生物","上皮内がん","脳卒中","脳血管疾患","心疾患","労働制限","所定の状態","診断","入院or手術","手術","入院","通院","外来","要介護4","要介護3","要介護2","要介護1","60日","20日以上","10日以上","1級","2級","3級","4級"];
-  kws.forEach(function(k){var re=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");esc=esc.replace(re,"<b style='color:"+(tc||"#1a2744")+";'>"+k+"</b>");});
+  var kws=["悪性新生物","上皮内がん","急性心筋梗塞","脳卒中","脳血管疾患","心疾患","労働制限","所定の状態","診断","入院or手術","手術","入院","通院","外来","要介護4","要介護3","要介護2","要介護1","60日","20日以上","10日以上","1泊","1級","2級","3級","4級","全般"];
+  kws.sort(function(a,b){return b.length-a.length;});
+  kws.forEach(function(k){var re=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");esc=esc.replace(re,"\u0001"+k+"\u0002");});
+  esc=esc.replace(/\u0001/g,"<b style='color:"+(tc||"#1a2744")+";'>").replace(/\u0002/g,"</b>");
   return esc;
 }
 function mxBuildTable(tableType,rows,title,hColor,noSecond){
@@ -272,7 +290,9 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var ck=tableType+"|"+row.id+"|"+col.id;
       var defText=(row.def&&row.def[col.id])||"";
       var cd=mxEnsure(data,ck,defText);
-      var rc=MX_ROW_COLORS[row.id]||{bg:"#ffffff",tc:"#1a2744"};
+      var sevByText=mxSeverityByText(cd.text||defText);
+      var sev=(sevByText!=null)?sevByText:(MX_COL_SEVERITY[col.id]!=null?MX_COL_SEVERITY[col.id]:3);
+      var rc=mxSeverityColor(sev);
       var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;background:"+rc.bg+";";
       if(cd.na){
         var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;cursor:pointer;";naWrap.title="クリックで入力に戻す";
@@ -395,8 +415,10 @@ function buildCheckTab(){
   var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:11px;padding:6px 10px;background:#f6f8fb;border-radius:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;";
   var lt=el("strong");lt.textContent="証券：";leg.appendChild(lt);
   STATE.policies.forEach(function(p,pi){var s=el("span");s.style.cssText="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;background:"+p.color+";";s.textContent=letterOf(pi)+"."+(p.company||p.planName||"証券"+letterOf(pi));leg.appendChild(s);});
-  var ln=el("span","muted","セルに条件を直接入力。「＋証券」で該当する証券の色を割り当て（複数可）。「✕」で非該当。条件が厳しいほど左、緩い（出やすい）ほど右です。");leg.appendChild(ln);
-  card2.appendChild(leg);
+  var ln=el("span","muted","セルをタップで編集。「＋証券」で該当証券の色、「✕」で非該当。");leg.appendChild(ln);
+  var legColor=el("div");legColor.style.cssText="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;flex-wrap:wrap;";
+  legColor.innerHTML="色の見方：<span style='background:#fdd8d8;color:#a01818;padding:1px 8px;border-radius:3px;font-weight:700;'>厳しい・出にくい</span> → <span style='background:#fbf6d6;color:#8a7d1e;padding:1px 8px;border-radius:3px;font-weight:700;'>中間</span> → <span style='background:#d2f0e4;color:#1f7d56;padding:1px 8px;border-radius:3px;font-weight:700;'>緩い・出やすい</span>　（例：悪性新生物=赤／上皮内がん=緑）";
+  card2.appendChild(leg);card2.appendChild(legColor);
   card2.appendChild(mxBuildTable("kyufu",MX_ROWS_KYUFU,"給付条件比較","#1a2744",false));
   card2.appendChild(mxBuildTable("menjo",MX_ROWS_MENJO,"免除条件比較","#6b21a8",true));
   wrap.appendChild(card2);

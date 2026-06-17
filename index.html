@@ -30,11 +30,12 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 .muted{color:#8a8a8a;font-size:11px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2300";
+var APP_VERSION="v2-0617-2330";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -145,7 +146,7 @@ function letterOf(i){return String.fromCharCode(65+i);}
 function loadState(){try{var s=localStorage.getItem("hoken_v2_state");if(s)return JSON.parse(s);}catch(e){}return null;}
 function saveState(){try{localStorage.setItem("hoken_v2_state",JSON.stringify(STATE));}catch(e){}}
 
-function newPolicy(idx){return {company:"",companySel:"",planName:"",insType:"",mainEndAge:"",color:POL_COLORS[idx%POL_COLORS.length],premium:"",payFreq:"月払",payMethod:"口座振替",currency:"JPY（円）",payToAge:"",contractor:"本人",insured:"本人",items:[]};}
+function newPolicy(idx){return {company:"",companySel:"",planName:"",insType:"",mainEndAge:"",color:POL_COLORS[idx%POL_COLORS.length],premium:"",payFreq:"月払",payMethod:"口座振替",currency:"JPY（円）",payToAge:"",contractor:"本人",insured:"本人",items:[],hasCashValue:false,cvKind:"単一",fvCostCut:1.5,futureVals:[]};}
 
 var STATE=loadState();
 // 旧（単一証券）データからの移行
@@ -473,6 +474,77 @@ function render(){
  });
  sc.appendChild(tbl);c2.appendChild(sc);
  wrap.appendChild(c2);
+
+ // ===== 将来予測（解約返戻金・積立金）=====
+ var cFV=el("div","card");
+ var fvHead=el("div");fvHead.style.cssText="font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
+ fvHead.appendChild(el("span",null,"将来予測（解約返戻金・積立金）"));
+ var onLb=el("label");onLb.style.cssText="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:400;cursor:pointer;";
+ var onCb=document.createElement("input");onCb.type="checkbox";onCb.checked=!!pol.hasCashValue;onCb.addEventListener("change",function(){pol.hasCashValue=this.checked;saveState();render();});
+ onLb.appendChild(onCb);onLb.appendChild(document.createTextNode("この証券に解約返戻金/積立がある"));
+ fvHead.appendChild(onLb);
+ cFV.appendChild(fvHead);
+ if(pol.hasCashValue){
+   var isVar=(pol.insType&&pol.insType.indexOf("変額")>=0);
+   if(!pol.futureVals)pol.futureVals=[];
+   var unit=(pol.currency&&pol.currency.indexOf("JPY")<0)?"原通貨":"万円";
+   // 説明
+   var fvTip=el("p","muted",isVar?("変額：設計書の年齢別予測額を運用率ごとに入力（"+unit+"）。空欄でもグラフは出ます。"):("解約返戻金の推移を年齢別に入力（"+unit+"）。払込累計も入れると損益が見えます。"));cFV.appendChild(fvTip);
+   // テーブル
+   var fvScroll=el("div");fvScroll.style.cssText="overflow-x:auto;";
+   var fvTbl=el("table");fvTbl.style.cssText="border-collapse:collapse;font-size:12px;min-width:100%;";
+   var hr=el("tr");
+   var cols=isVar?["年齢","払込累計","3%","4.5%","6%",""]:["年齢","払込累計","解約返戻金","返戻率",""];
+   cols.forEach(function(c){var th=el("th",null,c);th.style.cssText="border:1px solid #e2e6ee;padding:4px 6px;background:#f3f5f9;font-size:11px;white-space:nowrap;";hr.appendChild(th);});
+   fvTbl.appendChild(hr);
+   pol.futureVals.forEach(function(row,ri){
+     var tr=el("tr");
+     function cell(v,on){var td=el("td");td.style.cssText="border:1px solid #e2e6ee;padding:2px;";var i=document.createElement("input");i.type="number";i.value=(row[v]!=null&&row[v]!=="")?row[v]:"";i.style.cssText="width:72px;border:none;text-align:right;font-size:12px;padding:3px;";i.addEventListener("input",function(){row[v]=this.value===""?"":+this.value;saveState();drawFV();});td.appendChild(i);return td;}
+     tr.appendChild(cell("age"));
+     tr.appendChild(cell("paid"));
+     if(isVar){tr.appendChild(cell("v3"));tr.appendChild(cell("v45"));tr.appendChild(cell("v6"));}
+     else{tr.appendChild(cell("val"));
+       var rt=el("td");rt.style.cssText="border:1px solid #e2e6ee;padding:3px;text-align:center;font-size:11px;";var pN=+row.paid||0,vN=+row.val||0;rt.textContent=(pN>0&&vN>0)?(Math.round(vN/pN*1000)/10+"%"):"—";rt.style.color=(pN>0&&vN>=pN)?"#1f9d6b":"#55607a";tr.appendChild(rt);}
+     var dtd=el("td");dtd.style.cssText="border:1px solid #e2e6ee;padding:2px;text-align:center;";var db=el("button","btn","×");db.style.cssText="height:22px;padding:0 7px;font-size:11px;";db.addEventListener("click",function(){pol.futureVals.splice(ri,1);saveState();render();});dtd.appendChild(db);tr.appendChild(dtd);
+     fvTbl.appendChild(tr);
+   });
+   fvScroll.appendChild(fvTbl);cFV.appendChild(fvScroll);
+   var addRow=el("button","btn","＋ 行を追加");addRow.style.cssText="font-size:12px;margin-top:6px;";
+   addRow.addEventListener("click",function(){var last=pol.futureVals.length?pol.futureVals[pol.futureVals.length-1]:null;var na=last&&last.age?(+last.age+5):60;pol.futureVals.push({age:na,paid:"",val:"",v3:"",v45:"",v6:""});saveState();render();});
+   cFV.appendChild(addRow);
+   if(isVar){
+     var cutWrap=el("div");cutWrap.style.cssText="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;";
+     cutWrap.appendChild(el("span","muted","表示率からの費用控除幅（％）"));
+     var cutI=document.createElement("input");cutI.type="number";cutI.step="0.1";cutI.value=(pol.fvCostCut!=null?pol.fvCostCut:1.5);cutI.style.cssText="width:60px;text-align:right;";cutI.addEventListener("input",function(){pol.fvCostCut=this.value===""?0:+this.value;saveState();});
+     cutWrap.appendChild(cutI);cutWrap.appendChild(el("span","muted","（設計書が無いとき、表示率−この幅で概算。表に数値があればそちら優先）"));
+     cFV.appendChild(cutWrap);
+   }
+   // グラフ
+   var fvChartBox=el("div");fvChartBox.style.cssText="position:relative;height:300px;margin-top:12px;";
+   var fvCanvas=document.createElement("canvas");fvChartBox.appendChild(fvCanvas);cFV.appendChild(fvChartBox);
+   var fvNote=el("p","muted","グレー＝払込累計、色線＝返戻金。設計書ベースの数値です（費用控除後）。");fvNote.style.cssText="font-size:11px;margin-top:8px;";cFV.appendChild(fvNote);
+
+   var _fvChart=null;
+   function drawFV(){
+     if(typeof Chart==="undefined")return;
+     var rows=(pol.futureVals||[]).filter(function(r){return r.age!=null&&r.age!=="";}).slice().sort(function(a,b){return (+a.age)-(+b.age);});
+     if(!rows.length){if(_fvChart){_fvChart.destroy();_fvChart=null;}return;}
+     var labels=rows.map(function(r){return r.age+"歳";});
+     var ds=[];
+     ds.push({type:"line",label:"払込累計",data:rows.map(function(r){return (+r.paid||0)||null;}),borderColor:"#9aa3b2",backgroundColor:"rgba(154,163,178,0.18)",borderWidth:1.5,borderDash:[5,4],fill:true,pointRadius:0,tension:0.2,order:10});
+     if(isVar){
+       [["v3","3%","#3a6ea5"],["v45","4.5%","#c9962e"],["v6","6%","#a14d8c"]].forEach(function(c){
+         ds.push({type:"line",label:c[1],data:rows.map(function(r){return (+r[c[0]]||0)||null;}),borderColor:c[2],backgroundColor:c[2],borderWidth:2.5,fill:false,pointRadius:3,tension:0.25,order:1});
+       });
+     }else{
+       ds.push({type:"line",label:"解約返戻金",data:rows.map(function(r){return (+r.val||0)||null;}),borderColor:pol.color||"#185FA5",backgroundColor:pol.color||"#185FA5",borderWidth:3,fill:false,pointRadius:3,tension:0.25,order:1});
+     }
+     if(_fvChart)_fvChart.destroy();
+     _fvChart=new Chart(fvCanvas,{data:{labels:labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{position:"top",labels:{font:{size:11},boxWidth:14,usePointStyle:true}},tooltip:{callbacks:{label:function(it){return it.dataset.label+": "+(it.parsed.y!=null?it.parsed.y.toLocaleString():"-");}}}},scales:{x:{grid:{color:"#eef1f6"},ticks:{font:{size:10}}},y:{grid:{color:"#eef1f6"},ticks:{font:{size:10},callback:function(v){return v.toLocaleString();}}}}}});
+   }
+   setTimeout(drawFV,60);
+ }
+ wrap.appendChild(cFV);
 
  var c3=el("div","card");
  var pb=el("button","btn gold","この証券のPDFを作る");pb.addEventListener("click",makePdf);c3.appendChild(pb);

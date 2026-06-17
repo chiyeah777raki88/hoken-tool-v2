@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0715";
+var APP_VERSION="v2-0618-0725";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -642,7 +642,7 @@ function render(){
 
  // タブバー
  var tabBar2=el("div","tabs");
- [["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案"],["check","保障チェック"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
+ [["input","入力・編集"],["summary","加入一覧"],["check","保障チェック"],["graph","保障グラフ"],["proposal","提案"],["assets","資産・老後"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
    var b=el("button","tab-btn"+(CUR_TAB===t[0]?" active":""),t[1]);
    b.addEventListener("click",function(){CUR_TAB=t[0];render();});
    tabBar2.appendChild(b);

@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-0900";
+var APP_VERSION="v2-0618-0915";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -273,11 +273,12 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
   var tbl=document.createElement("table");tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
   var hr1=el("tr");
   var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:3px 5px;font-size:11px;min-width:58px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
-  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#1e40af;";th1.innerHTML="1回目　<span style='font-size:10px;font-weight:400;'>←厳しい（出にくい）　　緩い（出やすい）→</span>";hr1.appendChild(th1);
+  var th1=el("th");th1.colSpan=7;th1.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#1e40af;";th1.textContent="1回目";hr1.appendChild(th1);
   if(!noSecond){var th2=el("th");th2.colSpan=4;th2.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:2px;text-align:center;font-size:11px;font-weight:700;color:#166534;";th2.textContent="2回目以降";hr1.appendChild(th2);}
   tbl.appendChild(hr1);
   var hr2=el("tr");
-  ["①","②","③","④","⑤","⑥","⑦"].forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:"+(noSecond?"118px":"84px")+";color:#1e40af;";th.textContent=l;hr2.appendChild(th);});
+  var firstLabels=[["①","厳しい"],["②",""],["③",""],["④",""],["⑤",""],["⑥",""],["⑦","緩い"]];
+  firstLabels.forEach(function(l){var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:1px 3px;text-align:center;font-size:10px;min-width:"+(noSecond?"118px":"84px")+";color:#1e40af;";th.innerHTML=l[0]+(l[1]?("<br><span style='font-size:9px;color:"+(l[1]==="厳しい"?"#c0392b":"#1f7d56")+";font-weight:700;'>"+l[1]+"</span>"):"");hr2.appendChild(th);});
   if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(l){var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:1px 3px;text-align:center;font-size:10px;min-width:60px;color:#166534;";th.textContent=l;hr2.appendChild(th);});
   tbl.appendChild(hr2);
   rows.forEach(function(row){
@@ -290,9 +291,7 @@ function mxBuildTable(tableType,rows,title,hColor,noSecond){
       var ck=tableType+"|"+row.id+"|"+col.id;
       var defText=(row.def&&row.def[col.id])||"";
       var cd=mxEnsure(data,ck,defText);
-      var sevByText=mxSeverityByText(cd.text||defText);
-      var sev=(sevByText!=null)?sevByText:(MX_COL_SEVERITY[col.id]!=null?MX_COL_SEVERITY[col.id]:3);
-      var rc=mxSeverityColor(sev);
+      var rc={bg:"#ffffff",tc:"#1a2744"};
       var td=el("td");td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+mxBorder(cd)+";vertical-align:top;min-width:"+(col.g==="second"?"60px":(noSecond?"118px":"84px"))+";position:relative;background:"+rc.bg+";";
       if(cd.na){
         var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:30px;cursor:pointer;";naWrap.title="クリックで入力に戻す";
@@ -415,10 +414,8 @@ function buildCheckTab(){
   var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:11px;padding:6px 10px;background:#f6f8fb;border-radius:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;";
   var lt=el("strong");lt.textContent="証券：";leg.appendChild(lt);
   STATE.policies.forEach(function(p,pi){var s=el("span");s.style.cssText="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;background:"+p.color+";";s.textContent=letterOf(pi)+"."+(p.company||p.planName||"証券"+letterOf(pi));leg.appendChild(s);});
-  var ln=el("span","muted","セルをタップで編集。「＋証券」で該当証券の色、「✕」で非該当。");leg.appendChild(ln);
-  var legColor=el("div");legColor.style.cssText="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;flex-wrap:wrap;";
-  legColor.innerHTML="色の見方：<span style='background:#fdd8d8;color:#a01818;padding:1px 8px;border-radius:3px;font-weight:700;'>厳しい・出にくい</span> → <span style='background:#fbf6d6;color:#8a7d1e;padding:1px 8px;border-radius:3px;font-weight:700;'>中間</span> → <span style='background:#d2f0e4;color:#1f7d56;padding:1px 8px;border-radius:3px;font-weight:700;'>緩い・出やすい</span>　（例：悪性新生物=赤／上皮内がん=緑）";
-  card2.appendChild(leg);card2.appendChild(legColor);
+  var ln=el("span","muted","セルをタップで編集。「＋証券」で該当証券の色、「✕」で非該当。①ほど厳しく⑦ほど緩い条件です。");leg.appendChild(ln);
+  card2.appendChild(leg);
   card2.appendChild(mxBuildTable("kyufu",MX_ROWS_KYUFU,"給付条件比較","#1a2744",false));
   card2.appendChild(mxBuildTable("menjo",MX_ROWS_MENJO,"免除条件比較","#6b21a8",true));
   wrap.appendChild(card2);

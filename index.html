@@ -35,7 +35,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0617-2330";
+var APP_VERSION="v2-0617-2350";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -313,32 +313,45 @@ function render(){
  addP.addEventListener("click",function(){STATE.policies.push(newPolicy(STATE.policies.length));STATE.cur=STATE.policies.length-1;saveState();render();});
  tabs.appendChild(addP);
  // カメラ読み取り（段階1：鍵の疎通確認）— タブ行に横並び
- var camLbl=el("label","btn");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 10px;font-size:13px;background:#3a4a6b;color:#fff;";camLbl.textContent="📷 読み取り";
- var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.style.display="none";camLbl.appendChild(camFi);
+ // 撮影ボタン（カメラ直起動・1枚）
+ var camLbl=el("label","btn");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 10px;font-size:13px;background:#3a4a6b;color:#fff;";camLbl.textContent="📷 撮影";
+ var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";camLbl.appendChild(camFi);
  tabs.appendChild(camLbl);
+ // ライブラリボタン（複数選択可）
+ var libLbl=el("label","btn");libLbl.style.cssText="display:inline-block;cursor:pointer;padding:6px 10px;font-size:13px;background:#3a4a6b;color:#fff;";libLbl.textContent="🖼 画像を選ぶ（複数可）";
+ var libFi=document.createElement("input");libFi.type="file";libFi.accept="image/*";libFi.multiple=true;libFi.style.display="none";libLbl.appendChild(libFi);
+ tabs.appendChild(libLbl);
  tabBar.appendChild(tabs);
  var camMsg=el("div","muted","");camMsg.style.cssText="font-size:11px;margin-top:6px;";
- camFi.addEventListener("change",function(){
-   var f=this.files&&this.files[0];if(!f)return;
-   if(!AI_API_KEY){camMsg.textContent="先に右上の「🔑鍵」からAPIキーを登録してください。";camMsg.style.color="#c0392b";return;}
-   camMsg.style.color="#8089a0";camMsg.textContent="読み取りテスト中…";
-   var r=new FileReader();
-   r.onload=function(){
-     var b64=String(r.result).split(",")[1];
-     fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:300,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:b64}},{type:"text",text:"この画像が何の書類か（保険証券／設計書／その他）と、読み取れる保険会社名・保険種類があれば、日本語で1〜2行だけ答えてください。"}]}]})})
+ // 複数画像を読み込んでまとめて1リクエストで送る（疎通テスト）
+ function readFiles(fileList){
+   var files=[].slice.call(fileList||[]);
+   if(!files.length)return;
+   if(!AI_API_KEY){camMsg.style.color="#c0392b";camMsg.textContent="先に右上の「🔑鍵」からAPIキーを登録してください。";return;}
+   camMsg.style.color="#8089a0";camMsg.textContent=files.length+"枚を読み取りテスト中…";
+   var imgs=[];var done=0;
+   files.forEach(function(f,idx){
+     var r=new FileReader();
+     r.onload=function(){imgs[idx]={type:"image",source:{type:"base64",media_type:(f.type||"image/jpeg"),data:String(r.result).split(",")[1]}};done++;if(done===files.length)sendAll();};
+     r.onerror=function(){done++;if(done===files.length)sendAll();};
+     r.readAsDataURL(f);
+   });
+   function sendAll(){
+     var content=imgs.filter(Boolean).concat([{type:"text",text:"これらは1件の保険契約の証券・設計書です（複数ページの場合あり）。何の書類か、保険会社名・保険種類・分かる範囲の概要を日本語で2〜3行だけ答えてください。"}]);
+     fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,messages:[{role:"user",content:content}]})})
      .then(function(res){return res.json();})
      .then(function(d){
-       if(d&&d.content&&d.content[0]&&d.content[0].text){camMsg.style.color="#27ae60";camMsg.textContent="✓ 鍵OK・読取テスト成功：「"+d.content[0].text.replace(/\n/g," ").slice(0,80)+"」";}
-       else if(d&&d.error){camMsg.style.color="#c0392b";camMsg.textContent="エラー："+(d.error.message||JSON.stringify(d.error)).slice(0,120);}
+       if(d&&d.content&&d.content[0]&&d.content[0].text){camMsg.style.color="#27ae60";camMsg.textContent="✓ "+files.length+"枚 読取成功：「"+d.content[0].text.replace(/\n/g," ").slice(0,120)+"」";}
+       else if(d&&d.error){camMsg.style.color="#c0392b";camMsg.textContent="エラー："+(d.error.message||JSON.stringify(d.error)).slice(0,140);}
        else{camMsg.style.color="#c0392b";camMsg.textContent="想定外の応答でした。";}
      })
      .catch(function(e){camMsg.style.color="#c0392b";camMsg.textContent="通信エラー："+e.message;});
-   };
-   r.readAsDataURL(f);
-   this.value="";
- });
+   }
+ }
+ camFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
+ libFi.addEventListener("change",function(){readFiles(this.files);this.value="";});
  tabBar.appendChild(camMsg);
- var camNote=el("p","muted","※今は鍵の疎通確認のみ。実際の自動入力（各項目への反映）は次の段階で実装します。");camNote.style.cssText="font-size:11px;margin-top:4px;";tabBar.appendChild(camNote);
+ var camNote=el("p","muted","※今は鍵の疎通確認のみ。実際の自動入力は次の段階で実装します。複数ページの設計書は「画像を選ぶ」で複数選択できます。");camNote.style.cssText="font-size:11px;margin-top:4px;";tabBar.appendChild(camNote);
  wrap.appendChild(tabBar);
 
  // 現在の証券の基本情報

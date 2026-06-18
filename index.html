@@ -17,9 +17,9 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-text-size-adjust:100%;}
 body{font-family:system-ui,-apple-system,sans-serif;background:#faf8f3;color:#1a2744;font-size:13px;}
-.hdr{background:#1a2744;color:white;padding:6px 14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;border-bottom:3px solid #c9a84c;}
+.hdr{background:#1a2744;color:white;padding:6px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;border-bottom:3px solid #c9a84c;}
 .tabs{display:flex;background:#1a2744;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.tab-btn{padding:10px 12px;background:transparent;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:11px;font-weight:500;border-bottom:3px solid transparent;white-space:nowrap;font-family:inherit;}
+.tab-btn{padding:10px 12px;background:transparent;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:12px;font-weight:500;border-bottom:3px solid transparent;white-space:nowrap;font-family:inherit;}
 .tab-btn.active{color:#c9a84c;border-bottom:3px solid #c9a84c;}
 .content{padding:12px 16px;max-width:100%;margin:0;}
 .sec{background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
@@ -29,7 +29,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#faf8f3;color:#1a
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 @media(max-width:600px){.g3,.g4{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
-.fl{display:flex;flex-direction:column;gap:3px;font-size:11px;color:#8a8a8a;font-weight:500;}
+.fl{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#8a8a8a;font-weight:500;}
 input,select,textarea{border:1px solid #ddd8cc;border-radius:4px;padding:6px 9px;font-family:inherit;font-size:12px;color:#1a2744;background:white;width:100%;}
 input[type=checkbox],input[type=radio]{width:auto;min-width:0;flex:none;transform:scale(1.2);cursor:pointer;padding:0;margin:0;}
 textarea{resize:vertical;min-height:56px;}
@@ -39,12 +39,12 @@ textarea{resize:vertical;min-height:56px;}
 .ptab{padding:7px 14px;border:1px solid #ddd8cc;border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;font-weight:500;background:white;color:#1a2744;white-space:nowrap;}
 .ptab.active{background:#1a2744;color:white;}
 .poltabs{display:flex;gap:4px;padding:10px 14px;background:#f8f7f4;border-bottom:1px solid #ddd8cc;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.poltab{padding:5px 14px;border:1px solid #ddd8cc;border-radius:20px;cursor:pointer;font-size:11px;background:white;color:#1a2744;white-space:nowrap;}
+.poltab{padding:5px 14px;border:1px solid #ddd8cc;border-radius:20px;cursor:pointer;font-size:12px;background:white;color:#1a2744;white-space:nowrap;}
 .poltab.active{background:#1a2744;color:white;}
 .rg{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
-.rb{padding:4px 10px;border:1px solid #ddd8cc;border-radius:20px;cursor:pointer;font-size:11px;background:white;color:#1a2744;}
+.rb{padding:4px 10px;border:1px solid #ddd8cc;border-radius:20px;cursor:pointer;font-size:12px;background:white;color:#1a2744;}
 .rb.active{background:#1a2744;color:white;border-color:#1a2744;}
-table{width:100%;border-collapse:collapse;font-size:11px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:#1a2744;color:white;padding:6px 8px;text-align:left;font-weight:500;white-space:nowrap;}
 td{padding:5px 8px;border-bottom:1px solid #ddd8cc;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
 table.kanyu{table-layout:fixed;width:100%;}
@@ -58,12 +58,12 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .chdr{background:#c9a84c;color:#1a2744;padding:8px 14px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
 .cbody{padding:12px;max-height:350px;overflow-y:auto;}
 .cgrp{margin-bottom:10px;}
-.cgtitle{font-size:11px;font-weight:700;color:#1a2744;border-bottom:1px solid #ddd8cc;padding-bottom:3px;margin-bottom:6px;}
+.cgtitle{font-size:12px;font-weight:700;color:#1a2744;border-bottom:1px solid #ddd8cc;padding-bottom:3px;margin-bottom:6px;}
 .cfields{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
-.cf label{font-size:10px;color:#8a8a8a;}
+.cf label{font-size:11px;color:#8a8a8a;}
 .hi label{color:#856404 !important;font-weight:700 !important;}
 .hi input{border-color:#f39c12 !important;background:#fffde7 !important;}
-.cnote{padding:6px 12px;background:#fffde7;border-top:1px solid #ddd8cc;font-size:11px;color:#856404;}
+.cnote{padding:6px 12px;background:#fffde7;border-top:1px solid #ddd8cc;font-size:12px;color:#856404;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 @media print {
 * { visibility: hidden !important; }
@@ -253,7 +253,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1430-明細の単位被り解消(列幅調整)・条件は縦並び・保険料レーダーの軸差替+1追加・参考データ詳細化(国民/厚生別/高額療養費多数該当・70歳以上/子の加算額)。版";
+var APP_VERSION="v2-0619-1500-ツールの文字を全体的に拡大(9/10px→11・11px→12・本文14)し余白とのバランス改善。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -366,12 +366,12 @@ ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0
 var box=document.createElement("div");box.style.cssText="background:white;border-radius:10px;padding:20px;width:90%;max-width:560px;";
 var ttl=document.createElement("div");ttl.style.cssText="font-weight:700;font-size:15px;color:#1a2744;margin-bottom:12px;";
 ttl.textContent="Excelレポート出力";
-var steps=document.createElement("div");steps.style.cssText="background:#f0f4ff;border-radius:6px;padding:12px;margin-bottom:12px;font-size:11px;line-height:1.8;";
+var steps=document.createElement("div");steps.style.cssText="background:#f0f4ff;border-radius:6px;padding:12px;margin-bottom:12px;font-size:12px;line-height:1.8;";
 steps.innerHTML="<b>手順：</b><br>① 下の「データをコピー」ボタンを押す<br>② このclaude.aiのチャットに「Excelを生成して」と送信<br>（コピーしたデータも一緒に貼り付け）<br>③ Claudeがgen_excel.pyを実行してExcelを生成";
 var copyBtn=document.createElement("button");
 copyBtn.style.cssText="width:100%;padding:12px;background:#1a2744;color:white;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;";
 copyBtn.textContent="データをコピー（Ctrl+C）";
-var ta=document.createElement("textarea");ta.style.cssText="width:100%;height:80px;font-size:9px;border:1px solid #ddd;border-radius:4px;padding:4px;box-sizing:border-box;margin-bottom:8px;";
+var ta=document.createElement("textarea");ta.style.cssText="width:100%;height:80px;font-size:11px;border:1px solid #ddd;border-radius:4px;padding:4px;box-sizing:border-box;margin-bottom:8px;";
 ta.value=json;ta.readOnly=true;
 copyBtn.addEventListener("click",function(){
 ta.select();
@@ -431,7 +431,7 @@ ttl.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin-bottom:8p
 ttl.textContent="バックアップデータ（Edgeで使う場合: このJSONをコピーしてファイル保存→Edgeのアプリで↑読込ボタンで復元）";
 var ta=document.createElement("textarea");
 ta.value=json;ta.readOnly=true;
-ta.style.cssText="width:100%;height:80px;font-size:9px;border:1px solid #ddd;border-radius:4px;padding:4px;box-sizing:border-box;";
+ta.style.cssText="width:100%;height:80px;font-size:11px;border:1px solid #ddd;border-radius:4px;padding:4px;box-sizing:border-box;";
 var row=document.createElement("div");
 row.style.cssText="display:flex;gap:8px;margin-top:8px;";
 var copyBtn=document.createElement("button");
@@ -717,12 +717,12 @@ function makeDobInput(initialVal,onChange){
   var topRow=el("div");topRow.style.cssText="display:flex;gap:6px;align-items:center;flex-wrap:wrap;";
   // 西暦/和暦 切替ボタン
   var sBtn=el("button",null,"西暦");var wBtn=el("button",null,"和暦");
-  [sBtn,wBtn].forEach(function(b){b.type="button";b.style.cssText="font-size:10px;padding:2px 8px;border:1px solid #c9a84c;border-radius:4px;background:white;color:#1a2744;cursor:pointer;";});
+  [sBtn,wBtn].forEach(function(b){b.type="button";b.style.cssText="font-size:11px;padding:2px 8px;border:1px solid #c9a84c;border-radius:4px;background:white;color:#1a2744;cursor:pointer;";});
   function setMode(m){mode=m;sBtn.style.background=m==="seireki"?"#c9a84c":"white";wBtn.style.background=m==="wareki"?"#c9a84c":"white";renderInputs();}
   // 入力欄の入れ物
   var inputRow=el("div");inputRow.style.cssText="display:flex;gap:6px;align-items:center;flex-wrap:wrap;";
-  var warekiLbl=el("span");warekiLbl.style.cssText="font-size:11px;color:#7c3aed;font-weight:700;";
-  var seLbl=el("span");seLbl.style.cssText="font-size:11px;color:#7c3aed;font-weight:700;";
+  var warekiLbl=el("span");warekiLbl.style.cssText="font-size:12px;color:#7c3aed;font-weight:700;";
+  var seLbl=el("span");seLbl.style.cssText="font-size:12px;color:#7c3aed;font-weight:700;";
   function fire(){
     if(parts.y&&parts.m&&parts.d){
       var v=parts.y.padStart(4,"0")+"-"+String(parts.m).padStart(2,"0")+"-"+String(parts.d).padStart(2,"0");
@@ -841,14 +841,14 @@ var mcb=document.createElement("input");mcb.type="checkbox";mcb.checked=keepMode
 mcb.addEventListener("change",function(){keepMode.on=this.checked;});
 var mlb=el("label");mlb.style.cssText="cursor:pointer;font-weight:700;display:flex;align-items:center;gap:6px;";
 mlb.appendChild(mcb);mlb.appendChild(document.createTextNode("すでに入っている項目は上書きしない（追記だけ）"));
-var mnote=el("span");mnote.style.cssText="font-size:11px;color:#5a8a6a;";mnote.textContent="※返戻金・将来予測の表は新情報として反映します";
+var mnote=el("span");mnote.style.cssText="font-size:12px;color:#5a8a6a;";mnote.textContent="※返戻金・将来予測の表は新情報として反映します";
 modeBar.appendChild(mlb);modeBar.appendChild(mnote);
 cb.appendChild(modeBar);
 // 読み取り内容（詳細）：カメラが実際に何を読んだか確認用
 var dbgWrap=el("div");dbgWrap.style.cssText="padding:6px 14px;border-bottom:1px solid #eee;";
 var dbgBtn=el("button",null,"▼ 読み取った内容の詳細を見る（うまく入らない時）");
-dbgBtn.style.cssText="font-size:11px;background:#eee;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;color:#555;";
-var dbgBox=el("div");dbgBox.style.cssText="display:none;margin-top:6px;font-size:10px;white-space:pre-wrap;word-break:break-all;background:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:6px;max-height:160px;overflow:auto;color:#333;";
+dbgBtn.style.cssText="font-size:12px;background:#eee;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;color:#555;";
+var dbgBox=el("div");dbgBox.style.cssText="display:none;margin-top:6px;font-size:11px;white-space:pre-wrap;word-break:break-all;background:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:6px;max-height:160px;overflow:auto;color:#333;";
 var fv=draft.futureVals;
 var fvTxt=(Array.isArray(fv)&&fv.length>0)?(fv.length+"件: "+fv.map(function(r){return (r.age||"?")+"歳/払込"+(r.paid||0)+"/返戻"+(r.v3||r.v1||0);}).join(" , ")):"（空：返戻金表は読み取れていません）";
 dbgBox.textContent="【解約返戻金/将来予測テーブル】\n"+fvTxt+"\n\n【特記事項(notes)】\n"+(draft.notes||"（なし）")+"\n\n【保険種類】"+(draft.insType||"（なし）")+"\n【通貨】"+(draft.currency||"（なし）");
@@ -876,7 +876,7 @@ else{dv=String(rv);}
 var hi=g.hi.indexOf(f)>=0;
 var fd=el("div","cf"+(hi?" hi":""));
 var lb=el("label");lb.textContent=FLBLS[f]||f;
-var fi2=document.createElement("input");fi2.value=dv;fi2.style.cssText="width:100%;padding:3px 6px;font-size:11px;border-radius:3px;border:1px solid #ddd8cc;";
+var fi2=document.createElement("input");fi2.value=dv;fi2.style.cssText="width:100%;padding:3px 6px;font-size:12px;border-radius:3px;border:1px solid #ddd8cc;";
 fi2.addEventListener("input",function(){draft[f]=this.value;});
 fd.appendChild(lb);fd.appendChild(fi2);ff.appendChild(fd);
 });
@@ -889,11 +889,11 @@ box.appendChild(cb);
 function buildCamera(pol,onResult){
 var box=el("div","cam");
 var title=el("div");title.style.cssText="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a2744;";title.textContent="証券画像から自動入力（複数ページ対応）";
-var desc=el("p");desc.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:8px;";desc.textContent="スマホは「カメラで撮影」、パソコンは「画像を選択」。設計書は複数ページまとめて読み取れます。読み取り後に確認画面が出ます。";
+var desc=el("p");desc.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";desc.textContent="スマホは「カメラで撮影」、パソコンは「画像を選択」。設計書は複数ページまとめて読み取れます。読み取り後に確認画面が出ます。";
 var row=el("div");row.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;";
 var lbl2=el("label","btn bg");lbl2.style.cssText="display:inline-block;cursor:pointer;padding:8px 16px;border-radius:6px;font-weight:600;font-size:12px;";lbl2.textContent="画像を選択（複数可）";
 var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.multiple=true;fi.style.display="none";
-var msgEl=el("span");msgEl.style.cssText="font-size:11px;color:#8a8a8a;";
+var msgEl=el("span");msgEl.style.cssText="font-size:12px;color:#8a8a8a;";
 // スマホ用：その場で撮影するボタン（capture属性でカメラ起動）
 var camLbl=el("label","btn bv");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:8px 16px;border-radius:6px;font-weight:600;font-size:12px;";camLbl.textContent="📷 カメラで撮影";
 var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";
@@ -1007,7 +1007,7 @@ if(pol.company&&IP[ii2].company&&pol.company===IP[ii2].company&&pol.insType===IP
 }
 // 個人 / 法人 切替
 var corpRow=el("div");corpRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
-var corpLbl=el("span");corpLbl.style.cssText="font-size:11px;color:#9a3412;font-weight:700;white-space:nowrap;";corpLbl.textContent="契約区分：";
+var corpLbl=el("span");corpLbl.style.cssText="font-size:12px;color:#9a3412;font-weight:700;white-space:nowrap;";corpLbl.textContent="契約区分：";
 corpRow.appendChild(corpLbl);
 [["個人",false],["法人",true]].forEach(function(o){
 var b=el("button","btn");b.style.cssText="padding:4px 14px;font-size:12px;border-radius:5px;border:1px solid #fdba74;cursor:pointer;background:"+((!!pol.isCorp)===o[1]?"#9a3412":"white")+";color:"+((!!pol.isCorp)===o[1]?"white":"#9a3412")+";font-weight:700;";
@@ -1017,7 +1017,7 @@ corpRow.appendChild(b);
 cont.appendChild(corpRow);
 if(pol.isCorp){
 var corpBox=el("div");corpBox.style.cssText="margin-bottom:8px;padding:10px 12px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;";
-var corpHd=el("div");corpHd.style.cssText="font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;";corpHd.textContent="法人契約 情報";corpBox.appendChild(corpHd);
+var corpHd=el("div");corpHd.style.cssText="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px;";corpHd.textContent="法人契約 情報";corpBox.appendChild(corpHd);
 corpBox.appendChild(grd("g4",[
 lbl("法人格",sel([{v:"株式会社",l:"株式会社（㈱）"},{v:"有限会社",l:"有限会社（㈲）"},{v:"合同会社",l:"合同会社（同）"},{v:"医療法人",l:"医療法人"},{v:"一般社団法人",l:"一般社団法人"},{v:"その他",l:"その他"}],pol.corpType||"株式会社",function(v){upd("corpType",v);})),
 lbl("法人格の位置",sel([{v:"前",l:"前（㈱○○）"},{v:"後",l:"後（○○㈱）"}],pol.corpTypePos||"前",function(v){upd("corpTypePos",v);})),
@@ -1036,19 +1036,19 @@ cont.appendChild(corpBox);
 }
 // Policy nickname
 var nameRow=el("div");nameRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:#f0f4ff;border:1px solid #c3dafe;border-radius:6px;display:flex;align-items:center;gap:10px;";
-var nameLbl2=el("span");nameLbl2.style.cssText="font-size:11px;color:#1a2744;font-weight:700;white-space:nowrap;";nameLbl2.textContent=pol.isCorp?"屋号／ペットネーム：":"ペットネーム：";
+var nameLbl2=el("span");nameLbl2.style.cssText="font-size:12px;color:#1a2744;font-weight:700;white-space:nowrap;";nameLbl2.textContent=pol.isCorp?"屋号／ペットネーム：":"ペットネーム：";
 var nameInp2=document.createElement("input");nameInp2.type="text";nameInp2.value=pol.polName||"";nameInp2.placeholder="例）あんしん就業不能";nameInp2.style.cssText="flex:1;border:1px solid #c3dafe;border-radius:4px;padding:5px 8px;font-size:12px;";
 nameInp2.addEventListener("input",function(){upd("polName",this.value);});
 nameRow.appendChild(nameLbl2);nameRow.appendChild(nameInp2);
 cont.appendChild(nameRow);
 var colorRow=el("div");colorRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:white;border:1px solid #ddd8cc;border-radius:6px;display:flex;align-items:center;gap:10px;";
-var colorLbl=el("span");colorLbl.style.cssText="font-size:11px;color:#8a8a8a;";colorLbl.textContent="グラフの色：";
+var colorLbl=el("span");colorLbl.style.cssText="font-size:12px;color:#8a8a8a;";colorLbl.textContent="グラフの色：";
 var polColorInp=document.createElement("input");polColorInp.type="color";polColorInp.value=pol.chartColor||"#8e44ad";polColorInp.style.cssText="width:40px;height:30px;padding:2px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;";
 polColorInp.addEventListener("input",function(){upd("chartColor",this.value);});
 colorRow.appendChild(colorLbl);colorRow.appendChild(polColorInp);
 cont.appendChild(colorRow);
 var resetDiv=el("div");resetDiv.style.cssText="margin-bottom:8px;padding:8px 12px;background:#fff9e6;border-radius:6px;border:1px solid #f0d060;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;";
-var resetNote=el("span");resetNote.style.cssText="font-size:11px;color:#856404;";resetNote.textContent="初期データと異なる場合は「初期値に戻す」で修正できます";
+var resetNote=el("span");resetNote.style.cssText="font-size:12px;color:#856404;";resetNote.textContent="初期データと異なる場合は「初期値に戻す」で修正できます";
 var resetPolBtn=btn("初期値に戻す","bg",function(){
 var found=null;
 for(var ii3=0;ii3<IP.length;ii3++){
@@ -1059,7 +1059,7 @@ if(found){state.policies[mid][pidx2]=JSON.parse(JSON.stringify(found));}
 else{var fr=mkP(pol.id);fr.company=pol.company;fr.insType=pol.insType;state.policies[mid][pidx2]=fr;}
 saveState();render();
 });
-resetPolBtn.style.cssText="padding:3px 10px;font-size:11px;white-space:nowrap;";
+resetPolBtn.style.cssText="padding:3px 10px;font-size:12px;white-space:nowrap;";
 resetDiv.appendChild(resetNote);resetDiv.appendChild(resetPolBtn);cont.appendChild(resetDiv);
 cont.appendChild(sec("証券 "+(pidx2+1)+"/"+(state.policies[mid]||[]).length+"  "+cN(pol),
 btn("削除","br",function(){state.policies[mid].splice(pidx2,1);currentPidx=Math.max(0,pidx2-1);saveState();render();}),
@@ -1073,7 +1073,7 @@ lbl("契約日",makeDobInput(pol.contractDate,function(v){upd("contractDate",v);
 (function(){
   var ageTxt=calcEnrollAge(pol);
   var w=el("div");w.style.cssText="display:flex;flex-direction:column;";
-  var l=el("label");l.textContent="加入時年齢（自動）";l.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:3px;";
+  var l=el("label");l.textContent="加入時年齢（自動）";l.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:3px;";
   var v=el("div");v.id="enrollAge_"+pol.id;v.textContent=ageTxt;v.style.cssText="font-size:14px;font-weight:700;color:#1a2744;padding:7px 0;";
   w.appendChild(l);w.appendChild(v);return w;
 })(),
@@ -1147,24 +1147,24 @@ var dtb=el("tbody");var dlg="";
 var DMINOR={hospout:1,surgout:1,fhosp:1,fsurg:1,flump:1,chosp:1,cout:1,big8:1,dislump:1,dpen:1,welf:1,carelump:1,injury:1,disDeath:1,injHosp:1,dementia:1,cTreat:1,advLump:1};
 DET.forEach(function(r){
 if(DMINOR[r.k]&&!detShowAll&&!((+pol[r.f])>0))return;
-if(r.grp!==dlg){dlg=r.grp;var gr=el("tr");var gtd=el("td",null,r.grp==="保障"?"■ 保障性":"■ 貯蓄性");gtd.colSpan=5;gtd.style.cssText="background:"+(r.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(r.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:11px;text-align:left;padding:3px 6px;";gr.appendChild(gtd);dtb.appendChild(gr);}
+if(r.grp!==dlg){dlg=r.grp;var gr=el("tr");var gtd=el("td",null,r.grp==="保障"?"■ 保障性":"■ 貯蓄性");gtd.colSpan=5;gtd.style.cssText="background:"+(r.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(r.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:12px;text-align:left;padding:3px 6px;";gr.appendChild(gtd);dtb.appendChild(gr);}
 var tr=el("tr");
-var t0=el("td",null,r.l);t0.style.cssText="font-weight:600;font-size:11px;text-align:left;padding:2px 5px;";tr.appendChild(t0);
-var td1=el("td");var cuMap={"万":10000,"円":1,"千円":1000};var cu=r.cu||"万";var du=(pol.itemUnit&&pol.itemUnit[r.k])||cu;var fv=+pol[r.f]||0;var dispv=fv?(Math.round(fv*cuMap[cu]/cuMap[du]*1000)/1000):"";var ai=inp("number",dispv,function(v){var nd=+v||0;pol[r.f]=Math.round(nd*cuMap[du]/cuMap[cu]*1000)/1000;dSync();saveState();});ai.style.cssText="width:56px;font-size:11px;padding:2px;text-align:right;";var us=sel([{v:"万",l:"万"},{v:"円",l:"円"},{v:"千円",l:"千円"}],du,function(v){if(!pol.itemUnit)pol.itemUnit={};pol.itemUnit[r.k]=v;saveState();render();});us.style.cssText="font-size:10px;width:46px;margin-left:2px;";var d1w=el("div");d1w.style.cssText="display:flex;align-items:center;justify-content:flex-end;";d1w.appendChild(ai);d1w.appendChild(us);td1.appendChild(d1w);tr.appendChild(td1);
-var td2=el("td");var ei=inp("number",pol.itemEnd[r.k]||"",function(v){pol.itemEnd[r.k]=+v;saveState();});ei.placeholder="同";ei.title="満了年齢(空欄=主契約と同じ)";ei.style.cssText="width:48px;font-size:11px;padding:2px;text-align:right;";td2.appendChild(ei);tr.appendChild(td2);
-var td3=el("td");var pi=inp("number",pol.itemPrem[r.k]||"",function(v){pol.itemPrem[r.k]=+v;saveState();});pi.placeholder="円/月";pi.style.cssText="width:74px;font-size:11px;padding:2px;text-align:right;";td3.appendChild(pi);tr.appendChild(td3);
+var t0=el("td",null,r.l);t0.style.cssText="font-weight:600;font-size:12px;text-align:left;padding:2px 5px;";tr.appendChild(t0);
+var td1=el("td");var cuMap={"万":10000,"円":1,"千円":1000};var cu=r.cu||"万";var du=(pol.itemUnit&&pol.itemUnit[r.k])||cu;var fv=+pol[r.f]||0;var dispv=fv?(Math.round(fv*cuMap[cu]/cuMap[du]*1000)/1000):"";var ai=inp("number",dispv,function(v){var nd=+v||0;pol[r.f]=Math.round(nd*cuMap[du]/cuMap[cu]*1000)/1000;dSync();saveState();});ai.style.cssText="width:56px;font-size:12px;padding:2px;text-align:right;";var us=sel([{v:"万",l:"万"},{v:"円",l:"円"},{v:"千円",l:"千円"}],du,function(v){if(!pol.itemUnit)pol.itemUnit={};pol.itemUnit[r.k]=v;saveState();render();});us.style.cssText="font-size:11px;width:46px;margin-left:2px;";var d1w=el("div");d1w.style.cssText="display:flex;align-items:center;justify-content:flex-end;";d1w.appendChild(ai);d1w.appendChild(us);td1.appendChild(d1w);tr.appendChild(td1);
+var td2=el("td");var ei=inp("number",pol.itemEnd[r.k]||"",function(v){pol.itemEnd[r.k]=+v;saveState();});ei.placeholder="同";ei.title="満了年齢(空欄=主契約と同じ)";ei.style.cssText="width:48px;font-size:12px;padding:2px;text-align:right;";td2.appendChild(ei);tr.appendChild(td2);
+var td3=el("td");var pi=inp("number",pol.itemPrem[r.k]||"",function(v){pol.itemPrem[r.k]=+v;saveState();});pi.placeholder="円/月";pi.style.cssText="width:74px;font-size:12px;padding:2px;text-align:right;";td3.appendChild(pi);tr.appendChild(td3);
 var td4=el("td");td4.style.padding="2px 4px";
-if(r.conds){r.conds.forEach(function(cd){var opts=(typeof cd.o[0]==="object")?cd.o:cd.o.map(function(o){return{v:o,l:o||"（選択）"};});var sc=sel(opts,pol[cd.f]||"",function(v){upd(cd.f,v);});sc.style.cssText="font-size:10px;margin:1px 0;width:100%;display:block;";td4.appendChild(sc);});}else{td4.textContent="—";td4.style.color="#ccc";}
+if(r.conds){r.conds.forEach(function(cd){var opts=(typeof cd.o[0]==="object")?cd.o:cd.o.map(function(o){return{v:o,l:o||"（選択）"};});var sc=sel(opts,pol[cd.f]||"",function(v){upd(cd.f,v);});sc.style.cssText="font-size:11px;margin:1px 0;width:100%;display:block;";td4.appendChild(sc);});}else{td4.textContent="—";td4.style.color="#ccc";}
 tr.appendChild(td4);dtb.appendChild(tr);
 });
 dtbl.appendChild(dtb);dtw.appendChild(dtbl);
 var dWrap=el("div");
-var dExp=el("p");dExp.style.cssText="font-size:10px;color:#8a8a8a;margin:0 0 4px;";dExp.textContent="金額を入れた項目が有効に。満了は特約ごとに違う時だけ入力（空欄=主契約と同じ）。条件は条件比較表に対応。細目は下の「詳細設定」。";
-var dtgl=el("button","btn");dtgl.style.cssText="font-size:11px;padding:3px 10px;margin-bottom:6px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";dtgl.textContent=detShowAll?"\u25be マイナー特約を隠す":"\u25b8 その他の特約も表示（女性/災害/認知症/がん治療/障害/8大疾病等）";dtgl.addEventListener("click",function(){detShowAll=!detShowAll;render();});dWrap.appendChild(dtgl);
+var dExp=el("p");dExp.style.cssText="font-size:11px;color:#8a8a8a;margin:0 0 4px;";dExp.textContent="金額を入れた項目が有効に。満了は特約ごとに違う時だけ入力（空欄=主契約と同じ）。条件は条件比較表に対応。細目は下の「詳細設定」。";
+var dtgl=el("button","btn");dtgl.style.cssText="font-size:12px;padding:3px 10px;margin-bottom:6px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";dtgl.textContent=detShowAll?"\u25be マイナー特約を隠す":"\u25b8 その他の特約も表示（女性/災害/認知症/がん治療/障害/8大疾病等）";dtgl.addEventListener("click",function(){detShowAll=!detShowAll;render();});dWrap.appendChild(dtgl);
 dWrap.appendChild(dExp);dWrap.appendChild(dtw);
 var exRow=el("div");exRow.style.cssText="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
-var exL=el("span");exL.style.cssText="font-size:11px;font-weight:600;color:#1a2744;";exL.textContent="保険料免除条件（証券全体）：";exRow.appendChild(exL);
-var exS=sel(Object.keys(ET).map(function(k){return{v:k,l:ET[k]};}),pol.premExemptType||"none",function(v){upd("premExemptType",v);upd("premExempt",v!=="none");});exS.style.cssText="font-size:11px;max-width:220px;";exRow.appendChild(exS);
+var exL=el("span");exL.style.cssText="font-size:12px;font-weight:600;color:#1a2744;";exL.textContent="保険料免除条件（証券全体）：";exRow.appendChild(exL);
+var exS=sel(Object.keys(ET).map(function(k){return{v:k,l:ET[k]};}),pol.premExemptType||"none",function(v){upd("premExemptType",v);upd("premExempt",v!=="none");});exS.style.cssText="font-size:12px;max-width:220px;";exRow.appendChild(exS);
 dWrap.appendChild(exRow);
 cont.appendChild(sec("保障明細（ここで入力）",null,dWrap,true));
 var detailBox=el("div");
@@ -1174,7 +1174,7 @@ if(pol.deathType==="lump"||pol.deathType==="both"){
 dCont.push(grd("g2",[lbl("死亡保険金（万円）",inp("number",pol.dlAmount,function(v){upd("dlAmount",+v);})),null]));
 }
 if(pol.deathType==="annuity"||pol.deathType==="both"){
-var annH=el("div");annH.style.cssText="font-size:11px;font-weight:700;margin:8px 0 4px;color:#1a2744;";annH.textContent="死亡年金（収入保障型）";
+var annH=el("div");annH.style.cssText="font-size:12px;font-weight:700;margin:8px 0 4px;color:#1a2744;";annH.textContent="死亡年金（収入保障型）";
 dCont.push(annH);
 dCont.push(grd("g4",[
 lbl("月額（万円/月）",inp("number",pol.daAmount||"",function(v){upd("daAmount",+v);})),
@@ -1246,7 +1246,7 @@ detailBox.appendChild(sec("大病特約",null,bCont));
 // 8大疾病 additional disease inputs
 if(pol.bigOn&&(pol.bigCount==="8大疾病"||pol.bigCount==="7大疾病")){
 var b8Cont=[];
-var h8=el("div");h8.style.cssText="font-size:11px;color:#8e44ad;margin-bottom:6px;";h8.textContent="糖尿病・高血圧・肝疾患・腎疾患・膵疾患の給付条件";
+var h8=el("div");h8.style.cssText="font-size:12px;color:#8e44ad;margin-bottom:6px;";h8.textContent="糖尿病・高血圧・肝疾患・腎疾患・膵疾患の給付条件";
 b8Cont.push(h8);
 b8Cont.push(grd("g4",[
 lbl("給付金（万円）",inp("number",pol.big8Amount||"",function(v){upd("big8Amount",+v);})),
@@ -1288,8 +1288,8 @@ if(isRenewal||(pol.renewalRates&&pol.renewalRates.length>0)){
 var rrRows=el("div");
 var renderRR=function(){
 rrRows.innerHTML="";
-if(!pol.renewalRates||!pol.renewalRates.length){var p2=el("p");p2.style.cssText="font-size:11px;color:#aaa;";p2.textContent="まだ入力されていません";rrRows.appendChild(p2);return;}
-var hrow=el("div");hrow.style.cssText="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;font-size:10px;color:#8a8a8a;margin-bottom:4px;";
+if(!pol.renewalRates||!pol.renewalRates.length){var p2=el("p");p2.style.cssText="font-size:12px;color:#aaa;";p2.textContent="まだ入力されていません";rrRows.appendChild(p2);return;}
+var hrow=el("div");hrow.style.cssText="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;font-size:11px;color:#8a8a8a;margin-bottom:4px;";
 ["更新年齢","月額保険料（円）",""].forEach(function(h){var s=el("span");s.textContent=h;hrow.appendChild(s);});
 rrRows.appendChild(hrow);
 pol.renewalRates.forEach(function(r,ri){
@@ -1315,27 +1315,27 @@ var vpTableWrap=el("div");
 var renderVpTable=function(){
 vpTableWrap.innerHTML="";
 // 払込累計・返戻率を使うかのチェック（掛け捨て等はオフにできる）
-var optBar=el("div");optBar.style.cssText="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11px;color:#1a2744;";
+var optBar=el("div");optBar.style.cssText="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;color:#1a2744;";
 var ocb=document.createElement("input");ocb.type="checkbox";ocb.checked=!!pol.showPaid;
 ocb.addEventListener("change",function(){pol.showPaid=this.checked;upd("showPaid",pol.showPaid);renderVpTable();});
 var olb=el("label");olb.style.cssText="cursor:pointer;display:flex;align-items:center;gap:5px;";
 olb.appendChild(ocb);olb.appendChild(document.createTextNode("払込累計・返戻率を表示する（掛け捨てはオフ）"));
 optBar.appendChild(olb);vpTableWrap.appendChild(optBar);
 var sp=!!pol.showPaid;
-var tbl=document.createElement("table");tbl.style.cssText="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px;";
+var tbl=document.createElement("table");tbl.style.cssText="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;";
 var thead=el("thead"),hr=el("tr");
 var cols;
 if(isVar){cols=["年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["最低保証/1%("+unit+")","3%("+unit+")","5%("+unit+")","6%("+unit+")",""]);}
 else{cols=["年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["解約返戻金("+unit+")"]).concat(sp?["返戻率"]:[]).concat([""]);}
 cols.forEach(function(h){
-var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:5px 6px;text-align:center;font-size:10px;";hr.appendChild(th);
+var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:5px 6px;text-align:center;font-size:11px;";hr.appendChild(th);
 });
 thead.appendChild(hr);tbl.appendChild(thead);
 var tbody=el("tbody");
 (pol.futureVals||[]).forEach(function(row,ri){
 var tr=el("tr");
 var ageI=inp("number",row.age||"",function(v){pol.futureVals[ri].age=+v;upd("futureVals",pol.futureVals);});ageI.style.textAlign="right";ageI.placeholder="歳";
-var db=el("button","btn br");db.style.cssText="padding:2px 6px;font-size:10px;";db.textContent="×";
+var db=el("button","btn br");db.style.cssText="padding:2px 6px;font-size:11px;";db.textContent="×";
 db.addEventListener("click",function(){pol.futureVals.splice(ri,1);upd("futureVals",pol.futureVals);renderVpTable();});
 var paidI=null;
 if(sp){paidI=inp("number",row.paid||"",function(v){pol.futureVals[ri].paid=+v;upd("futureVals",pol.futureVals);renderVpTable();});}
@@ -1353,7 +1353,7 @@ if(isVar){
   if(sp){
     rate=el("div");var paidN=+row.paid||0,rvN=+(row.v3||row.v1||0);
     rate.textContent=(paidN>0&&rvN>0)?Math.round(rvN/paidN*1000)/10+"%":"—";
-    rate.style.cssText="font-size:11px;font-weight:700;text-align:center;color:"+((paidN>0&&rvN>=paidN)?"#1a7a3a":"#1a2744")+";padding:4px;";
+    rate.style.cssText="font-size:12px;font-weight:700;text-align:center;color:"+((paidN>0&&rvN>=paidN)?"#1a7a3a":"#1a2744")+";padding:4px;";
   }
   var cells=[ageI].concat(sp?[paidI]:[]).concat([rI]).concat(sp?[rate]:[]).concat([db]);
   cells.forEach(function(x){var td=el("td");td.style.padding="2px 3px";td.appendChild(x);tr.appendChild(td);});
@@ -1371,27 +1371,27 @@ upd("futureVals",pol.futureVals);renderVpTable();
 };
 renderVpTable();
 var currDiv=el("div");currDiv.style.cssText="display:flex;gap:10px;align-items:center;margin-bottom:10px;padding:8px 12px;background:#fff9e6;border-radius:6px;border:1px solid #f0d060;flex-wrap:wrap;";
-var cvLbl=el("span");cvLbl.style.cssText="font-size:11px;font-weight:700;color:#1a2744;";cvLbl.textContent="★現在の積立金額（万円）：";
+var cvLbl=el("span");cvLbl.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";cvLbl.textContent="★現在の積立金額（万円）：";
 var cvI=inp("number",pol.currentVal||"",function(v){upd("currentVal",+v);scheduleChartRefresh&&scheduleChartRefresh();});cvI.style.width="110px";cvI.placeholder="今の残高";
 currDiv.appendChild(cvLbl);currDiv.appendChild(cvI);
-var cLbl=el("span");cLbl.style.cssText="font-size:11px;font-weight:700;";cLbl.textContent="通貨：";
+var cLbl=el("span");cLbl.style.cssText="font-size:12px;font-weight:700;";cLbl.textContent="通貨：";
 var cSel=sel([{v:"JPY",l:"円"},{v:"USD",l:"米ドル"},{v:"EUR",l:"ユーロ"},{v:"AUD",l:"豪ドル"}],pol.currency||"JPY",function(v){upd("currency",v);render();});
 cSel.style.width="100px";
 currDiv.appendChild(cLbl);currDiv.appendChild(cSel);
 if(pol.currency&&pol.currency!=="JPY"){
-var rLbl=el("span");rLbl.style.cssText="font-size:11px;";rLbl.textContent="1"+pol.currency+"=";
+var rLbl=el("span");rLbl.style.cssText="font-size:12px;";rLbl.textContent="1"+pol.currency+"=";
 var rI=inp("number",pol.exchangeRate||150,function(v){upd("exchangeRate",+v);});rI.style.width="70px";
-var rNote=el("span");rNote.style.cssText="font-size:11px;";rNote.textContent="円";
+var rNote=el("span");rNote.style.cssText="font-size:12px;";rNote.textContent="円";
 currDiv.appendChild(rLbl);currDiv.appendChild(rI);currDiv.appendChild(rNote);
 }
 detailBox.appendChild(sec("変額・年金・還付金（設計書より）",null,[
 currDiv,
 el("div",null),
-function(){var h=el("div");h.style.cssText="font-size:11px;font-weight:700;margin:4px 0;color:#1a2744;";h.textContent=isVar?"将来予測額（年齢別×運用率）":"解約返戻金の推移（年齢別）";return h;}(),
-function(){if(!(pol.currency&&pol.currency!=="JPY"))return el("div",null);var n=el("p");n.style.cssText="font-size:11px;color:#b8860b;background:#fffbe6;border:1px solid #f0d060;border-radius:5px;padding:5px 8px;margin:0 0 6px;";n.textContent="※外貨はそのままの金額で入力（例：20万ドルなら 200000）。上の為替レートで自動的に円換算され、資産シミュレーションに反映されます。";return n;}(),
+function(){var h=el("div");h.style.cssText="font-size:12px;font-weight:700;margin:4px 0;color:#1a2744;";h.textContent=isVar?"将来予測額（年齢別×運用率）":"解約返戻金の推移（年齢別）";return h;}(),
+function(){if(!(pol.currency&&pol.currency!=="JPY"))return el("div",null);var n=el("p");n.style.cssText="font-size:12px;color:#b8860b;background:#fffbe6;border:1px solid #f0d060;border-radius:5px;padding:5px 8px;margin:0 0 6px;";n.textContent="※外貨はそのままの金額で入力（例：20万ドルなら 200000）。上の為替レートで自動的に円換算され、資産シミュレーションに反映されます。";return n;}(),
 vpTableWrap,
-function(){var h=el("div");h.style.cssText="font-size:11px;font-weight:700;margin:8px 0 4px;color:#1a2744;";h.textContent="個人年金";return h;}(),
-function(){var p2=el("p");p2.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:6px;";p2.textContent="年金年額を入力すると受取総額が自動計算されます（利率不要）。";return p2;}(),
+function(){var h=el("div");h.style.cssText="font-size:12px;font-weight:700;margin:8px 0 4px;color:#1a2744;";h.textContent="個人年金";return h;}(),
+function(){var p2=el("p");p2.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:6px;";p2.textContent="年金年額を入力すると受取総額が自動計算されます（利率不要）。";return p2;}(),
 grd("g4",[
 lbl("年金年額（"+(pol.currency&&pol.currency!=="JPY"?pol.currency:"万円/年")+"）",inp("number",pol.annualPension||"",function(v){
 upd("annualPension",+v);
@@ -1402,9 +1402,9 @@ lbl("年金受取期間（年）",inp("number",pol.pensionYears||"",function(v){
 upd("pensionYears",+v);
 if(pol.annualPension>0){var tot=pol.annualPension*(+v);upd("futureVal3",tot);upd("futureVal1",tot);upd("futureVal5",tot);upd("futureVal6",tot);}
 })),
-function(){var d=el("div");d.style.cssText="padding:6px 9px;background:#f0f4ff;border-radius:4px;font-size:11px;font-weight:700;color:#1a2744;";var tot=(pol.annualPension||0)*(pol.pensionYears||0);d.innerHTML="受取総額（参考）<br>"+(tot>0?tot.toLocaleString():"—")+"万円";return lbl("受取総額（自動計算）",d);}()
+function(){var d=el("div");d.style.cssText="padding:6px 9px;background:#f0f4ff;border-radius:4px;font-size:12px;font-weight:700;color:#1a2744;";var tot=(pol.annualPension||0)*(pol.pensionYears||0);d.innerHTML="受取総額（参考）<br>"+(tot>0?tot.toLocaleString():"—")+"万円";return lbl("受取総額（自動計算）",d);}()
 ]),
-function(){var h=el("div");h.style.cssText="font-size:11px;font-weight:700;margin:8px 0 4px;color:#1a2744;";h.textContent="還付金・解約返戻金";return h;}(),
+function(){var h=el("div");h.style.cssText="font-size:12px;font-weight:700;margin:8px 0 4px;color:#1a2744;";h.textContent="還付金・解約返戻金";return h;}(),
 grd("g2",[
 lbl("還付金・解約返戻金（万円）",inp("number",pol.refundVal||"",function(v){upd("refundVal",+v);})),
 lbl("受取年齢",inp("number",pol.refundAge||"",function(v){upd("refundAge",+v);}))
@@ -1418,7 +1418,7 @@ lbl("受取年齢",inp("number",pol.refundAge||"",function(v){upd("refundAge",+v
   hd.appendChild(cb);hd.appendChild(document.createTextNode("ターゲット型（目標到達で受取・アップサイドプラス等）"));
   box.appendChild(hd);
   if(pol.targetOn){
-    var note=el("p");note.style.cssText="font-size:11px;color:#5a8a6a;margin:8px 0;";
+    var note=el("p");note.style.cssText="font-size:12px;color:#5a8a6a;margin:8px 0;";
     note.textContent="一時払い元本に対し、目標倍率に到達したら受取（運用終了）。到達予想年齢をシミュレーションに表示します。";
     box.appendChild(note);
     // モード切替（目標到達で受取／目標なし・NISAのように運用継続）
@@ -1453,7 +1453,7 @@ if(!pol.riders)pol.riders=[];
 var riderWrap=el("div");
 function renderRiders(){
 riderWrap.innerHTML="";
-if(!pol.riders.length){var rp=el("p");rp.style.cssText="font-size:11px;color:#aaa;";rp.textContent="特約を追加してください";riderWrap.appendChild(rp);}
+if(!pol.riders.length){var rp=el("p");rp.style.cssText="font-size:12px;color:#aaa;";rp.textContent="特約を追加してください";riderWrap.appendChild(rp);}
 pol.riders.forEach(function(r,ri){
 var row=el("div");row.style.cssText="display:grid;grid-template-columns:1fr 1fr 0.8fr 0.7fr 1fr auto;gap:8px;align-items:flex-end;margin-bottom:6px;";
 function ur(f,v){pol.riders[ri][f]=v;upd("riders",pol.riders);}
@@ -1476,9 +1476,9 @@ if(!pol.premBreakdown||!pol.premBreakdown.length)pol.premBreakdown=[{name:"主�
 var pbWrap=el("div");
 function renderPB(){
 pbWrap.innerHTML="";
-var tip=el("p");tip.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:8px;";tip.textContent="この証券の保険料を主契約・特約ごとに分けて記録できます（設計書に内訳があれば入力）。金額は円/月。";
+var tip=el("p");tip.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";tip.textContent="この証券の保険料を主契約・特約ごとに分けて記録できます（設計書に内訳があれば入力）。金額は円/月。";
 pbWrap.appendChild(tip);
-var hd=el("div");hd.style.cssText="display:grid;grid-template-columns:1fr 120px 34px;gap:6px;font-size:10px;color:#8a8a8a;margin-bottom:3px;";
+var hd=el("div");hd.style.cssText="display:grid;grid-template-columns:1fr 120px 34px;gap:6px;font-size:11px;color:#8a8a8a;margin-bottom:3px;";
 hd.appendChild(el("span",null,"名称（主契約／特約名）"));hd.appendChild(el("span",null,"月額（円）"));hd.appendChild(el("span",null,""));
 pbWrap.appendChild(hd);
 var sum=0;
@@ -1486,7 +1486,7 @@ pol.premBreakdown.forEach(function(r,ri){
 var row=el("div");row.style.cssText="display:grid;grid-template-columns:1fr 120px 34px;gap:6px;margin-bottom:5px;align-items:center;";
 var ni=inp("text",r.name||"",function(v){pol.premBreakdown[ri].name=v;saveState();});row.appendChild(ni);
 var ai=inp("number",r.amount||"",function(v){pol.premBreakdown[ri].amount=+v;saveState();renderPB();});ai.placeholder="円/月";row.appendChild(ai);
-var db=btn("×","bg",function(){pol.premBreakdown.splice(ri,1);saveState();renderPB();});db.style.cssText="font-size:11px;padding:4px 0;";row.appendChild(db);
+var db=btn("×","bg",function(){pol.premBreakdown.splice(ri,1);saveState();renderPB();});db.style.cssText="font-size:12px;padding:4px 0;";row.appendChild(db);
 pbWrap.appendChild(row);sum+=(+r.amount||0);
 });
 pbWrap.appendChild(btn("＋ 特約を追加","bg",function(){pol.premBreakdown.push({name:"",amount:0});saveState();renderPB();}));
@@ -1503,7 +1503,7 @@ detailBox.appendChild(sec("保険料内訳（主契約＋特約）",null,pbWrap,
 cont.appendChild(sec("特約・付加保険",btn("特約追加","bg",function(){pol.riders.push({name:"",benefit:"",amount:"",note:""});upd("riders",pol.riders);renderRiders();}),riderWrap));
 // 〇年毎の祝金（生存給付金）
 var celebDiv=el("div");
-var celebNote=el("p");celebNote.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:6px;";celebNote.textContent="〇年ごとに受け取れる祝金（生存給付金）。例：5年ごとに5万円。資産シミュレーションに受取として反映されます。";
+var celebNote=el("p");celebNote.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:6px;";celebNote.textContent="〇年ごとに受け取れる祝金（生存給付金）。例：5年ごとに5万円。資産シミュレーションに受取として反映されます。";
 celebDiv.appendChild(celebNote);
 celebDiv.appendChild(grd("g4",[
 lbl("祝金額（万円）",inp("number",pol.celebAmount||"",function(v){upd("celebAmount",+v);scheduleChartRefresh&&scheduleChartRefresh();})),
@@ -1568,7 +1568,7 @@ var memDivS=el("div");memDivS.style.cssText="background:white;border-radius:8px;
 var mLblS=el("span");mLblS.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";mLblS.textContent="表示対象：";memDivS.appendChild(mLblS);
 var mBtnsS=el("div");mBtnsS.style.cssText="display:flex;gap:4px;flex-wrap:wrap;";
 [["all","合算（全員）"]].concat(state.family.map(function(fm){return[fm.id,fm.name||fm.relation];})).forEach(function(x){
-var bS=el("button","btn");bS.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
+var bS=el("button","btn");bS.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
 bS.textContent=x[1];bS.addEventListener("click",function(){summaryMember=x[0];render();});mBtnsS.appendChild(bS);
 });
 memDivS.appendChild(mBtnsS);cont.appendChild(memDivS);
@@ -1586,12 +1586,12 @@ te+=p.contractEndsOnClaim?0:(isExTe?0:m);
 });
 var alFields=[{f:"death",l:"死亡保障（万円）"},{f:"hosp",l:"入院日額（円）"},{f:"cancer",l:"がん診断一時金（万円）"},{f:"cancerOut",l:"がん通院（円/日）"},{f:"big3",l:"3大疾病（万円）"},{f:"big8",l:"8大疾病（万円）"},{f:"dis",l:"就業不能月額（万円）"},{f:"care",l:"介護（万円）"}];
 var alGrid=grd("g4",alFields.map(function(item){return lbl(item.l,inp("number",al[item.f]||"",function(v){uAl(item.f,v);}));}));
-var legend=el("div");legend.style.cssText="margin-top:10px;font-size:11px;background:#f8f4e8;padding:8px 12px;border-radius:6px;display:flex;gap:10px;flex-wrap:wrap;";
+var legend=el("div");legend.style.cssText="margin-top:10px;font-size:12px;background:#f8f4e8;padding:8px 12px;border-radius:6px;display:flex;gap:10px;flex-wrap:wrap;";
 legend.innerHTML="評価: <span style='background:#dcfce7;color:#166534;padding:1px 6px;border-radius:3px;font-weight:700;'>◎</span>十分 <span style='background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:3px;font-weight:700;'>○</span>まあ良い <span style='background:#fef9c3;color:#854d0e;padding:1px 6px;border-radius:3px;font-weight:700;'>△</span>やや不足 <span style='background:#fee2e2;color:#991b1b;padding:1px 6px;border-radius:3px;font-weight:700;'>✗</span>不足 —未設定";
 cont.appendChild(sec("安心ラインの設定",null,[alGrid,legend]));
-var premGrid=grd("g4",[["月払合計（通常時）",tn,"#1a2744","white"],["月払合計（免除時）",te,"#f0fff4","#27ae60"],["年払換算（通常時）",tn*12,"#faf8f3","#c9a84c"],["年払換算（免除時）",te*12,"#f0fff4","#27ae60"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:12px;background:"+x[2]+";border-radius:8px;";d.innerHTML="<div style='font-size:10px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:18px;font-weight:700;color:"+x[3]+";'>¥"+x[1].toLocaleString()+"</div>";return d;}));
+var premGrid=grd("g4",[["月払合計（通常時）",tn,"#1a2744","white"],["月払合計（免除時）",te,"#f0fff4","#27ae60"],["年払換算（通常時）",tn*12,"#faf8f3","#c9a84c"],["年払換算（免除時）",te*12,"#f0fff4","#27ae60"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:12px;background:"+x[2]+";border-radius:8px;";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:18px;font-weight:700;color:"+x[3]+";'>¥"+x[1].toLocaleString()+"</div>";return d;}));
 // Per-policy breakdown
-var breakdown=el("div");breakdown.style.cssText="margin-top:8px;font-size:10px;";
+var breakdown=el("div");breakdown.style.cssText="margin-top:8px;font-size:11px;";
 var bkHdr=el("div");bkHdr.style.cssText="font-weight:700;color:#1a2744;margin-bottom:4px;";bkHdr.textContent="内訳（月額換算）";
 breakdown.appendChild(bkHdr);
 ap.forEach(function(x){
@@ -1669,11 +1669,11 @@ var td=cellE(big3,al.big3);
 var b3Pols=pols.filter(function(p){return p.bigOn;});
 var b3Label=b3Pols.length>0?bigGenLabel(b3Pols[0].hCond,b3Pols[0].bCond,b3Pols[0].heartType,b3Pols[0].brainType,b3Pols[0].cCond):null;
 if(b3Label){
-var badge=el("span");badge.style.cssText="display:block;font-size:9px;padding:1px 4px;border-radius:3px;margin-top:2px;background:"+b3Label.bg+";color:"+b3Label.tc+";font-weight:700;";
+var badge=el("span");badge.style.cssText="display:block;font-size:11px;padding:1px 4px;border-radius:3px;margin-top:2px;background:"+b3Label.bg+";color:"+b3Label.tc+";font-weight:700;";
 badge.title=b3Label.desc;badge.textContent=b3Label.l;td.appendChild(badge);
 }
 if(dis3bigPols.length>0&&big3===0){
-var note2=el("span");note2.style.cssText="display:block;font-size:9px;color:#27ae60;font-weight:700;margin-top:2px;";
+var note2=el("span");note2.style.cssText="display:block;font-size:11px;color:#27ae60;font-weight:700;margin-top:2px;";
 note2.textContent="就業不能に含む";note2.title="就業不能保険の5疾病に3大疾病が含まれます";td.appendChild(note2);
 }
 return td;
@@ -1683,7 +1683,7 @@ mtbody.appendChild(tr3);
 });
 mtbl.appendChild(mtbody);
 var mtw=el("div","tw");mtw.appendChild(mtbl);
-var mnote=el("p");mnote.style.cssText="font-size:11px;color:#8a8a8a;padding:6px 14px;";mnote.textContent="老後資金の評価は「資産・老後」タブで行います";
+var mnote=el("p");mnote.style.cssText="font-size:12px;color:#8a8a8a;padding:6px 14px;";mnote.textContent="老後資金の評価は「資産・老後」タブで行います";
 cont.appendChild(sec("保障マトリクス",null,[mtw,mnote],true));
 var bigPols=aPs().map(function(x){return x.policy;}).filter(function(p){return p.bigOn||p.cancerOn||p.premExempt;});
 if(bigPols.length>0)cont.appendChild(sec("3大疾病・がん条件比較表",null,buildBigDiseaseMatrix(bigPols),true));
@@ -1724,7 +1724,7 @@ var infoR=el("span");infoR.innerHTML="選択中の保険料合計 <b style='colo
 info.appendChild(infoL);info.appendChild(infoR);wrap.appendChild(info);
 
 // ===== チェック =====
-var cbWrap=el("div");cbWrap.style.cssText="font-size:11px;color:#475067;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;";
+var cbWrap=el("div");cbWrap.style.cssText="font-size:12px;color:#475067;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;";
 var cbLbl=el("span");cbLbl.textContent="保険料合計に含める：";cbWrap.appendChild(cbLbl);
 pairs.forEach(function(x,i){var p=x.policy;var lab=el("label");lab.style.cssText="cursor:pointer;display:inline-flex;align-items:center;gap:2px;";
 var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!tlPremSel[p.id];
@@ -1742,14 +1742,14 @@ var plot=el("div");plot.style.cssText="position:relative;";
 var cur=el("div");cur.id="tlCursor";cur.style.cssText="position:absolute;top:0;bottom:18px;width:2px;background:#185FA5;opacity:0;pointer-events:none;z-index:8;";plot.appendChild(cur);
 // 「今」線
 var nowLine=el("div");nowLine.style.cssText="position:absolute;top:0;bottom:18px;left:"+pct(baseAge)+"%;width:2px;background:#1a2744;opacity:.5;z-index:6;";plot.appendChild(nowLine);
-var nowLbl=el("div");nowLbl.style.cssText="position:absolute;top:-2px;left:"+pct(baseAge)+"%;transform:translateX(-50%);background:#1a2744;color:#fff;font-size:9px;padding:0 4px;border-radius:6px;z-index:7;";nowLbl.textContent="今";plot.appendChild(nowLbl);
+var nowLbl=el("div");nowLbl.style.cssText="position:absolute;top:-2px;left:"+pct(baseAge)+"%;transform:translateX(-50%);background:#1a2744;color:#fff;font-size:11px;padding:0 4px;border-radius:6px;z-index:7;";nowLbl.textContent="今";plot.appendChild(nowLbl);
 
 // --- お金袋帯 ---
 var bagBand=el("div");bagBand.style.cssText="position:relative;height:58px;border-bottom:0.5px dashed #ddd;margin-bottom:6px;margin-top:10px;";
-var bagLbl=el("div");bagLbl.style.cssText="position:absolute;left:2px;top:2px;font-size:10px;color:#999;";bagLbl.textContent="祝金・満期・還付";bagBand.appendChild(bagLbl);
+var bagLbl=el("div");bagLbl.style.cssText="position:absolute;left:2px;top:2px;font-size:11px;color:#999;";bagLbl.textContent="祝金・満期・還付";bagBand.appendChild(bagLbl);
 events.forEach(function(e){if(e.ax<minAge||e.ax>maxAge)return;var past=e.ax<baseAge;var sz=e.big?38:26,fs=e.big?20:14;
 var d=el("div");d.style.cssText="position:absolute;left:"+pct(e.ax)+"%;top:"+(e.big?6:16)+"px;transform:translateX(-50%);text-align:center;opacity:"+(past?"0.45":"1")+";";
-d.innerHTML="<div style='width:"+sz+"px;height:"+sz+"px;border-radius:50%;background:"+e.c+";display:flex;align-items:center;justify-content:center;margin:auto;'><i class='ti ti-moneybag' style='color:#fff;font-size:"+fs+"px;'></i></div><div style='font-size:10px;color:"+e.c+";font-weight:500;'>"+e.amt+"万"+(past?"<span style=\"color:#999;\">済</span>":"")+"</div>";
+d.innerHTML="<div style='width:"+sz+"px;height:"+sz+"px;border-radius:50%;background:"+e.c+";display:flex;align-items:center;justify-content:center;margin:auto;'><i class='ti ti-moneybag' style='color:#fff;font-size:"+fs+"px;'></i></div><div style='font-size:11px;color:"+e.c+";font-weight:500;'>"+e.amt+"万"+(past?"<span style=\"color:#999;\">済</span>":"")+"</div>";
 bagBand.appendChild(d);});
 plot.appendChild(bagBand);
 
@@ -1761,23 +1761,23 @@ var endAxis=(ce==null)?maxAge:toAxis(ce,m);
 var row=el("div");row.style.cssText="position:relative;height:22px;margin-bottom:5px;";
 var bar=el("div");var wpc=Math.max(2,pct(endAxis));
 bar.style.cssText="position:absolute;left:0;width:"+wpc+"%;height:18px;background:"+c+";border-radius:4px;display:flex;align-items:center;padding-left:7px;overflow:hidden;";
-bar.innerHTML="<span style='color:#fff;font-size:11px;white-space:nowrap;'>"+String.fromCharCode(65+i)+" "+shortN(p)+"（"+(p.insType||"")+"）</span>";
+bar.innerHTML="<span style='color:#fff;font-size:12px;white-space:nowrap;'>"+String.fromCharCode(65+i)+" "+shortN(p)+"（"+(p.insType||"")+"）</span>";
 row.appendChild(bar);
-if(ce!=null&&endAxis<maxAge){var term=el("div");term.style.cssText="position:absolute;left:"+pct(endAxis)+"%;top:-2px;transform:translateX(-2px);font-size:10px;color:#c0392b;font-weight:700;white-space:nowrap;z-index:3;";term.innerHTML="<span style='border-left:2px solid #c0392b;padding-left:3px;'>⚠"+ce+"歳で終了</span>";row.appendChild(term);termNotes.push(shortN(p)+"は"+ce+"歳で保障終了");}
+if(ce!=null&&endAxis<maxAge){var term=el("div");term.style.cssText="position:absolute;left:"+pct(endAxis)+"%;top:-2px;transform:translateX(-2px);font-size:11px;color:#c0392b;font-weight:700;white-space:nowrap;z-index:3;";term.innerHTML="<span style='border-left:2px solid #c0392b;padding-left:3px;'>⚠"+ce+"歳で終了</span>";row.appendChild(term);termNotes.push(shortN(p)+"は"+ce+"歳で保障終了");}
 barsWrap.appendChild(row);});
 plot.appendChild(barsWrap);
 
 // --- 家族年齢帯 ---
 if(tlFamShow){var famBand=el("div");famBand.style.cssText="position:relative;background:#f6f8fb;border-radius:6px;padding:5px 0 5px 0;margin-top:4px;";
 var grid=[];for(var ga=gridStart();ga<=maxAge;ga+=10)grid.push(ga);
-fam.forEach(function(m){var fr=el("div");fr.style.cssText="position:relative;height:16px;font-size:10px;";
+fam.forEach(function(m){var fr=el("div");fr.style.cssText="position:relative;height:16px;font-size:11px;";
 var rl=el("span");rl.style.cssText="position:absolute;left:4px;color:#1a2744;font-weight:600;background:#f6f8fb;padding-right:3px;z-index:2;";rl.textContent=(m.relation||m.name||"")+" "+aNow(m);fr.appendChild(rl);
 grid.forEach(function(ga){var fa=aNow(m)+(ga-baseAge);if(fa<0)return;var sp=el("span");sp.style.cssText="position:absolute;left:"+pct(ga)+"%;transform:translateX(-50%);color:#475067;";sp.textContent=fa;fr.appendChild(sp);});
 famBand.appendChild(fr);});
 plot.appendChild(famBand);}
 
 // --- 年齢軸 ---
-var axis=el("div");axis.style.cssText="position:relative;height:16px;margin-top:4px;font-size:10px;color:#999;";
+var axis=el("div");axis.style.cssText="position:relative;height:16px;margin-top:4px;font-size:11px;color:#999;";
 var a0=el("span");a0.style.cssText="position:absolute;left:0;";a0.textContent=minAge+"歳";axis.appendChild(a0);
 for(var g2=gridStart();g2<=maxAge;g2+=10){var sp2=el("span");sp2.style.cssText="position:absolute;left:"+pct(g2)+"%;transform:translateX(-50%);";sp2.textContent=(g2>=maxAge?g2+"歳":g2);axis.appendChild(sp2);}
 plot.appendChild(axis);
@@ -1791,7 +1791,7 @@ plot.addEventListener("mouseleave",function(){cur.style.opacity="0";infoL.innerH
 wrap.appendChild(plot);
 
 // --- 途切れ警告 ---
-if(termNotes.length){var warn=el("div");warn.style.cssText="margin-top:10px;background:#fdecea;border:1px solid #f5b7b1;border-radius:6px;padding:7px 10px;font-size:11px;color:#922b21;";warn.innerHTML="<b>⚠ 保障が途切れる時期：</b> "+termNotes.join(" ／ ")+"　— この後の備えを検討しましょう。";wrap.appendChild(warn);}
+if(termNotes.length){var warn=el("div");warn.style.cssText="margin-top:10px;background:#fdecea;border:1px solid #f5b7b1;border-radius:6px;padding:7px 10px;font-size:12px;color:#922b21;";warn.innerHTML="<b>⚠ 保障が途切れる時期：</b> "+termNotes.join(" ／ ")+"　— この後の備えを検討しましょう。";wrap.appendChild(warn);}
 return wrap;
 }
 
@@ -1823,7 +1823,7 @@ return v>0?v:null;
 if(data.some(function(v){return v;})){dSets.push({label:cN(p)+(hC?" ★介護":""),data:data,backgroundColor:col,borderColor:hC?"#6c3483":col,borderWidth:hC?3:1,stack:"s",isCarePol:hC});}
 });
 // Add note about which policies are graphed
-var dpNote=el("div");dpNote.style.cssText="font-size:10px;color:#666;padding:4px 12px;background:#f8f7f4;margin-bottom:4px;";
+var dpNote=el("div");dpNote.style.cssText="font-size:11px;color:#666;padding:4px 12px;background:#f8f7f4;margin-bottom:4px;";
 dpNote.textContent="グラフ対象: "+(dp.length>0?dp.map(function(x){return cN(x.policy)+(x.policy.dlAmount>0?"("+x.policy.dlAmount+"万)":"");}).join("・"):"死亡保障のある証券が見つかりません");
 cont.appendChild(dpNote);
 var c1=document.createElement("canvas");c1.id="dc"+Date.now();
@@ -1877,15 +1877,15 @@ var box=el("div");box.style.cssText="background:#fff;border:1px solid #ddd8cc;bo
 var ht=el("div");ht.style.cssText="font-size:12px;font-weight:700;color:#1a2744;margin-bottom:8px;";ht.textContent=title;box.appendChild(ht);
 var row=el("div");row.style.cssText="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;";
 axes.forEach(function(ax){
-var w=el("div");w.style.cssText="display:flex;align-items:center;gap:3px;font-size:11px;";
+var w=el("div");w.style.cssText="display:flex;align-items:center;gap:3px;font-size:12px;";
 var l=el("span");l.textContent=ax[1];l.style.cssText="color:#1a2744;";
-var ri=document.createElement("input");ri.type="number";ri.min=0;ri.max=5;ri.step=1;ri.value=(sc[ax[0]]!=null?sc[ax[0]]:3);ri.style.cssText="width:42px;font-size:11px;padding:2px;text-align:center;border:1px solid #ddd8cc;border-radius:4px;";
+var ri=document.createElement("input");ri.type="number";ri.min=0;ri.max=5;ri.step=1;ri.value=(sc[ax[0]]!=null?sc[ax[0]]:3);ri.style.cssText="width:42px;font-size:12px;padding:2px;text-align:center;border:1px solid #ddd8cc;border-radius:4px;";
 ri.addEventListener("change",function(){sc[ax[0]]=Math.max(0,Math.min(5,+this.value||0));saveState();render();});
 w.appendChild(l);w.appendChild(ri);row.appendChild(w);
 });
 box.appendChild(row);
 var cv=document.createElement("canvas");cv.id="rad"+Math.random().toString(36).slice(2);var cw=el("div");cw.style.cssText="position:relative;height:260px;";cw.appendChild(cv);box.appendChild(cw);
-var nt=el("p");nt.style.cssText="font-size:10px;color:#8a8a8a;margin-top:4px;";nt.textContent=note;box.appendChild(nt);
+var nt=el("p");nt.style.cssText="font-size:11px;color:#8a8a8a;margin-top:4px;";nt.textContent=note;box.appendChild(nt);
 setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cv,{type:"radar",data:{labels:axes.map(function(a){return a[1];}),datasets:[{data:axes.map(function(a){return sc[a[0]]||0;}),backgroundColor:color+"40",borderColor:color,borderWidth:2,pointBackgroundColor:"#1a2744",pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:9}},pointLabels:{font:{size:11}}}},plugins:{legend:{display:false}}}});}catch(e){}}},150);
 return box;
 }
@@ -1898,7 +1898,7 @@ var refWrap=el("div");
 function refTbl(title,rows){
 var box=el("div");box.style.cssText="margin-bottom:12px;";
 var h=el("div");h.style.cssText="font-size:12px;font-weight:700;color:#1a2744;background:#eef3fb;padding:5px 8px;border-radius:4px 4px 0 0;";h.textContent=title;box.appendChild(h);
-var t=el("table");t.style.cssText="width:100%;border-collapse:collapse;font-size:11px;";
+var t=el("table");t.style.cssText="width:100%;border-collapse:collapse;font-size:12px;";
 rows.forEach(function(r){var tr=el("tr");var td1=el("td",null,r[0]);td1.style.cssText="border:1px solid #e3e3e3;padding:4px 8px;background:#fafafa;width:42%;vertical-align:top;";var td2=el("td",null,r[1]);td2.style.cssText="border:1px solid #e3e3e3;padding:4px 8px;";tr.appendChild(td1);tr.appendChild(td2);t.appendChild(tr);});
 box.appendChild(t);return box;
 }
@@ -1907,7 +1907,7 @@ refWrap.appendChild(refTbl("障害年金（目安・概算）",[["障害基礎�
 refWrap.appendChild(refTbl("高額療養費 70歳未満（年収高い順・1か月上限/多数該当4回目〜）",[["約1,160万〜(区分ア)","252,600円＋(医療費-842,000)×1% / 多数 140,100円"],["約770〜1,160万(イ)","167,400円＋(医療費-558,000)×1% / 多数 93,000円"],["約370〜770万(ウ)","80,100円＋(医療費-267,000)×1% / 多数 44,400円"],["〜約370万(エ)","57,600円 / 多数 44,400円"],["住民税非課税(オ)","35,400円 / 多数 24,600円"]]));
 refWrap.appendChild(refTbl("高額療養費 70歳以上（外来/入院・1か月上限）",[["現役並み(約370万〜)","70歳未満のア〜ウと同じ区分"],["一般(〜約370万)","外来 18,000円(年144,000円上限)/入院 57,600円(多数44,400円)"],["低所得II(非課税)","外来 8,000円/入院 24,600円"],["低所得I","外来 8,000円/入院 15,000円"]]));
 refWrap.appendChild(refTbl("公的年金 老齢（国民/厚生・概算）",[["国民年金 老齢基礎(満額)","約816,000円/年(月 約68,000円)※40年納付"],["会社員 年収300万・40年","合計 月 約12万円(基礎＋厚生)"],["会社員 年収500万・40年","合計 月 約16万円"],["会社員 年収700万・40年","合計 月 約20万円"],["受給開始","原則65歳(繰上げ60〜/繰下げ〜75歳)"]]));
-var rfn=el("p");rfn.style.cssText="font-size:10px;color:#c0392b;margin-top:4px;";rfn.textContent="※すべて概算の目安です。子の加算・各上限額・年金額は制度改定で毎年変わります。提案時は最新の公的金額を必ずご確認ください。";
+var rfn=el("p");rfn.style.cssText="font-size:11px;color:#c0392b;margin-top:4px;";rfn.textContent="※すべて概算の目安です。子の加算・各上限額・年金額は制度改定で毎年変わります。提案時は最新の公的金額を必ずご確認ください。";
 refWrap.appendChild(rfn);
 grRight.appendChild(refTbl?refWrap:refWrap);
 grWrap.appendChild(grLeft);grWrap.appendChild(grRight);
@@ -1966,7 +1966,7 @@ var scLbl=el("span");scLbl.style.cssText="font-size:12px;font-weight:700;color:#
 scenDiv.appendChild(scLbl);
 var scBtns=el("div");scBtns.style.cssText="display:flex;gap:4px;";
 [["1","最低保証/1%"],["3","3%"],["5","5%"],["6","6%"]].forEach(function(x){
-var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;";
+var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;";
 b.textContent=x[1];b.style.background=scenRate===x[0]?"#1a2744":"white";b.style.color=scenRate===x[0]?"white":"#1a2744";
 b.addEventListener("click",function(){scenRate=x[0];saveState();render();});scBtns.appendChild(b);
 });
@@ -1981,7 +1981,7 @@ if(state.family.length>=2){
   // 選択中メンバーが家族に存在しなければ合算に戻す
   if(assetMember!=="all"&&!state.family.some(function(fm){return fm.id===assetMember;}))assetMember="all";
   memOpts.forEach(function(x){
-    var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;";
+    var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;";
     b.textContent=x[1];b.style.background=assetMember===x[0]?"#1a2744":"white";b.style.color=assetMember===x[0]?"white":"#1a2744";
     b.addEventListener("click",function(){assetMember=x[0];render();});mBtns.appendChild(b);
   });
@@ -1995,9 +1995,9 @@ if(state.family.length>=2){
   if(typeList.length===0)return;
   var wrap=el("div");wrap.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;overflow:hidden;";
   var head=el("div");head.style.cssText="padding:12px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;color:#1a2744;";
-  head.innerHTML="<span>保険種類別 想定利率の設定（年金・貯蓄性保険）</span><span style='font-size:11px;color:#8a8a8a;'>▼ 開く</span>";
+  head.innerHTML="<span>保険種類別 想定利率の設定（年金・貯蓄性保険）</span><span style='font-size:12px;color:#8a8a8a;'>▼ 開く</span>";
   var body=el("div");body.style.cssText="padding:0 14px 12px;display:none;";
-  var note=el("p");note.style.cssText="font-size:11px;color:#8a8a8a;margin:4px 0 10px;";
+  var note=el("p");note.style.cssText="font-size:12px;color:#8a8a8a;margin:4px 0 10px;";
   note.textContent="利率変動型・定額の年金や終身は、株式の運用シナリオではなく、ここで決めた利率で積み立てを計算します。変額系は運用シナリオに連動します。";
   body.appendChild(note);
   typeList.forEach(function(t){
@@ -2046,7 +2046,7 @@ return false;
 });
 var insItems=pProjs.map(function(x,ci){
 var p=x.policy;
-var d=el("div");d.style.cssText="padding:5px 12px;background:#f0f4ff;border-radius:6px;margin-bottom:4px;font-size:11px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-left:4px solid "+COLS[ci%COLS.length]+";";
+var d=el("div");d.style.cssText="padding:5px 12px;background:#f0f4ff;border-radius:6px;margin-bottom:4px;font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-left:4px solid "+COLS[ci%COLS.length]+";";
 var nm=el("span");nm.style.fontWeight="700";nm.textContent=p.company;
 d.appendChild(nm);
 var it=el("span");it.style.color="#8a8a8a";it.textContent=p.insType;d.appendChild(it);
@@ -2056,7 +2056,7 @@ var sv2=sV(p);if(sv2>0){var s2=el("span");var isVarT=p.insType&&p.insType.indexO
 if(p.annualPension>0){var jpy2=toJPY(p,p.annualPension);var s3=el("span");s3.innerHTML="年金: <strong>"+p.annualPension.toLocaleString()+(p.currency&&p.currency!=="JPY"?p.currency:"万円")+"</strong>"+(p.currency&&p.currency!=="JPY"?" → "+jpy2.toLocaleString()+"万円/年":"")+"（"+(p.pensionStartAge||"?")+"歳〜）";d.appendChild(s3);}
 if(p.refundVal>0){var s4=el("span");s4.innerHTML="還付金: <strong>"+p.refundVal.toLocaleString()+"万円</strong>（"+(p.refundAge||"?")+"歳）";d.appendChild(s4);}
 var _cv=polCurVal(p);
-if(_cv.val>0||(_cv.method&&_cv.method.indexOf("概算")>=0)){var s5=el("span");s5.style.cssText="color:#1a7a3a;font-weight:700;margin-left:auto;";s5.innerHTML="現在価値 "+_cv.val.toLocaleString()+"万 <span style='font-weight:400;color:#999;font-size:10px;'>("+_cv.method+")</span>";d.appendChild(s5);}
+if(_cv.val>0||(_cv.method&&_cv.method.indexOf("概算")>=0)){var s5=el("span");s5.style.cssText="color:#1a7a3a;font-weight:700;margin-left:auto;";s5.innerHTML="現在価値 "+_cv.val.toLocaleString()+"万 <span style='font-weight:400;color:#999;font-size:11px;'>("+_cv.method+")</span>";d.appendChild(s5);}
 return d;
 });
 var erSection=el("div");
@@ -2074,7 +2074,7 @@ function buildAccountSection(accounts,label,color){
 var wrap=el("div");
 function renderAccounts(){
 wrap.innerHTML="";
-if(!accounts.length){var empty=el("p");empty.style.cssText="font-size:11px;color:#aaa;padding:4px 0;";empty.textContent="まだ入力されていません。「追加」ボタンで追加してください。";wrap.appendChild(empty);return;}
+if(!accounts.length){var empty=el("p");empty.style.cssText="font-size:12px;color:#aaa;padding:4px 0;";empty.textContent="まだ入力されていません。「追加」ボタンで追加してください。";wrap.appendChild(empty);return;}
 accounts.forEach(function(acc,ai){
 var card=el("div");card.style.cssText="background:#f8f7f4;border-radius:6px;border:1px solid #ddd8cc;padding:10px 12px;margin-bottom:8px;border-left:4px solid "+color+";";
 var row1=el("div");row1.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 36px auto;gap:8px;align-items:flex-end;margin-bottom:6px;";
@@ -2136,14 +2136,14 @@ var insCurrentTotal=pProjs.reduce(function(s,x){var p=x.policy;var r=polCurVal(p
 var totalA=nFV+iFV+a.savings+a.realestate+a.stocks+a.other+insTotal+insCurrentTotal;
 var totalD=a.mortgage+a.carLoan+a.otherDebt;
 var net=totalA-totalD;
-var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:14px;background:"+x[2]+";border-radius:8px;";d.innerHTML="<div style='font-size:10px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:22px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</div>";return d;}));
+var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:14px;background:"+x[2]+";border-radius:8px;";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:22px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</div>";return d;}));
 // Breakdown of current assets
-var dbgDiv=el("div");dbgDiv.style.cssText="font-size:10px;color:#555;background:#fffbeb;border:1px solid #f59e0b;border-radius:4px;padding:6px 10px;margin-top:6px;";
+var dbgDiv=el("div");dbgDiv.style.cssText="font-size:11px;color:#555;background:#fffbeb;border:1px solid #f59e0b;border-radius:4px;padding:6px 10px;margin-top:6px;";
 dbgDiv.innerHTML="<b>現在の資産 内訳：</b><br>預貯金 "+a.savings+"万 ／ 不動産 "+a.realestate+"万 ／ 株式 "+a.stocks+"万 ／ その他 "+a.other+"万<br>NISA "+Math.round(nFV)+"万 ／ iDeCo "+Math.round(iFV)+"万<br><b>保険関連（現在価値）計 "+Math.round(insCurrentTotal).toLocaleString()+"万</b>（各証券の内訳・根拠は上の「保険の資産価値」欄）"+(insTotal>0?" ／ 受取済手動追加 "+insTotal+"万":"");
 tg.appendChild(dbgDiv);
 var bItems=[{label:"NISA",val:nFV,color:"#c9a84c"},{label:"iDeCo",val:iFV,color:"#27ae60"},{label:"預貯金",val:a.savings,color:"#2980b9"},{label:"不動産",val:a.realestate,color:"#16a085"},{label:"株式・投信",val:a.stocks,color:"#8e44ad"},{label:"その他",val:a.other,color:"#d35400"},{label:"保険積立（シミュレーション参照）",val:0,color:"#1a2744"},{label:"手動追加",val:insTotal,color:"#7f8c8d"}].filter(function(b){return b.val>0;});
 var bGrid=el("div");bGrid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-top:10px;";
-bItems.forEach(function(b){var d=el("div");d.style.cssText="padding:8px 10px;background:#f8f7f4;border-radius:6px;border-left:3px solid "+b.color+";";d.innerHTML="<div style='font-size:10px;color:#8a8a8a;'>"+b.label+"</div><div style='font-size:14px;font-weight:700;color:#1a2744;'>"+b.val.toLocaleString()+"万円</div>";bGrid.appendChild(d);});
+bItems.forEach(function(b){var d=el("div");d.style.cssText="padding:8px 10px;background:#f8f7f4;border-radius:6px;border-left:3px solid "+b.color+";";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;'>"+b.label+"</div><div style='font-size:14px;font-weight:700;color:#1a2744;'>"+b.val.toLocaleString()+"万円</div>";bGrid.appendChild(d);});
 tg.appendChild(bGrid);
 var retInp=el("div");retInp.style.cssText="margin-top:12px;max-width:200px;";
 retInp.appendChild(lbl("老後資金 安心ライン（万円）",inp("number",al.retire||"",function(v){uAl("retire",v);})));
@@ -2155,13 +2155,13 @@ function childNote(targetAge){if(!childRefs.length)return "";return "（"+childR
 var goalRows=el("div");
 function renderGoals(){
 goalRows.innerHTML="";
-if(!state.goals.length){var p2=el("p");p2.style.cssText="font-size:11px;color:#aaa;";p2.textContent="まだ入力されていません";goalRows.appendChild(p2);return;}
+if(!state.goals.length){var p2=el("p");p2.style.cssText="font-size:12px;color:#aaa;";p2.textContent="まだ入力されていません";goalRows.appendChild(p2);return;}
 state.goals.forEach(function(g,gi){
 var row=el("div");row.style.cssText="display:grid;grid-template-columns:80px 1fr 1fr 1fr auto;gap:8px;margin-bottom:6px;align-items:center;";
 var aI=inp("number",g.age||"",function(v){state.goals[gi].age=+v;saveState();var note=row.querySelector(".goal-note");if(note)note.textContent=childNote(+v);});aI.placeholder="65";aI.style.textAlign="right";
 var lI=inp("text",g.label||"",function(v){state.goals[gi].label=v;saveState();});lI.placeholder="例）老後生活費・子1大学";
 var amI=inp("number",g.amount||"",function(v){state.goals[gi].amount=+v;saveState();});amI.placeholder="0";amI.style.textAlign="right";
-var note=el("span","goal-note");note.style.cssText="font-size:11px;color:#8e44ad;";note.textContent=g.age?childNote(g.age):"";
+var note=el("span","goal-note");note.style.cssText="font-size:12px;color:#8e44ad;";note.textContent=g.age?childNote(g.age):"";
 var db=el("button","btn br");db.style.cssText="height:32px;padding:0 10px;";db.textContent="×";
 db.addEventListener("click",function(){state.goals.splice(gi,1);saveState();renderGoals();});
 [aI,lI,amI,note,db].forEach(function(x){row.appendChild(x);});goalRows.appendChild(row);
@@ -2171,18 +2171,18 @@ var totDiv=el("div");totDiv.style.cssText="margin-top:8px;padding:8px 12px;backg
 totDiv.textContent="資金計画合計："+tot.toLocaleString()+"万円";goalRows.appendChild(totDiv);
 }
 renderGoals();
-var goalNote=el("p");goalNote.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:8px;";goalNote.textContent="本人の年齢で入力してください。子供の年齢は自動計算して横に表示します。";
+var goalNote=el("p");goalNote.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";goalNote.textContent="本人の年齢で入力してください。子供の年齢は自動計算して横に表示します。";
 cont.appendChild(sec("資金計画・必要資金",btn("＋ 追加","bg",function(){if(!state.goals)state.goals=[];state.goals.push({age:65,label:"",amount:0});saveState();renderGoals();}),
 [goalNote,goalRows]));
 var simTop=grd("g2",[
 lbl("評価基準年齢",inp("number",evalAge,function(v){evalAge=+v||65;saveState();})),
 lbl("運用利回り（%）",inp("number",drawRate,function(v){drawRate=+v||0;saveState();}))
 ]);
-var evNote=el("p");evNote.style.cssText="font-size:11px;color:#8a8a8a;margin:8px 0 4px;";evNote.textContent="取り崩しイベントを複数追加できます。「財源」で引き落とし元を指定できます。";
+var evNote=el("p");evNote.style.cssText="font-size:12px;color:#8a8a8a;margin:8px 0 4px;";evNote.textContent="取り崩しイベントを複数追加できます。「財源」で引き落とし元を指定できます。";
 var evRows=el("div");
 function renderEvRows(){
 evRows.innerHTML="";
-var hrow=el("div");hrow.style.cssText="display:grid;grid-template-columns:70px 1fr 80px 80px 80px 100px auto;gap:6px;font-size:10px;color:#8a8a8a;font-weight:700;margin-bottom:4px;";
+var hrow=el("div");hrow.style.cssText="display:grid;grid-template-columns:70px 1fr 80px 80px 80px 100px auto;gap:6px;font-size:11px;color:#8a8a8a;font-weight:700;margin-bottom:4px;";
 ["開始年齢","目的","月額（万円）","終了年齢","一時金（万円）","財源",""].forEach(function(h){var s=el("span");s.textContent=h;hrow.appendChild(s);});
 evRows.appendChild(hrow);
 drawEvents.forEach(function(ev,ei){
@@ -2195,7 +2195,7 @@ var luI=inp("number",ev.lump||"",function(v){drawEvents[ei].lump=+v;saveState();
 var srcOpts=[{v:"all",l:"全体から"},{v:"nisa",l:"NISAから"},{v:"ideco",l:"iDeCoから"},{v:"savings",l:"預貯金から"},{v:"pension",l:"年金で充当"}];
 pProjs.forEach(function(x){srcOpts.push({v:"pol_"+x.policy.id,l:polLabel(x.policy)+"から"});});
 var srcSel=sel(srcOpts,ev.source||"all",function(v){drawEvents[ei].source=v;saveState();});srcSel.style.width="100px";
-var db=el("button","btn br");db.style.cssText="height:30px;padding:0 8px;font-size:11px;";db.textContent="×";
+var db=el("button","btn br");db.style.cssText="height:30px;padding:0 8px;font-size:12px;";db.textContent="×";
 db.addEventListener("click",function(){drawEvents.splice(ei,1);saveState();renderEvRows();});
 [aI,lI,mI,eI,luI,srcSel,db].forEach(function(x){row.appendChild(x);});evRows.appendChild(row);
 });
@@ -2419,9 +2419,9 @@ var sliderDiv=el("div");sliderDiv.style.cssText="display:grid;grid-template-colu
 var startAgeVal=curAge;var endAgeVal=90;
 var startSlider=document.createElement("input");startSlider.type="range";startSlider.min=curAge;startSlider.max=89;startSlider.value=curAge;startSlider.style.width="100%";
 var endSlider=document.createElement("input");endSlider.type="range";endSlider.min=curAge+1;endSlider.max=90;endSlider.value=90;endSlider.style.width="100%";
-var startLbl2=el("div");startLbl2.style.cssText="font-size:11px;color:#1a2744;font-weight:700;";startLbl2.textContent="表示開始: "+curAge+"歳";
-var endLbl2=el("div");endLbl2.style.cssText="font-size:11px;color:#1a2744;font-weight:700;";endLbl2.textContent="表示終了: 90歳";
-var sliderNote=el("p");sliderNote.style.cssText="font-size:10px;color:#8a8a8a;margin-top:4px;";sliderNote.textContent="スライダーで表示期間を絞り込めます";
+var startLbl2=el("div");startLbl2.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";startLbl2.textContent="表示開始: "+curAge+"歳";
+var endLbl2=el("div");endLbl2.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";endLbl2.textContent="表示終了: 90歳";
+var sliderNote=el("p");sliderNote.style.cssText="font-size:11px;color:#8a8a8a;margin-top:4px;";sliderNote.textContent="スライダーで表示期間を絞り込めます";
 var chartRef={chart:null};
 function updateChartRange(){
 if(!chartRef.chart)return;
@@ -2444,10 +2444,10 @@ var tableDiv=el("div");tableDiv.style.cssText="margin-top:12px;";
 var tableToggleBtn=btn("内訳テーブルを表示","bn",function(){
 if(tableDiv.children.length>0){tableDiv.innerHTML="";this.textContent="内訳テーブルを表示";return;}
 this.textContent="内訳テーブルを隠す";
-var tbl2=document.createElement("table");tbl2.style.cssText="width:100%;border-collapse:collapse;font-size:10px;";
+var tbl2=document.createElement("table");tbl2.style.cssText="width:100%;border-collapse:collapse;font-size:11px;";
 var th2=el("thead"),hr3=el("tr");
 var headers=["年齢"].concat(allKeys).concat(["合計"]);
-headers.forEach(function(h){var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:4px 6px;text-align:right;white-space:nowrap;font-size:10px;";if(h==="年齢")th.style.textAlign="center";hr3.appendChild(th);});
+headers.forEach(function(h){var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:4px 6px;text-align:right;white-space:nowrap;font-size:11px;";if(h==="年齢")th.style.textAlign="center";hr3.appendChild(th);});
 th2.appendChild(hr3);tbl2.appendChild(th2);
 var tb2=el("tbody");
 var sliderStart=+startSlider.value||curAge;
@@ -2465,7 +2465,7 @@ tb2.appendChild(tr5);
 tbl2.appendChild(tb2);
 var tw3=el("div","tw");tw3.appendChild(tbl2);tableDiv.appendChild(tw3);
 });
-tableToggleBtn.style.cssText="padding:4px 12px;font-size:11px;margin-top:8px;";
+tableToggleBtn.style.cssText="padding:4px 12px;font-size:12px;margin-top:8px;";
 cont.appendChild(sec("資産推移・取り崩しシミュレーション",null,[simTop,evNote,evRows,addEvBtn,evalDiv,roDiv,tgtDiv,sliderDiv,sliderNote,simW,tableToggleBtn,tableDiv].filter(function(x){return x;})));
 setTimeout(function(){if(typeof Chart!=="undefined"){try{chartRef.chart=new Chart(simC,{type:"bar",data:{labels:proj.map(function(d){return d.age+"歳";}),datasets:dsets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:10}}},tooltip:{callbacks:{footer:function(items){var idx2=items[0]?items[0].dataIndex:0;return "合計: "+totals[idx2].toLocaleString()+"万円";},label:function(ctx){return ctx.dataset.label+": "+(ctx.parsed.y||0).toLocaleString()+"万円";}}}},scales:{x:{stacked:true,ticks:{maxTicksLimit:12,font:{size:9}}},y:{stacked:true,ticks:{callback:function(v){return v.toLocaleString()+"万円";},font:{size:9}}}}}});}catch(e){simW.textContent="グラフエラー: "+e.message;}}},200);
 return cont;
@@ -2573,7 +2573,7 @@ var diff=propPrem-curPrem;
 var summDiv=el("div");summDiv.style.cssText="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;";
 [["現在の月払保険料","¥"+curPrem.toLocaleString()+"円","#fee2e2","#c0392b"],["提案の月払保険料","¥"+propPrem.toLocaleString()+"円","#f0fff4","#27ae60"],["差額（月払）",(diff>0?"+":"")+diff+"円","#f8f7f4","#1a2744"]].forEach(function(x){
 var d=el("div");d.style.cssText="text-align:center;padding:12px;background:"+x[2]+";border-radius:8px;";
-d.innerHTML="<div style='font-size:10px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:16px;font-weight:700;color:"+x[3]+";'>"+x[1]+"</div>";
+d.innerHTML="<div style='font-size:11px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:16px;font-weight:700;color:"+x[3]+";'>"+x[1]+"</div>";
 summDiv.appendChild(d);
 });
 cont.appendChild(summDiv);
@@ -2586,12 +2586,12 @@ var tbody2=el("tbody");
 rows.forEach(function(row){
 var tr4=el("tr");
 var td0=el("td");td0.style.cssText="font-weight:700;color:#1a2744;white-space:nowrap;max-width:999px;padding:6px 8px;";td0.textContent=row.label;tr4.appendChild(td0);
-var td1=el("td");td1.style.cssText="text-align:center;padding:6px 8px;color:#8a8a8a;font-size:11px;";
+var td1=el("td");td1.style.cssText="text-align:center;padding:6px 8px;color:#8a8a8a;font-size:12px;";
 td1.textContent=row.line>0?row.line.toLocaleString()+row.unit:"未設定";tr4.appendChild(td1);
 function makeValCell(valKey,color){
 var td=el("td");td.style.cssText="padding:4px 6px;";
 var valWrap=el("div");valWrap.style.cssText="display:flex;align-items:center;gap:4px;margin-bottom:3px;";
-var valInp=document.createElement("input");valInp.type="number";valInp.value=row[valKey]||"";valInp.style.cssText="width:80px;font-size:11px;font-weight:700;color:"+color+";border:1px solid #ddd8cc;border-radius:4px;padding:4px 6px;";
+var valInp=document.createElement("input");valInp.type="number";valInp.value=row[valKey]||"";valInp.style.cssText="width:80px;font-size:12px;font-weight:700;color:"+color+";border:1px solid #ddd8cc;border-radius:4px;padding:4px 6px;";
 valInp.addEventListener("change",function(){
 row[valKey]=+this.value;saveState();
 var evalTd=this.closest("tr")?this.closest("tr").querySelector(".eval-cell-"+valKey):null;
@@ -2599,10 +2599,10 @@ if(evalTd&&row.key!=="prem"){
 var ev3=row.line>0?eA(+this.value,row.line):{m:+this.value>0?"◎":"—",bg:+this.value>0?"#dcfce7":"#f0f0f0",tc:+this.value>0?"#166534":"#888"};
 evalTd.style.background=ev3.bg;evalTd.style.color=ev3.tc;evalTd.textContent=ev3.m;
 }
-});valInp.style.cssText="width:80px;font-size:11px;font-weight:700;color:"+color+";";
-var unitSpan=el("span");unitSpan.style.cssText="font-size:10px;color:#8a8a8a;";unitSpan.textContent=row.unit;
+});valInp.style.cssText="width:80px;font-size:12px;font-weight:700;color:"+color+";";
+var unitSpan=el("span");unitSpan.style.cssText="font-size:11px;color:#8a8a8a;";unitSpan.textContent=row.unit;
 valWrap.appendChild(valInp);valWrap.appendChild(unitSpan);
-var memoTA=document.createElement("textarea");memoTA.style.cssText="width:100%;font-size:10px;min-height:36px;border:1px solid #ddd8cc;border-radius:3px;padding:2px 4px;resize:vertical;";
+var memoTA=document.createElement("textarea");memoTA.style.cssText="width:100%;font-size:11px;min-height:36px;border:1px solid #ddd8cc;border-radius:3px;padding:2px 4px;resize:vertical;";
 memoTA.placeholder="補足メモ...";var memoKey=row.key+"_"+valKey;
 memoTA.value=state.comparisonMemos[memoKey]||"";
 memoTA.addEventListener("input",function(){state.comparisonMemos[memoKey]=this.value;saveState();});
@@ -2630,7 +2630,7 @@ var cx=btn("×","br",function(){form3.remove();});
 [li,ui,okB,cx].forEach(function(x){row3.appendChild(x);});form3.appendChild(row3);addRowDiv.appendChild(form3);
 });
 addRowDiv.appendChild(addRowBtn);
-var editModeNote=el("div");editModeNote.style.cssText="font-size:11px;background:#f0fff4;border:1px solid #27ae60;border-radius:6px;padding:6px 12px;margin-bottom:8px;";
+var editModeNote=el("div");editModeNote.style.cssText="font-size:12px;background:#f0fff4;border:1px solid #27ae60;border-radius:6px;padding:6px 12px;margin-bottom:8px;";
 editModeNote.textContent="各セルの金額・メモは直接入力できます。「再計算」で証券データから自動再計算します。";
 cont.appendChild(editModeNote);
 cont.appendChild(sec("給付内容の比較",btn("再計算","bn",function(){state.comparisonRows=defaultCompareRows(curPols,propPols);saveState();render();}),
@@ -2690,7 +2690,7 @@ var box=el("div");
 var intro=el("div");intro.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px 12px;margin-bottom:10px;";
 intro.textContent="各証券の保障内容を縦並びで比較します（上＝保障性／下＝貯蓄性）。列の見出しに保険料内訳・払込方法も表示。安心ライン（目標額）を入れると合計との過不足が出ます。下に給付条件・免除条件の比較表があります。";
 box.appendChild(intro);
-var ktgl=el("button","btn");ktgl.style.cssText="font-size:11px;padding:3px 10px;margin-bottom:8px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";ktgl.textContent=kanyuShowAll?"\u25be マイナー項目を隠す":"\u25b8 その他の特約も表示";ktgl.addEventListener("click",function(){kanyuShowAll=!kanyuShowAll;render();});box.appendChild(ktgl);
+var ktgl=el("button","btn");ktgl.style.cssText="font-size:12px;padding:3px 10px;margin-bottom:8px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";ktgl.textContent=kanyuShowAll?"\u25be マイナー項目を隠す":"\u25b8 その他の特約も表示";ktgl.addEventListener("click",function(){kanyuShowAll=!kanyuShowAll;render();});box.appendChild(ktgl);
 var tw=el("div","tw");
 var tbl=el("table");tbl.className="kanyu";
 var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="24px";cg.appendChild(cm);var c0=document.createElement("col");c0.style.width="104px";cg.appendChild(c0);
@@ -2707,7 +2707,7 @@ var prem=toM(p);totPrem+=prem;
 var coNm=shortCo(p);
 var who=(memOf[pi]&&(memOf[pi].relation||memOf[pi].name))||"";
 th.style.lineHeight="1.6";th.style.padding="8px 8px";
-th.innerHTML=String.fromCharCode(65+pi)+"<br><span style='font-weight:700;font-size:12px;color:#dfe9ff;'>"+coNm+"</span><br><span style='font-size:10px;color:#cdd7ea;'>"+who+"</span>";
+th.innerHTML=String.fromCharCode(65+pi)+"<br><span style='font-weight:700;font-size:12px;color:#dfe9ff;'>"+coNm+"</span><br><span style='font-size:11px;color:#cdd7ea;'>"+who+"</span>";
 hr.appendChild(th);
 });
 hr.appendChild(el("th",null,"合計"));
@@ -2718,9 +2718,9 @@ var tb=el("tbody");
 function infoRow(label,color,bg,valFn,sumText,bold){
 var tr=el("tr");if(bg)tr.style.background=bg;
 var im=el("td");im.style.cssText="border:none;background:transparent;";tr.appendChild(im);
-var t0=el("td",null,label);t0.style.cssText="font-weight:700;color:"+color+";font-size:11px;padding:4px 4px;";tr.appendChild(t0);
+var t0=el("td",null,label);t0.style.cssText="font-weight:700;color:"+color+";font-size:12px;padding:4px 4px;";tr.appendChild(t0);
 curPols.forEach(function(p){var td=el("td");var val=valFn(p);var isYr=(val==="年払"||val==="半年払");td.style.cssText="font-size:"+(bold?"12px":"11px")+";color:"+(isYr?"#c0392b":color)+";"+((bold||isYr)?"font-weight:700;":"");td.textContent=val;tr.appendChild(td);});
-var ts=el("td",null,sumText||"");ts.style.cssText="font-weight:700;background:#fdf8ec;font-size:11px;color:"+color+";";tr.appendChild(ts);
+var ts=el("td",null,sumText||"");ts.style.cssText="font-weight:700;background:#fdf8ec;font-size:12px;color:"+color+";";tr.appendChild(ts);
 tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);
 }
 infoRow("保険期間","#1a2744",null,periodTxt,"",false);
@@ -2734,36 +2734,36 @@ ROWS.forEach(function(row){
 if(_MN[row.k]&&!kanyuShowAll){var _av=curPols.some(function(p){return (row.g&&(row.g(p)||0)>0)||(row.isPair&&row.g2&&(row.g2(p)||0)>0);});if(!_av)return;}
 if(row.grp!==lastGrp){lastGrp=row.grp;
 var gr=el("tr");var gm=el("td");gm.style.cssText="border:none;background:transparent;";gr.appendChild(gm);var gtd=el("td",null,row.grp==="保障"?"■ 保障性（万一・病気・介護などの保障）":"■ 貯蓄性（将来お金になる部分）");
-gtd.colSpan=curPols.length+4;gtd.style.cssText="background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:11px;padding:6px 8px;text-align:left;";
+gtd.colSpan=curPols.length+4;gtd.style.cssText="background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:12px;padding:6px 8px;text-align:left;";
 gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
 var tdM=el("td");tdM.style.cssText="border:none;background:transparent;padding:0 3px 0 0;text-align:right;white-space:nowrap;";
-if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="display:inline-block;border:1px solid #e67e22;color:#e67e22;font-size:9px;font-weight:700;padding:0 2px;border-radius:2px;vertical-align:middle;";tdM.appendChild(bd);}
+if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="display:inline-block;border:1px solid #e67e22;color:#e67e22;font-size:11px;font-weight:700;padding:0 2px;border-radius:2px;vertical-align:middle;";tdM.appendChild(bd);}
 tr.appendChild(tdM);
 var td0=el("td");td0.textContent=row.l;
-td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:11px;padding:4px 4px;";tr.appendChild(td0);
+td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:12px;padding:4px 4px;";tr.appendChild(td0);
 if(row.isPair){var sA=0,sB=0;
-curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var td=el("td");td.style.cssText="font-size:11px;white-space:nowrap;";if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
-var tdSum=el("td");tdSum.style.cssText="font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:11px;";tdSum.innerHTML=(sA||sB)?("<span style='color:#1f7d56;'>"+sA+"</span>/<span style='color:#2980b9;'>"+sB+"</span>"+row.u):"—";tr.appendChild(tdSum);
+curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
+var tdSum=el("td");tdSum.style.cssText="font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tdSum.innerHTML=(sA||sB)?("<span style='color:#1f7d56;'>"+sA+"</span>/<span style='color:#2980b9;'>"+sB+"</span>"+row.u):"—";tr.appendChild(tdSum);
 tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);return;}
 var sum=0;
 curPols.forEach(function(p){
 var v=row.g(p)||0;
-var td=el("td");td.style.cssText="text-align:center;font-size:11px;white-space:nowrap;";
+var td=el("td");td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;";
 if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
 else if(v>0){sum+=v;td.textContent=v.toLocaleString()+row.u;td.style.color="#1f7d56";td.style.fontWeight="700";}
 else{td.textContent="—";td.style.color="#ccc";}
 tr.appendChild(td);
 });
 if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);var tdA0=el("td",null,"");tdA0.style.background="#fafafa";tr.appendChild(tdA0);var tdG0=el("td",null,"");tdG0.style.background="#fafafa";tr.appendChild(tdG0);tb.appendChild(tr);return;}
-var tdSum=el("td",null,sum>0?sum.toLocaleString()+row.u:"—");tdSum.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:11px;";tr.appendChild(tdSum);
+var tdSum=el("td",null,sum>0?sum.toLocaleString()+row.u:"—");tdSum.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tr.appendChild(tdSum);
 var tdA=el("td");tdA.style.cssText="text-align:center;white-space:nowrap;";
 var li=inp("number",(state.ansinCov[row.k]!=null?state.ansinCov[row.k]:""),function(val){state.ansinCov[row.k]=val;saveState();});
-li.style.cssText="width:70px;text-align:right;font-size:11px;padding:3px;border:1px solid #ddd8cc;border-radius:4px;";
+li.style.cssText="width:70px;text-align:right;font-size:12px;padding:3px;border:1px solid #ddd8cc;border-radius:4px;";
 li.addEventListener("change",function(){render();});
 tdA.appendChild(li);tr.appendChild(tdA);
-var tdG=el("td");tdG.style.cssText="text-align:center;font-weight:700;white-space:nowrap;font-size:11px;";
+var tdG=el("td");tdG.style.cssText="text-align:center;font-weight:700;white-space:nowrap;font-size:12px;";
 var line=(state.ansinCov[row.k]!=null&&state.ansinCov[row.k]!=="")?+state.ansinCov[row.k]:0;
 if(line>0){var gap=sum-line;if(gap<0){tdG.textContent="▲"+Math.abs(gap).toLocaleString();tdG.style.color="#c0392b";}else{tdG.textContent="+"+gap.toLocaleString();tdG.style.color="#166534";}}
 else{tdG.textContent="—";tdG.style.color="#ccc";}
@@ -2790,7 +2790,7 @@ var memDivC=el("div");memDivC.style.cssText="background:white;border-radius:8px;
 var mLblC=el("span");mLblC.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";mLblC.textContent="表示対象：";memDivC.appendChild(mLblC);
 var optsC=[["all","合算（全員）"]].concat(state.family.map(function(fm){return[fm.id,fm.name||fm.relation];}));
 optsC.forEach(function(x){
-var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
+var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
 b.textContent=x[1];b.addEventListener("click",function(){summaryMember=x[0];render();});memDivC.appendChild(b);
 });
 cont.appendChild(memDivC);
@@ -2833,21 +2833,21 @@ ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:
 var closeBtn=document.createElement("button");
 closeBtn.textContent="X 閉じる";
 closeBtn.className="no-print";
-closeBtn.style.cssText="position:fixed;top:4px;right:80px;padding:3px 10px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;z-index:100000;";
+closeBtn.style.cssText="position:fixed;top:4px;right:80px;padding:3px 10px;background:#e74c3c;color:white;border:none;border-radius:3px;cursor:pointer;font-size:12px;z-index:100000;";
 closeBtn.addEventListener("click",function(){ov.remove();});
 ov.appendChild(closeBtn);
 // PRINT button inside overlay - calls window.print() directly
 var printNowBtn=document.createElement("button");
 printNowBtn.textContent="印刷する";
 printNowBtn.className="no-print";
-printNowBtn.style.cssText="position:fixed;top:4px;right:4px;padding:3px 14px;background:#27ae60;color:white;border:none;border-radius:3px;cursor:pointer;font-size:11px;font-weight:700;z-index:100000;";
+printNowBtn.style.cssText="position:fixed;top:4px;right:4px;padding:3px 14px;background:#27ae60;color:white;border:none;border-radius:3px;cursor:pointer;font-size:12px;font-weight:700;z-index:100000;";
 printNowBtn.addEventListener("click",function(){window.print();});
 ov.appendChild(printNowBtn);
 // ===== HEADER =====
 var hdr=document.createElement("div");
 hdr.style.cssText="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a2744;margin-bottom:5px;padding-bottom:3px;";
 hdr.innerHTML='<div style="font-size:13px;font-weight:700;color:#1a2744;">保険証券管理レポート</div>'+
-'<div style="font-size:9px;color:#555;">'+state.family[0].name+' 様　'+curAge+'歳　'+new Date().toLocaleDateString("ja-JP")+'</div>';
+'<div style="font-size:11px;color:#555;">'+state.family[0].name+' 様　'+curAge+'歳　'+new Date().toLocaleDateString("ja-JP")+'</div>';
 ov.appendChild(hdr);
 // ===== 2-COLUMN LAYOUT =====
 var grid=document.createElement("div");
@@ -2863,7 +2863,7 @@ var curCanc=pols.reduce(function(s,x){return s+(x.policy.cancerOn?x.policy.c1st|
 var curBig=pols.reduce(function(s,x){return s+(x.policy.bigOn?Math.max(x.policy.h1st||0,x.policy.b1st||0):0);},0);
 var curDis=pols.reduce(function(s,x){return s+(x.policy.disType!=="none"?x.policy.disMonthly||0:0);},0);
 var s1=document.createElement("div");s1.style.cssText="margin-bottom:5px;";
-var h1=document.createElement("div");h1.style.cssText="font-size:9px;font-weight:700;background:#1a2744;color:white;padding:2px 6px;margin-bottom:2px;";
+var h1=document.createElement("div");h1.style.cssText="font-size:11px;font-weight:700;background:#1a2744;color:white;padding:2px 6px;margin-bottom:2px;";
 h1.textContent="1. 現在の保障状況と課題";s1.appendChild(h1);
 var t1=document.createElement("table");t1.style.cssText="width:100%;border-collapse:collapse;font-size:7.5px;";
 var checks=[["死亡保障",curDeath+"万",al.death?al.death+"万":"未設定",curDeath-(al.death||0)],
@@ -2892,7 +2892,7 @@ s1.appendChild(pmDiv);
 left.appendChild(s1);
 // 2. 証券一覧（コンパクト）
 var s2=document.createElement("div");s2.style.cssText="margin-bottom:5px;";
-var h2b=document.createElement("div");h2b.style.cssText="font-size:9px;font-weight:700;background:#1a2744;color:white;padding:2px 6px;margin-bottom:2px;";
+var h2b=document.createElement("div");h2b.style.cssText="font-size:11px;font-weight:700;background:#1a2744;color:white;padding:2px 6px;margin-bottom:2px;";
 h2b.textContent="2. 保険証券一覧";s2.appendChild(h2b);
 var t2=document.createElement("table");t2.style.cssText="width:100%;border-collapse:collapse;font-size:7px;";
 var hr2=document.createElement("tr");
@@ -2920,7 +2920,7 @@ s2.appendChild(t2);
 left.appendChild(s2);
 // 3. 保障グラフ (SVG)
 var s3=document.createElement("div");s3.style.cssText="margin-bottom:5px;";
-var h3b=document.createElement("div");h3b.style.cssText="font-size:9px;font-weight:700;background:#1e40af;color:white;padding:2px 6px;margin-bottom:2px;";
+var h3b=document.createElement("div");h3b.style.cssText="font-size:11px;font-weight:700;background:#1e40af;color:white;padding:2px 6px;margin-bottom:2px;";
 h3b.textContent="3. 死亡保障額";s3.appendChild(h3b);
 var deathPols=pols.filter(function(x){return x.policy.deathType!=="none"||x.policy.dlAmount>0;});
 if(deathPols.length>0){
@@ -2940,7 +2940,7 @@ var svgDiv=document.createElement("div");svgDiv.innerHTML=svg;s3.appendChild(svg
 left.appendChild(s3);
 // 4. 保険料グラフ (SVG)
 var s4=document.createElement("div");
-var h4b=document.createElement("div");h4b.style.cssText="font-size:9px;font-weight:700;background:#b45309;color:white;padding:2px 6px;margin-bottom:2px;";
+var h4b=document.createElement("div");h4b.style.cssText="font-size:11px;font-weight:700;background:#b45309;color:white;padding:2px 6px;margin-bottom:2px;";
 h4b.textContent="4. 月払保険料";s4.appendChild(h4b);
 var maxPrem=Math.max.apply(null,pols.map(function(x){return +toM(x.policy)||0;}));
 if(maxPrem>0){
@@ -2963,7 +2963,7 @@ var right=document.createElement("div");
 var bmd=state.bigMatrixData&&state.bigMatrixData.kyufu||{};
 {
 var s5=document.createElement("div");s5.style.cssText="margin-bottom:5px;";
-var h5b=document.createElement("div");h5b.style.cssText="font-size:9px;font-weight:700;background:#166534;color:white;padding:2px 6px;margin-bottom:2px;";
+var h5b=document.createElement("div");h5b.style.cssText="font-size:11px;font-weight:700;background:#166534;color:white;padding:2px 6px;margin-bottom:2px;";
 h5b.textContent="5. 給付条件比較";s5.appendChild(h5b);
 var ROWS_K=[{id:"cancer",l:"がん"},{id:"heart",l:"心臓"},{id:"brain",l:"脳"}];
 var COLS_C=[{id:"a",l:"①"},{id:"b",l:"②"},{id:"c",l:"③"},{id:"f",l:"⑥入院"},{id:"g",l:"⑦通院"}];
@@ -2998,7 +2998,7 @@ right.appendChild(s5);
 var bmd2=state.bigMatrixData&&state.bigMatrixData.menjo||{};
 {
 var s6=document.createElement("div");s6.style.cssText="margin-bottom:5px;";
-var h6b=document.createElement("div");h6b.style.cssText="font-size:9px;font-weight:700;background:#6b21a8;color:white;padding:2px 6px;margin-bottom:2px;";
+var h6b=document.createElement("div");h6b.style.cssText="font-size:11px;font-weight:700;background:#6b21a8;color:white;padding:2px 6px;margin-bottom:2px;";
 h6b.textContent="6. 免除条件比較";s6.appendChild(h6b);
 var ROWS_M=[{id:"m_cancer",l:"がん"},{id:"m_heart",l:"心臓"},{id:"m_brain",l:"脳"}];
 var COLS_M=[{id:"a",l:"①"},{id:"b",l:"②"},{id:"c",l:"③"},{id:"d",l:"④"}];
@@ -3031,7 +3031,7 @@ right.appendChild(s6);
 }
 // 7. 資産・老後プラン
 var s7=document.createElement("div");s7.style.cssText="margin-bottom:5px;";
-var h7b=document.createElement("div");h7b.style.cssText="font-size:9px;font-weight:700;background:#0f766e;color:white;padding:2px 6px;margin-bottom:2px;";
+var h7b=document.createElement("div");h7b.style.cssText="font-size:11px;font-weight:700;background:#0f766e;color:white;padding:2px 6px;margin-bottom:2px;";
 h7b.textContent="7. 資産・老後プラン";s7.appendChild(h7b);
 var asLines=[];
 if(assetsData.savings)asLines.push("預貯金: "+assetsData.savings+"万円");
@@ -3045,7 +3045,7 @@ s7.appendChild(asDiv);
 right.appendChild(s7);
 // 8. 提案・目標
 var s8=document.createElement("div");
-var h8b=document.createElement("div");h8b.style.cssText="font-size:9px;font-weight:700;background:#9a3412;color:white;padding:2px 6px;margin-bottom:2px;";
+var h8b=document.createElement("div");h8b.style.cssText="font-size:11px;font-weight:700;background:#9a3412;color:white;padding:2px 6px;margin-bottom:2px;";
 h8b.textContent="8. 提案・目標";s8.appendChild(h8b);
 var propDiv=document.createElement("div");propDiv.style.cssText="font-size:7.5px;line-height:1.7;";
 if(state.comparisonMemos){
@@ -3074,7 +3074,7 @@ window.print();
 printBtn2.style.cssText="background:#27ae60;color:white;padding:8px 16px;font-size:12px;margin-left:8px;";
 pbtn.style.cssText="padding:10px 20px;font-size:13px;margin-bottom:10px;display:block;";
 cont.appendChild(pbtn);
-var note=el("div");note.style.cssText="font-size:10px;color:#555;padding:8px;background:#f0f4ff;border-radius:4px;line-height:1.8;";
+var note=el("div");note.style.cssText="font-size:11px;color:#555;padding:8px;background:#f0f4ff;border-radius:4px;line-height:1.8;";
 note.innerHTML="ボタンを押すと白い全画面プレビューが開きます。<br>証券一覧・保障額・給付条件比較・免除条件比較・資産・提案が1画面に表示されます。<br>その状態で <b>Ctrl+P</b> を押すと保険データのみが印刷されます。";
 cont.appendChild(note);
 return cont;
@@ -3159,28 +3159,28 @@ var sh=el("div");sh.style.cssText="background:"+hColor+";color:white;font-size:1
 sh.textContent=title;sec2.appendChild(sh);
 var outerDiv=el("div");outerDiv.style.cssText="overflow-x:auto;-webkit-overflow-scrolling:touch;";
 var tbl=document.createElement("table");
-tbl.style.cssText="border-collapse:collapse;font-size:9px;white-space:nowrap;";
+tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
 // Row 1: header
 var hr1=el("tr");
-var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:11px;min-width:65px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
-var th1st=el("th");th1st.colSpan=7;th1st.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:10px;font-weight:700;color:#1e40af;";th1st.innerHTML="<span style=\"float:left;font-size:12px;font-weight:800;color:#b91c1c;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u2190 \u53b3\u3057\u3044</span>1\u56de\u76ee<span style=\"float:right;font-size:12px;font-weight:800;color:#166534;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u7de9\u3044 \u2192</span>";hr1.appendChild(th1st);
-if(!noSecond){var th2nd=el("th");th2nd.colSpan=4;th2nd.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:3px;text-align:center;font-size:10px;font-weight:700;color:#166534;";th2nd.textContent="2回目以降";hr1.appendChild(th2nd);}
+var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:12px;min-width:65px;text-align:center;vertical-align:middle;";th0.textContent="病名";hr1.appendChild(th0);
+var th1st=el("th");th1st.colSpan=7;th1st.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:11px;font-weight:700;color:#1e40af;";th1st.innerHTML="<span style=\"float:left;font-size:12px;font-weight:800;color:#b91c1c;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u2190 \u53b3\u3057\u3044</span>1\u56de\u76ee<span style=\"float:right;font-size:12px;font-weight:800;color:#166534;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u7de9\u3044 \u2192</span>";hr1.appendChild(th1st);
+if(!noSecond){var th2nd=el("th");th2nd.colSpan=4;th2nd.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:3px;text-align:center;font-size:11px;font-weight:700;color:#166534;";th2nd.textContent="2回目以降";hr1.appendChild(th2nd);}
 tbl.appendChild(hr1);
 var hr2=el("tr");
 ["①","②","③","④","⑤","⑥","⑦"].forEach(function(lbl){
-var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 4px;text-align:center;font-size:11px;min-width:72px;color:#1e40af;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
+var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 4px;text-align:center;font-size:12px;min-width:72px;color:#1e40af;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
 });
 if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(lbl){
-var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 4px;text-align:center;font-size:11px;min-width:55px;color:#166534;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
+var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 4px;text-align:center;font-size:12px;min-width:55px;color:#166534;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
 });
 tbl.appendChild(hr2);
 rows.forEach(function(row,ri){
 var tr2=el("tr");
-var nameTd=el("td");nameTd.style.cssText="padding:3px 6px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:11px;text-align:center;vertical-align:middle;";
+var nameTd=el("td");nameTd.style.cssText="padding:3px 6px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:12px;text-align:center;vertical-align:middle;";
 if(row.editable){
 var ni=document.createElement("input");ni.type="text";
 ni.value=(state.bigMatrixRowLabels&&state.bigMatrixRowLabels[row.id])||"";
-ni.placeholder="手入力";ni.style.cssText="border:none;background:transparent;font-size:11px;font-weight:600;width:58px;text-align:center;";
+ni.placeholder="手入力";ni.style.cssText="border:none;background:transparent;font-size:12px;font-weight:600;width:58px;text-align:center;";
 ni.addEventListener("change",function(){if(!state.bigMatrixRowLabels)state.bigMatrixRowLabels={};state.bigMatrixRowLabels[row.id]=this.value;saveState();});
 nameTd.appendChild(ni);
 } else {nameTd.textContent=row.label;}
@@ -3196,7 +3196,7 @@ if(cd.na){
 // ✕: show text + diagonal lines overlay (like Excel)
 td.style.position="relative";
 var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:36px;background:#fff5f5;";
-var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:11px;color:#bbb;word-break:break-all;white-space:pre-wrap;text-decoration:line-through;";naTxt.textContent=cd.text||"";
+var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:12px;color:#bbb;word-break:break-all;white-space:pre-wrap;text-decoration:line-through;";naTxt.textContent=cd.text||"";
 // Diagonal lines SVG overlay
 var naOver=document.createElementNS("http://www.w3.org/2000/svg","svg");
 naOver.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;";
@@ -3214,9 +3214,9 @@ td.appendChild(naWrap);
 // Multiple policy colors: show as thin top border strips
 td.style.background="white";
 var ta=document.createElement("textarea");ta.value=cd.text||"";
-ta.style.cssText="width:100%;border:none;background:transparent;font-size:11px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
+ta.style.cssText="width:100%;border:none;background:transparent;font-size:12px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
 ta.rows=2;ta.placeholder="入力...";
-var disp=el("div");disp.style.cssText="font-size:11px;color:#1a2744;padding:3px;min-height:30px;box-sizing:border-box;white-space:pre-wrap;word-break:break-word;cursor:text;line-height:1.4;";
+var disp=el("div");disp.style.cssText="font-size:12px;color:#1a2744;padding:3px;min-height:30px;box-sizing:border-box;white-space:pre-wrap;word-break:break-word;cursor:text;line-height:1.4;";
 disp.innerHTML=cd.text?fmtCond(cd.text):"<span style='color:#bbb;'>入力...</span>";
 disp.addEventListener("click",function(){disp.style.display="none";ta.style.display="block";td.style.outline="2px solid #2980b9";ta.focus();});
 ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="none";disp.innerHTML=ta.value?fmtCond(ta.value):"<span style='color:#bbb;'>入力...</span>";disp.style.display="block";});
@@ -3247,13 +3247,13 @@ var pop=el("div");pop.id="pol-pop";
 pop.style.cssText="position:fixed;background:white;border:2px solid #1a2744;border-radius:6px;padding:8px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:150px;";
 pop.style.left=Math.min(e.clientX,window.innerWidth-160)+"px";
 pop.style.top=Math.min(e.clientY+4,window.innerHeight-200)+"px";
-var pt=el("div");pt.style.cssText="font-size:9px;font-weight:700;margin-bottom:4px;color:#1a2744;border-bottom:1px solid #eee;padding-bottom:3px;";
+var pt=el("div");pt.style.cssText="font-size:11px;font-weight:700;margin-bottom:4px;color:#1a2744;border-bottom:1px solid #eee;padding-bottom:3px;";
 pt.textContent="証券を割り当て";pop.appendChild(pt);
 policies.forEach(function(p,pi){
 var isOn=(cd.polIdxs||[]).indexOf(pi)>=0;
 var pr=el("div");pr.style.cssText="display:flex;align-items:center;gap:5px;padding:3px 0;cursor:pointer;";
 var dot2=el("span");dot2.style.cssText="width:12px;height:12px;border-radius:2px;background:"+POL_COLS[pi%POL_COLS.length]+";flex-shrink:0;";
-var lbl2=el("span");lbl2.style.cssText="font-size:9px;flex:1;";lbl2.textContent=(pi+1)+"."+polLabel(p);
+var lbl2=el("span");lbl2.style.cssText="font-size:11px;flex:1;";lbl2.textContent=(pi+1)+"."+polLabel(p);
 var chk2=el("span");chk2.style.cssText="color:"+(isOn?POL_COLS[pi%POL_COLS.length]:"#ddd")+";font-weight:700;";chk2.textContent="✓";
 pr.appendChild(dot2);pr.appendChild(lbl2);pr.appendChild(chk2);
 pr.addEventListener("click",function(){
@@ -3264,7 +3264,7 @@ saveState();pop.remove();rebuild();
 });
 pop.appendChild(pr);
 });
-var allOff=el("div");allOff.style.cssText="padding:3px 0;cursor:pointer;color:#999;font-size:9px;border-top:1px solid #eee;margin-top:3px;";allOff.textContent="× 全て外す";
+var allOff=el("div");allOff.style.cssText="padding:3px 0;cursor:pointer;color:#999;font-size:11px;border-top:1px solid #eee;margin-top:3px;";allOff.textContent="× 全て外す";
 allOff.addEventListener("click",function(){cd.polIdxs=[];saveState();pop.remove();rebuild();});
 pop.appendChild(allOff);
 document.body.appendChild(pop);
@@ -3313,13 +3313,13 @@ saveState();
 }
 function rebuild(){
 wrap.innerHTML="";
-var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:9px;padding:5px 10px;background:#f8f7f4;border-radius:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;";
+var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:11px;padding:5px 10px;background:#f8f7f4;border-radius:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;";
 var lt=el("strong");lt.textContent="証券：";leg.appendChild(lt);
 policies.forEach(function(p,pi){
-var s=el("span");s.style.cssText="padding:2px 6px;border-radius:10px;background:"+POL_LIGHT[pi%POL_LIGHT.length]+";font-size:9px;font-weight:700;color:"+POL_COLS[pi%POL_COLS.length]+";";
+var s=el("span");s.style.cssText="padding:2px 6px;border-radius:10px;background:"+POL_LIGHT[pi%POL_LIGHT.length]+";font-size:11px;font-weight:700;color:"+POL_COLS[pi%POL_COLS.length]+";";
 s.textContent=(pi+1)+"."+polLabel(p);leg.appendChild(s);
 });
-var autoBtn=el("button");autoBtn.style.cssText="font-size:10px;font-weight:700;padding:3px 10px;border:1px solid #1a2744;border-radius:4px;background:#1a2744;color:white;cursor:pointer;margin-right:6px;";autoBtn.textContent="\ud83d\udd04 入力から自動割当";autoBtn.title="各証券の入力内容から給付条件・免除条件の色を自動で割り当てます";
+var autoBtn=el("button");autoBtn.style.cssText="font-size:11px;font-weight:700;padding:3px 10px;border:1px solid #1a2744;border-radius:4px;background:#1a2744;color:white;cursor:pointer;margin-right:6px;";autoBtn.textContent="\ud83d\udd04 入力から自動割当";autoBtn.title="各証券の入力内容から給付条件・免除条件の色を自動で割り当てます";
 autoBtn.addEventListener("click",function(){if(confirm("各証券の入力内容（がん/心臓/脳の要件・就業不能/介護・免除条件）から、給付条件・免除条件の色を自動で割り当てます。\nがん・心臓・脳・就業不能・介護・免除の各行の色は上書きされます（自由入力テキストや手入力行は残ります）。実行しますか？")){autoAssign();rebuild();}});
 leg.appendChild(autoBtn);
 var ln=el("span");ln.style.cssText="color:#888;";ln.textContent="セルに直接入力。「＋証券」で色割り当て（複数可）。「✕」で非該当の斜線。";leg.appendChild(ln);
@@ -3345,7 +3345,7 @@ hdr.appendChild(span);
 var custWrap=el("div");custWrap.style.cssText="display:flex;align-items:center;gap:6px;";
 var customers=listCustomers();
 var curCust=customers.find(function(c){return c.id===currentCustomerId;})||customers[0];
-var custNameBtn=el("button","btn");custNameBtn.style.cssText="padding:2px 10px;font-size:11px;background:#c9a84c;color:#1a2744;font-weight:700;border-radius:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+var custNameBtn=el("button","btn");custNameBtn.style.cssText="padding:2px 10px;font-size:12px;background:#c9a84c;color:#1a2744;font-weight:700;border-radius:4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
 custNameBtn.textContent=(curCust.name||"（未設定）")+" ▼";
 custNameBtn.addEventListener("click",function(){
 var ex=document.getElementById("cust-modal");if(ex){ex.remove();return;}
@@ -3354,7 +3354,7 @@ modal.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgb
 var box=el("div");box.style.cssText="background:white;border-radius:10px;width:90%;max-width:480px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;";
 var mhdr=el("div");mhdr.style.cssText="background:#1a2744;color:white;padding:12px 16px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;";
 mhdr.textContent="顧客を選択";
-var closeBtn=el("button","btn br");closeBtn.style.cssText="padding:2px 10px;font-size:11px;";closeBtn.textContent="×";
+var closeBtn=el("button","btn br");closeBtn.style.cssText="padding:2px 10px;font-size:12px;";closeBtn.textContent="×";
 closeBtn.addEventListener("click",function(){modal.remove();});
 mhdr.appendChild(closeBtn);box.appendChild(mhdr);
 var rows=["あ","か","さ","た","な","は","ま","や","ら","わ","他"];
@@ -3384,11 +3384,11 @@ filtered.forEach(function(cu){
 var btn2=el("button","btn");btn2.style.cssText="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;border-radius:6px;font-size:13px;"+(cu.id===currentCustomerId?"background:#1a2744;color:white;":"background:#f8f7f4;color:#1a2744;");
 var age=getAge(cu.dob);
 var furiLabel=cu.furigana?"（"+cu.furigana+"）":"（読み仮名未設定）";
-btn2.innerHTML="<strong>"+(cu.name||cu.id)+"</strong> <span style='font-size:10px;color:#8a8a8a;'>"+furiLabel+(age!==null?" "+age+"歳":"")+"</span>";
+btn2.innerHTML="<strong>"+(cu.name||cu.id)+"</strong> <span style='font-size:11px;color:#8a8a8a;'>"+furiLabel+(age!==null?" "+age+"歳":"")+"</span>";
 btn2.addEventListener("click",function(){modal.remove();if(cu.id!==currentCustomerId)switchCustomer(cu.id);});
 var row3=el("div");row3.style.cssText="display:flex;align-items:center;gap:6px;margin-bottom:6px;";
 row3.appendChild(btn2);
-var editBtn=el("button","btn bn");editBtn.style.cssText="padding:3px 8px;font-size:10px;white-space:nowrap;flex-shrink:0;";editBtn.textContent="読み仮名編集";
+var editBtn=el("button","btn bn");editBtn.style.cssText="padding:3px 8px;font-size:11px;white-space:nowrap;flex-shrink:0;";editBtn.textContent="読み仮名編集";
 editBtn.addEventListener("click",function(e){
 e.stopPropagation();
 var fi3=el("div");fi3.style.cssText="margin-bottom:8px;padding:8px;background:#f0f4ff;border-radius:6px;";
@@ -3401,7 +3401,7 @@ fi3.remove();editBtn.textContent="読み仮名編集";
 showRow(currentRow);
 }
 furiI.addEventListener("keydown",function(e){if(e.key==="Enter")doSaveFuri();});
-var saveBtn=el("button","btn bv");saveBtn.style.cssText="padding:3px 10px;font-size:11px;";saveBtn.textContent="保存";
+var saveBtn=el("button","btn bv");saveBtn.style.cssText="padding:3px 10px;font-size:12px;";saveBtn.textContent="保存";
 saveBtn.addEventListener("click",doSaveFuri);
 fi3.appendChild(furiI);fi3.appendChild(saveBtn);
 row3.parentNode.insertBefore(fi3,row3.nextSibling);
@@ -3425,14 +3425,14 @@ modal.addEventListener("click",function(e){if(e.target===modal)modal.remove();})
 document.body.appendChild(modal);
 showRow("あ");
 });
-var addCustBtn=el("button","btn bg");addCustBtn.style.cssText="padding:2px 8px;font-size:11px;white-space:nowrap;";addCustBtn.textContent="＋ 新規";
+var addCustBtn=el("button","btn bg");addCustBtn.style.cssText="padding:2px 8px;font-size:12px;white-space:nowrap;";addCustBtn.textContent="＋ 新規";
 addCustBtn.addEventListener("click",function(){
 var ex=document.getElementById("new-cust-form");if(ex){ex.remove();return;}
 var form=el("div");form.id="new-cust-form";
 form.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:2px solid #c9a84c;border-radius:10px;padding:20px;z-index:9999;width:280px;box-shadow:0 4px 20px rgba(0,0,0,.3);";
 var formTitle=el("div");formTitle.style.cssText="font-size:14px;font-weight:700;color:#1a2744;margin-bottom:8px;";formTitle.textContent="新しいお客様を追加";
-var camNote2=el("p");camNote2.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:10px;";camNote2.textContent="名刺や保険証などをカメラで読み取ることもできます。";
-var camLbl2=el("label","btn bg");camLbl2.style.cssText="display:inline-block;cursor:pointer;padding:5px 12px;font-size:11px;margin-bottom:10px;border-radius:4px;";camLbl2.textContent="カメラで読み取り";
+var camNote2=el("p");camNote2.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:10px;";camNote2.textContent="名刺や保険証などをカメラで読み取ることもできます。";
+var camLbl2=el("label","btn bg");camLbl2.style.cssText="display:inline-block;cursor:pointer;padding:5px 12px;font-size:12px;margin-bottom:10px;border-radius:4px;";camLbl2.textContent="カメラで読み取り";
 var camFi2=document.createElement("input");camFi2.type="file";camFi2.accept="image/*";camFi2.style.display="none";
 camFi2.addEventListener("change",function(){
 if(!this.files||!this.files[0])return;
@@ -3482,21 +3482,21 @@ form.appendChild(nameWrap);form.appendChild(furiWrap);form.appendChild(dobWrap);
 document.body.appendChild(form);nameInp.focus();
 });
 custWrap.appendChild(custNameBtn);custWrap.appendChild(addCustBtn);
-var expBtn=el("button","btn");expBtn.style.cssText="padding:2px 8px;font-size:11px;white-space:nowrap;background:#2980b9;color:white;border-radius:4px;";
+var expBtn=el("button","btn");expBtn.style.cssText="padding:2px 8px;font-size:12px;white-space:nowrap;background:#2980b9;color:white;border-radius:4px;";
 expBtn.textContent="↓ 保存";
-var xlBtn=el("button","btn");xlBtn.style.cssText="padding:2px 8px;font-size:11px;background:#217346;color:white;border-radius:4px;cursor:pointer;border:none;";
+var xlBtn=el("button","btn");xlBtn.style.cssText="padding:2px 8px;font-size:12px;background:#217346;color:white;border-radius:4px;cursor:pointer;border:none;";
 xlBtn.textContent="Excel出力";xlBtn.title="全データをExcelレポートに出力（印刷用）";
 xlBtn.addEventListener("click",function(){generateExcelReport();});
 /*削除:Excel出力*/
-var dlBtn=el("button","btn bv");dlBtn.style.cssText="padding:2px 8px;font-size:11px;";
+var dlBtn=el("button","btn bv");dlBtn.style.cssText="padding:2px 8px;font-size:12px;";
 dlBtn.textContent="HTML出力";dlBtn.title="全顧客データを含むHTMLとして出力（Edgeで開いて印刷可能）";
 dlBtn.addEventListener("click",function(){exportDataAsHTML();});
 /*削除:HTML出力*/
 expBtn.title="データをファイルに保存（バックアップ・端末間移動用）";
 expBtn.addEventListener("click",function(){exportData();});
 /*削除:データ保存*/
-var saveInd=el("span");saveInd.id="save-ind";saveInd.style.cssText="font-size:9px;color:#aaa;padding:2px 6px;";saveInd.textContent=window._lastSaved?"● 保存済":"";if(window._lastSaved)saveInd.style.color="#27ae60";custWrap.appendChild(saveInd);
-var verInd=el("span");verInd.style.cssText="font-size:9px;color:#c9a84c;padding:2px 6px;font-weight:700;";verInd.textContent="版 "+APP_VERSION;custWrap.appendChild(verInd);
+var saveInd=el("span");saveInd.id="save-ind";saveInd.style.cssText="font-size:11px;color:#aaa;padding:2px 6px;";saveInd.textContent=window._lastSaved?"● 保存済":"";if(window._lastSaved)saveInd.style.color="#27ae60";custWrap.appendChild(saveInd);
+var verInd=el("span");verInd.style.cssText="font-size:11px;color:#c9a84c;padding:2px 6px;font-weight:700;";verInd.textContent="版 "+APP_VERSION;custWrap.appendChild(verInd);
 var impBtn=el("button","btn");impBtn.style.cssText="padding:3px 12px;font-size:12px;font-weight:700;white-space:nowrap;background:#27ae60;color:white;border-radius:4px;cursor:pointer;border:none;";
 impBtn.textContent="↑ データ読込";
 impBtn.addEventListener("click",function(){
@@ -3504,9 +3504,9 @@ var ov=document.createElement("div");
 ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;";
 var box=document.createElement("div");box.style.cssText="background:white;border-radius:10px;padding:16px;width:90%;max-width:500px;";
 var ttl=document.createElement("div");ttl.style.cssText="font-weight:700;font-size:14px;margin-bottom:8px;";ttl.textContent="データを貼り付けて読み込む";
-var desc=document.createElement("p");desc.style.cssText="font-size:11px;color:#555;margin-bottom:8px;line-height:1.6;";
+var desc=document.createElement("p");desc.style.cssText="font-size:12px;color:#555;margin-bottom:8px;line-height:1.6;";
 desc.textContent="claude.aiで↓保存→青ボタンでコピーしたデータをCtrl+Vで貼り付けてください";
-var ta=document.createElement("textarea");ta.style.cssText="width:100%;height:120px;font-size:10px;border:1px solid #ddd;border-radius:4px;padding:6px;box-sizing:border-box;margin-bottom:8px;";
+var ta=document.createElement("textarea");ta.style.cssText="width:100%;height:120px;font-size:11px;border:1px solid #ddd;border-radius:4px;padding:6px;box-sizing:border-box;margin-bottom:8px;";
 ta.placeholder="ここにCtrl+Vで貼り付け";
 var row=document.createElement("div");row.style.cssText="display:flex;gap:8px;";
 var okBtn=document.createElement("button");okBtn.style.cssText="flex:1;padding:8px;background:#1a2744;color:white;border:none;border-radius:4px;font-size:13px;cursor:pointer;";okBtn.textContent="読み込む";
@@ -3554,7 +3554,7 @@ chkBtn.addEventListener("click",async function(){
 });
 custWrap.appendChild(chkBtn);
 if(currentCustomerId!=="kudo"){
-var delCustBtn=el("button","btn br");delCustBtn.style.cssText="padding:2px 8px;font-size:11px;white-space:nowrap;";delCustBtn.textContent="削除";
+var delCustBtn=el("button","btn br");delCustBtn.style.cssText="padding:2px 8px;font-size:12px;white-space:nowrap;";delCustBtn.textContent="削除";
 delCustBtn.addEventListener("click",function(){
 var list=listCustomers().filter(function(c){return c.id!==currentCustomerId;});
 if(!list.length)list=[{id:"kudo",name:"工藤 千絵"}];
@@ -3565,7 +3565,7 @@ custWrap.appendChild(delCustBtn);
 // 書き出し・読み込みボタン（Edge/Chrome両対応）
 var ioWrap=el("div");ioWrap.style.cssText="display:flex;gap:4px;align-items:center;margin-left:8px;";
 var outBtn=el("button");outBtn.textContent="☁同期";outBtn.title="PCのデータをiPhoneと同期";
-outBtn.style.cssText="font-size:10px;padding:3px 7px;background:#c9a84c;color:#1a2744;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+outBtn.style.cssText="font-size:11px;padding:3px 7px;background:#c9a84c;color:#1a2744;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 outBtn.addEventListener("click",function(){
 if(!window.storage||!window.storage.set){
 alert("プレビュー内で開いてください");return;
@@ -3585,7 +3585,7 @@ if(done===keys.length)alert("✅ 同期完了（"+keys.length+"件）\niPhoneで
 });
 });
 var inBtn=el("button");inBtn.textContent="📥読込";inBtn.title="Googleキープのデータを貼り付け";
-inBtn.style.cssText="font-size:10px;padding:3px 7px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+inBtn.style.cssText="font-size:11px;padding:3px 7px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 // 読み込みパネル（最初から表示・iPhone長押しペースト対応）
 var importPanel=document.createElement("div");
 importPanel.id="import-panel";
@@ -3599,7 +3599,7 @@ var ipNote=document.createElement("p");
 ipNote.textContent="下のテキストエリアをタップ→長押し→ペースト";
 ipNote.style.cssText="font-size:12px;color:#666;margin-bottom:8px;";
 var ipTa=document.createElement("textarea");
-ipTa.style.cssText="width:100%;height:140px;font-size:11px;padding:10px;border:2px solid #c3dafe;border-radius:8px;box-sizing:border-box;-webkit-user-select:text;user-select:text;";
+ipTa.style.cssText="width:100%;height:140px;font-size:12px;padding:10px;border:2px solid #c3dafe;border-radius:8px;box-sizing:border-box;-webkit-user-select:text;user-select:text;";
 ipTa.placeholder="ここをタップして長押し→ペーストを選択";
 ipTa.setAttribute("autocomplete","off");
 ipTa.setAttribute("autocorrect","off");
@@ -3634,7 +3634,7 @@ setTimeout(function(){ipTa.focus();},400);
 });
 ioWrap.appendChild(outBtn);ioWrap.appendChild(inBtn);
 var keyBtn=el("button");keyBtn.textContent=AI_API_KEY?"🔑鍵✓":"🔑鍵";
-keyBtn.style.cssText="font-size:10px;padding:3px 7px;background:"+(AI_API_KEY?"#27ae60":"#8e44ad")+";color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+keyBtn.style.cssText="font-size:11px;padding:3px 7px;background:"+(AI_API_KEY?"#27ae60":"#8e44ad")+";color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 keyBtn.title="カメラ読み取り用の鍵(APIキー)を登録";
 keyBtn.addEventListener("click",function(){
   var cur=AI_API_KEY||"";
@@ -3654,7 +3654,7 @@ keyBtn.addEventListener("click",function(){
 });
 ioWrap.appendChild(keyBtn);
 var momBtn=el("button");momBtn.textContent="👩草刈様に母追加";
-momBtn.style.cssText="font-size:10px;padding:3px 7px;background:#d35400;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+momBtn.style.cssText="font-size:11px;padding:3px 7px;background:#d35400;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 momBtn.addEventListener("click",function(){
   try{
     var key="ins_customer_c1780451419448";
@@ -3681,7 +3681,7 @@ momBtn.addEventListener("click",function(){
 /*削除:草刈様に母追加*/
 // 保存して書き出し：現在の全データを埋め込んだ最新HTMLを書き出す
 var exportSelfBtn=el("button");exportSelfBtn.textContent="💾保存して書き出し";
-exportSelfBtn.style.cssText="font-size:10px;padding:3px 7px;background:#c0392b;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:800;white-space:nowrap;";
+exportSelfBtn.style.cssText="font-size:11px;padding:3px 7px;background:#c0392b;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:800;white-space:nowrap;";
 exportSelfBtn.title="今の全データを埋め込んだ最新ファイルを書き出します。次回これを開けば最新が出ます。";
 exportSelfBtn.addEventListener("click",function(){
   try{
@@ -3710,7 +3710,7 @@ exportSelfBtn.addEventListener("click",function(){
 });
 /*削除:保存して書き出し*/
 var seedBtn=el("button");seedBtn.textContent="👥4名復元";
-seedBtn.style.cssText="font-size:10px;padding:3px 7px;background:#16a085;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+seedBtn.style.cssText="font-size:11px;padding:3px 7px;background:#16a085;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 seedBtn.addEventListener("click",function(){
   if(!confirm("草刈・佐藤・松山の4名データを入れ直します。\n（入力済みのデータがある顧客はそのまま残します）"))return;
   try{
@@ -3734,7 +3734,7 @@ seedBtn.addEventListener("click",function(){
 });
 /*削除:4名復元*/
 var showBtn=el("button");showBtn.textContent="📋全データ";
-showBtn.style.cssText="font-size:10px;padding:3px 7px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+showBtn.style.cssText="font-size:11px;padding:3px 7px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 showBtn.addEventListener("click",function(){
 var d={};
 // _cacheから全データ取得
@@ -3751,7 +3751,7 @@ var str=JSON.stringify(d);
 var ov=document.createElement("div");ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;";
 var bx=document.createElement("div");bx.style.cssText="background:white;border-radius:12px;padding:16px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;gap:8px;";
 var tt=document.createElement("p");tt.textContent="全データ（"+Object.keys(d).length+"件）- 全選択してコピーしてください";tt.style.cssText="font-weight:700;font-size:13px;";
-var ta=document.createElement("textarea");ta.value=str;ta.style.cssText="flex:1;min-height:200px;font-size:10px;padding:8px;border:1px solid #ddd;border-radius:4px;";
+var ta=document.createElement("textarea");ta.value=str;ta.style.cssText="flex:1;min-height:200px;font-size:11px;padding:8px;border:1px solid #ddd;border-radius:4px;";
 var br=document.createElement("div");br.style.cssText="display:flex;gap:8px;";
 var cpB=document.createElement("button");cpB.textContent="コピー";cpB.style.cssText="flex:1;padding:10px;background:#27ae60;color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;";
 var clB=document.createElement("button");clB.textContent="閉じる";clB.style.cssText="flex:1;padding:10px;background:#aaa;color:white;border:none;border-radius:6px;cursor:pointer;";
@@ -3763,7 +3763,7 @@ setTimeout(function(){ta.select();ta.setSelectionRange(0,99999);},100);
 });
 /*削除:全データ*/
 var restBtn=el("button");restBtn.textContent="🔧草刈復元";
-restBtn.style.cssText="font-size:10px;padding:3px 7px;background:#7c3aed;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
+restBtn.style.cssText="font-size:11px;padding:3px 7px;background:#7c3aed;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";
 restBtn.addEventListener("click",function(){
 if(!confirm("草刈様データ（5本）を復元しますか？"))return;
 try{

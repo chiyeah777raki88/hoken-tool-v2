@@ -41,14 +41,14 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-2345-同期画面に版表示";
+var APP_VERSION="v2-0618-2400-新規登録と再設定追加";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
 var SB_URL="https://phxmhnuivsizcydsyptv.supabase.co";
 var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoeG1obnVpdnNpemN5ZHN5cHR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NDk0NTIsImV4cCI6MjA5NzEyNTQ1Mn0.Iszcs41Xe7VtDye0xKIoKkc9MVvmAVumqaI1cEWh4ag";
 var sbClient=null, sbUser=null, SYNC_ON=false;
-function sbInit(){try{if(window.supabase&&window.supabase.createClient){sbClient=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});return true;}}catch(e){}return false;}
+function sbInit(){try{if(sbClient)return true;if(window.supabase&&window.supabase.createClient){sbClient=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});try{sbClient.auth.onAuthStateChange(function(ev){if(ev==="PASSWORD_RECOVERY"){var np=prompt("新しいパスワードを入力してください(6文字以上)");if(np&&np.trim().length>=6){sbClient.auth.updateUser({password:np.trim()}).then(function(rr){alert(rr.error?("再設定に失敗:"+rr.error.message):"パスワードを再設定しました。新しいパスワードでログインしてください。");});}else if(np!==null){alert("6文字以上で入力してください。");}}});}catch(e){}return true;}}catch(e){}return false;}
 // クラウドから鍵を読み込み（user_settings.api_key、v1と共有）
 async function sbLoadApiKey(){
   if(!sbClient||!sbUser)return;
@@ -75,6 +75,8 @@ function showLogin(onDone){
     '<input id="sbEmail" type="email" placeholder="メールアドレス" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;">'+
     '<input id="sbPass" type="password" placeholder="パスワード" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;">'+
     '<button id="sbLoginBtn" style="width:100%;padding:11px;background:#c9a84c;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;">ログイン</button>'+
+    '<button id="sbResetBtn" style="width:100%;padding:9px;background:#fff;color:#1a2744;border:1px solid #c9a84c;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px;">パスワードを忘れた → 再設定メールを送る</button>'+
+    '<button id="sbSignupBtn" style="width:100%;padding:9px;background:#fff;color:#475067;border:1px solid #c9ced8;border-radius:6px;font-size:13px;cursor:pointer;margin-bottom:8px;">アカウント確認 / 新規登録</button>'+
     '<button id="sbCancelBtn" style="width:100%;padding:10px;background:#eef1f6;color:#1a2744;border:1px solid #c9ced8;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">✕ 閉じる（ログインせずこの端末だけで使う）</button>'+
     '<div id="sbMsg" style="font-size:12px;margin-top:10px;text-align:center;min-height:16px;"></div>';
   ov.appendChild(box);document.body.appendChild(ov);
@@ -82,16 +84,36 @@ function showLogin(onDone){
   function setMsg(t,err){msg.textContent=t;msg.style.color=err?"#c0392b":"#27ae60";}
   if(!sbInit()){setMsg("サーバー接続の準備に失敗。ネット接続を確認してください。",true);}
   box.querySelector("#sbLoginBtn").addEventListener("click",async function(){
-    var em=box.querySelector("#sbEmail").value.trim();var pw=box.querySelector("#sbPass").value;
+    var em=box.querySelector("#sbEmail").value.trim();var pw=box.querySelector("#sbPass").value.trim();
     if(!em||!pw){setMsg("メールとパスワードを入れてください",true);return;}
     setMsg("ログイン中...",false);
     try{
       var r=await sbClient.auth.signInWithPassword({email:em,password:pw});
-      if(r.error){setMsg("ログイン失敗："+r.error.message,true);return;}
+      if(r.error){var m=r.error.message||"";setMsg("ログイン失敗："+m+(/invalid login/i.test(m)?"（メールかパスワードが違います。下の『再設定メール』でリセットできます）":""),true);return;}
       sbUser=r.data.user;SYNC_ON=true;
       setMsg("鍵を読み込み中...",false);
       await sbLoadApiKey();
       ov.remove();if(onDone)onDone();
+    }catch(e){setMsg("エラー："+e.message,true);}
+  });
+  box.querySelector("#sbResetBtn").addEventListener("click",async function(){
+    var em=box.querySelector("#sbEmail").value.trim();
+    if(!em){setMsg("先にメールアドレスを入れてください",true);return;}
+    setMsg("再設定メールを送信中...",false);
+    try{var r=await sbClient.auth.resetPasswordForEmail(em,{redirectTo:location.href.split("#")[0]});
+      if(r.error){setMsg("送信失敗："+r.error.message,true);return;}
+      setMsg("再設定メールを送りました。メール内のリンクを開くとこの画面に戻り、新しいパスワードを設定できます。",false);
+    }catch(e){setMsg("エラー："+e.message,true);}
+  });
+  box.querySelector("#sbSignupBtn").addEventListener("click",async function(){
+    var em=box.querySelector("#sbEmail").value.trim();var pw=box.querySelector("#sbPass").value.trim();
+    if(!em){setMsg("メールアドレスを入れてください",true);return;}
+    if(!pw||pw.length<6){setMsg("新規登録には6文字以上のパスワードが必要です",true);return;}
+    setMsg("確認中...",false);
+    try{var r=await sbClient.auth.signUp({email:em,password:pw});
+      if(r.error){var m=r.error.message||"";if(/already|registered|exists/i.test(m)){setMsg("このメールは既に登録済みです＝アカウントは存在します。パスワードが違う可能性が高いので『再設定メール』でリセットしてください。",true);}else{setMsg("登録失敗："+m,true);}return;}
+      if(r.data&&r.data.session){sbUser=r.data.user;SYNC_ON=true;setMsg("登録完了。読み込み中...",false);await sbLoadApiKey();ov.remove();if(onDone)onDone();}
+      else{setMsg("確認メールを送りました。メール内のリンクを押してからログインしてください。",false);}
     }catch(e){setMsg("エラー："+e.message,true);}
   });
   box.querySelector("#sbCancelBtn").addEventListener("click",function(){ov.remove();if(onDone)onDone();});

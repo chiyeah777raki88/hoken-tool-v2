@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0550-加入一覧:手術を入院時(緑)/外来時(青)のスラッシュ表示に分割。版";
+var APP_VERSION="v2-0619-0605-加入一覧:下注釈廃止し項目左に「表」□マーク・年払を太字赤・保険料(月額換算)に表記修正。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2524,7 +2524,7 @@ var tb=el("tbody");
 function infoRow(label,color,bg,valFn,sumText,bold){
 var tr=el("tr");if(bg)tr.style.background=bg;
 var t0=el("td",null,label);t0.style.cssText="font-weight:700;color:"+color+";font-size:11px;padding:4px 4px;";tr.appendChild(t0);
-curPols.forEach(function(p){var td=el("td");td.style.cssText="font-size:"+(bold?"12px":"11px")+";color:"+color+";"+(bold?"font-weight:700;":"");td.textContent=valFn(p);tr.appendChild(td);});
+curPols.forEach(function(p){var td=el("td");var val=valFn(p);var isYr=(val==="年払"||val==="半年払");td.style.cssText="font-size:"+(bold?"12px":"11px")+";color:"+(isYr?"#c0392b":color)+";"+((bold||isYr)?"font-weight:700;":"");td.textContent=val;tr.appendChild(td);});
 var ts=el("td",null,sumText||"");ts.style.cssText="font-weight:700;background:#fdf8ec;font-size:11px;color:"+color+";";tr.appendChild(ts);
 tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);
 }
@@ -2532,7 +2532,7 @@ infoRow("保険期間","#1a2744",null,periodTxt,"",false);
 infoRow("払込期間","#1a2744",null,payTermTxt,"",false);
 infoRow("払込方法","#1a2744",null,payMethod,"",false);
 infoRow("払込経路","#1a2744",null,payRouteTxt,"",false);
-infoRow("保険料内訳(月額)","#8a6d1a","#fffdf5",function(p){return "¥"+toM(p).toLocaleString();},"¥"+totPrem.toLocaleString(),true);
+infoRow("保険料(月額換算)","#8a6d1a","#fffdf5",function(p){return "¥"+toM(p).toLocaleString();},"¥"+totPrem.toLocaleString(),true);
 var lastGrp="";
 ROWS.forEach(function(row){
 if(row.grp!==lastGrp){lastGrp=row.grp;
@@ -2541,7 +2541,9 @@ gtd.colSpan=curPols.length+4;gtd.style.cssText="background:"+(row.grp==="保障"
 gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
-var td0=el("td");td0.textContent=row.l;
+var td0=el("td");
+if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="display:inline-block;border:1px solid #e67e22;color:#e67e22;font-size:9px;font-weight:700;padding:0 2px;border-radius:2px;margin-right:3px;vertical-align:middle;";td0.appendChild(bd);}
+td0.appendChild(document.createTextNode(row.l));
 td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:11px;padding:4px 4px;";tr.appendChild(td0);
 if(row.isPair){var sA=0,sB=0;
 curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var td=el("td");td.style.cssText="font-size:11px;white-space:nowrap;";if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
@@ -2572,9 +2574,6 @@ tb.appendChild(tr);
 });
 tbl.appendChild(tb);tw.appendChild(tbl);
 cont.appendChild(sec("加入内容一覧",null,tw,true));
-var dnote=el("div");dnote.style.cssText="font-size:11px;color:#b35900;background:#fff7ee;border:1px solid #f0c89a;border-radius:6px;padding:7px 10px;margin:-4px 0 12px;";
-dnote.innerHTML="\u203b 手術は <span style=\"color:#1f7d56;font-weight:700;\">入院時</span>/<span style=\"color:#2980b9;font-weight:700;\">外来時</span> の順。<strong>がん・心疾患・脳血管・3大疾病・保険料免除</strong> は、下の「給付条件・免除条件の比較」で条件まで詳しく比較できます。";
-cont.appendChild(dnote);
 cont.appendChild(sec("給付条件・免除条件の比較",null,buildBigDiseaseMatrix(curPols),true));
 return cont;
 }

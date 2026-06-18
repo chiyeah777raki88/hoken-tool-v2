@@ -247,7 +247,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3200-起動時上書き停止(データ保護)";
+var APP_VERSION="v2-0618-3300-保障チェック追加(22項目+保険料内訳)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2423,6 +2423,89 @@ cont.appendChild(sec("保険料推移の比較",null,cw));
 setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cc,{type:"line",data:{labels:ages4.map(function(a){return a+"歳";}),datasets:[{label:"現在",data:getPremData(curPols),borderColor:"#2980b9",backgroundColor:"rgba(41,128,185,.1)",fill:true,tension:0.3},{label:"提案",data:getPremData(propPols),borderColor:"#27ae60",backgroundColor:"rgba(39,174,96,.1)",fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top"}},scales:{x:{ticks:{maxTicksLimit:12,font:{size:9}}},y:{ticks:{callback:function(v){return "¥"+v.toLocaleString();},font:{size:9}}}}}});}catch(e){cw.textContent="グラフエラー: "+e.message;}}},100);
 return cont;
 }
+function buildCheckTab(){
+var cont=el("div","content");
+var curPols=Object.values(state.policies).flat();
+if(!curPols.length){
+var note=el("div");note.style.cssText="background:#fff9e6;border:1px solid #f0d060;border-radius:8px;padding:14px;font-size:12px;";
+note.textContent="証券が未登録です。「入力・編集」タブで証券を追加するか、お客様を選んでください。";
+cont.appendChild(note);return cont;
+}
+if(!state.ansinCov)state.ansinCov={};
+function manFromYen(v){v=+v||0;return v>10000?Math.round(v/10000):v;}
+var ROWS=[
+{k:"death",l:"死亡保障",u:"万",g:function(p){return (p.deathType==="lump"||p.deathType==="both")?manFromYen(p.dlAmount):0;}},
+{k:"dann",l:"死亡(年金月額)",u:"万/月",g:function(p){return (p.deathType==="annuity"||p.deathType==="both")?(+p.daAmount||0):0;}},
+{k:"hosp",l:"入院日額",u:"円",g:function(p){return +p.hospDaily||0;}},
+{k:"hospin",l:"入院一時金",u:"万",g:function(p){return +p.hospLumpIn||0;}},
+{k:"hospout",l:"退院一時金",u:"万",g:function(p){return +p.hospLumpOut||0;}},
+{k:"surg",l:"手術",u:"万",g:function(p){return +p.surgInp||0;}},
+{k:"out",l:"通院",u:"円",g:function(p){return (p.outType&&p.outType!=="none")?(+p.outAmount||0):0;}},
+{k:"cancer",l:"がん診断一時金",u:"万",g:function(p){return p.cancerOn?(+p.c1st||0):0;}},
+{k:"chosp",l:"がん入院",u:"円",g:function(p){return +p.cancerHosp||0;}},
+{k:"cout",l:"がん通院/治療",u:"",g:function(p){return (+p.cancerOut2||0)||(+p.cancerMonthly||0)||(+p.cancerContinueAmount||0);}},
+{k:"heart",l:"心疾患",u:"万",g:function(p){return p.bigOn?(+p.h1st||0):0;}},
+{k:"brain",l:"脳血管疾患",u:"万",g:function(p){return p.bigOn?(+p.b1st||0):0;}},
+{k:"big3",l:"3大疾病一時金",u:"万",g:function(p){return p.bigOn?Math.max(+p.h1st||0,+p.b1st||0,+p.c1st||0):0;}},
+{k:"adv",l:"先進医療",u:"万",g:function(p){return p.advancedMedical?(+p.advancedMedicalAmount||0):0;}},
+{k:"dis",l:"就業不能(月額)",u:"万/月",g:function(p){return (p.disType&&p.disType!=="none")?(+p.disMonthly||0):0;}},
+{k:"carelump",l:"介護一時金",u:"万",g:function(p){return +p.careLump||0;}},
+{k:"caremon",l:"介護月額",u:"万/月",g:function(p){return +p.careMonthly||0;}},
+{k:"injury",l:"障害・ケガ",u:"万",g:function(p){return +p.injuryAmount||0;}},
+{k:"pension",l:"個人年金(年額)",u:"",g:function(p){return +p.annualPension||0;}},
+{k:"celeb",l:"祝金・生存給付",u:"万",g:function(p){return +p.celebAmount||0;}},
+{k:"cash",l:"解約返戻金/積立",u:"万",g:function(p){return (+p.refundVal||0)||(+p.currentVal||0);}},
+{k:"exempt",l:"保険料免除",u:"",g:function(p){return (p.premExempt||(p.premExemptType&&p.premExemptType!=="none"&&p.premExemptType!==""))?1:0;},isFlag:true}
+];
+var intro=el("div");intro.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px 12px;margin-bottom:10px;";
+intro.textContent="各証券の保障内容を横並びで比較します。列の見出しに月払保険料（保険料内訳）も表示。安心ライン（目標額）を入れると、合計との過不足が出ます。下に給付条件・免除条件の比較表があります。";
+cont.appendChild(intro);
+var tw=el("div","tw");
+var tbl=el("table");
+var thead=el("thead"),hr=el("tr");
+hr.appendChild(el("th",null,"保障項目"));
+curPols.forEach(function(p,pi){
+var th=el("th");th.style.cssText="text-align:center;white-space:nowrap;";
+var prem=toM(p);
+th.innerHTML=String.fromCharCode(65+pi)+"<br><span style='font-weight:400;font-size:9px;color:#cfe0ff;'>"+cN(p)+"</span><br><span style='font-weight:400;font-size:9px;color:#ffe9a8;'>¥"+prem.toLocaleString()+"/月</span>";
+hr.appendChild(th);
+});
+hr.appendChild(el("th",null,"合計"));
+hr.appendChild(el("th",null,"安心ライン"));
+hr.appendChild(el("th",null,"過不足"));
+thead.appendChild(hr);tbl.appendChild(thead);
+var tb=el("tbody");
+ROWS.forEach(function(row){
+var tr=el("tr");
+var td0=el("td",null,row.l);td0.style.cssText="font-weight:700;color:#1a2744;white-space:nowrap;font-size:11px;";tr.appendChild(td0);
+var sum=0;
+curPols.forEach(function(p){
+var v=row.g(p)||0;
+var td=el("td");td.style.cssText="text-align:right;font-size:11px;white-space:nowrap;";
+if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
+else if(v>0){sum+=v;td.textContent=v.toLocaleString()+row.u;td.style.color="#1f7d56";td.style.fontWeight="700";}
+else{td.textContent="—";td.style.color="#ccc";}
+tr.appendChild(td);
+});
+if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);var tdA0=el("td",null,"");tdA0.style.background="#fafafa";tr.appendChild(tdA0);var tdG0=el("td",null,"");tdG0.style.background="#fafafa";tr.appendChild(tdG0);tb.appendChild(tr);return;}
+var tdSum=el("td",null,sum>0?sum.toLocaleString()+row.u:"—");tdSum.style.cssText="text-align:right;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:11px;";tr.appendChild(tdSum);
+var tdA=el("td");tdA.style.cssText="text-align:center;white-space:nowrap;";
+var li=inp("number",(state.ansinCov[row.k]!=null?state.ansinCov[row.k]:""),function(val){state.ansinCov[row.k]=val;saveState();});
+li.style.cssText="width:70px;text-align:right;font-size:11px;padding:3px;border:1px solid #ddd8cc;border-radius:4px;";
+li.addEventListener("change",function(){render();});
+tdA.appendChild(li);tr.appendChild(tdA);
+var tdG=el("td");tdG.style.cssText="text-align:right;font-weight:700;white-space:nowrap;font-size:11px;";
+var line=(state.ansinCov[row.k]!=null&&state.ansinCov[row.k]!=="")?+state.ansinCov[row.k]:0;
+if(line>0){var gap=sum-line;if(gap<0){tdG.textContent="▲"+Math.abs(gap).toLocaleString();tdG.style.color="#c0392b";}else{tdG.textContent="+"+gap.toLocaleString();tdG.style.color="#166534";}}
+else{tdG.textContent="—";tdG.style.color="#ccc";}
+tr.appendChild(tdG);
+tb.appendChild(tr);
+});
+tbl.appendChild(tb);tw.appendChild(tbl);
+cont.appendChild(sec("保障チェック（各証券の保障内容＋保険料内訳）",null,tw,true));
+cont.appendChild(sec("給付条件・免除条件の比較",null,buildBigDiseaseMatrix(curPols),true));
+return cont;
+}
 function buildPrintTab(){
 var cont=el("div","content");
 function makeSVGBar(data,colors,labels,title,unit,w,h){
@@ -3372,7 +3455,7 @@ window.location.href=window.location.href;
 /*削除:草刈復元*/
 hdr.appendChild(ioWrap);hdr.appendChild(custWrap);app.appendChild(hdr);
 var tabs=el("div","tabs");
-[["input","入力・編集"],["summary","詳細一覧"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["print","印刷"]].forEach(function(t){
+[["input","入力・編集"],["summary","詳細一覧"],["check","保障チェック"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["print","印刷"]].forEach(function(t){
 var b=el("button","tab-btn"+(currentTab===t[0]?" active":""),t[1]);
 b.addEventListener("click",function(){currentTab=t[0];render();});tabs.appendChild(b);
 });
@@ -3380,6 +3463,7 @@ app.appendChild(tabs);
 try{
 if(currentTab==="input")app.appendChild(buildInputTab());
 else if(currentTab==="summary")app.appendChild(buildSummaryTab());
+else if(currentTab==="check")app.appendChild(buildCheckTab());
 else if(currentTab==="graph")app.appendChild(buildGraphTab());
 else if(currentTab==="proposal")app.appendChild(buildProposalTab());
 else if(currentTab==="compare")app.appendChild(buildCompareTab());

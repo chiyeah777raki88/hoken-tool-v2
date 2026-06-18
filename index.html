@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3620-手入力1行化+保障内容一覧に自由入力追加";
+var APP_VERSION="v2-0618-3700-NISA/iDeCo現在残高の二重成長バグ修正";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1879,8 +1879,8 @@ lbl("車のローン残高（万円）",inp("number",a.carLoan||"",function(v){u
 lbl("車ローン残り年数",inp("number",a.carLoanYrs||"",function(v){ua("carLoanYrs",v);})),
 lbl("その他負債（万円）",inp("number",a.otherDebt||"",function(v){ua("otherDebt",v);}))
 ])));
-var nFV=calcAccountTotal(nisaAccounts,myAge7);
-var iFV=calcAccountTotal(idecoAccounts,myAge7);
+var nFV=nisaAccounts.reduce(function(s,a){return s+(+a.bal||0);},0); /* 現在の総資産は入力済みの現在残高を使用(将来予測の二重成長を防止) */
+var iFV=idecoAccounts.reduce(function(s,a){return s+(+a.bal||0);},0);
 // Only count extraRows that have already been received (age <= current age)
 // Future receipts (like 80歳に800万) only appear in simulation, not in current assets
 var insTotal=extraRows.reduce(function(s,r){

@@ -245,7 +245,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-2530-保障チェック追加";
+var APP_VERSION="v2-0618-2545-詳細一覧の表ズレ修正";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1529,7 +1529,7 @@ row.appendChild(nm);row.appendChild(am);breakdown.appendChild(row);
 premGrid.appendChild(breakdown);
 cont.appendChild(sec("保険料集計",null,premGrid));
 var tbl=el("table"),thead=el("thead"),hr=el("tr");
-["被保険者","No","保険会社","種類","保険期間","払込期間","死亡保障","入院日額","がん診断","がん継続","3大疾病","8大疾病","就業不能","介護","月払保険料","免除時","免除条件","メモ"].forEach(function(h){hr.appendChild(el("th",null,h));});
+["被保険者","No","保険会社","種類","保険期間","払込期間","死亡保障","入院日額","がん診断","がん継続","3大疾病","8大疾病","就業不能","介護","月払保険料","免除時","免除条件","メモ"].forEach(function(h,hi){var th=el("th",null,h);if(hi===0)th.style.borderLeft="4px solid #1a2744";hr.appendChild(th);});
 thead.appendChild(hr);tbl.appendChild(thead);
 var tbody=el("tbody");
 ap.forEach(function(x){
@@ -1549,11 +1549,12 @@ if(p.deathType==="lump"||(p.deathType==="both"&&p.dlAmount>0))deathStr=(p.dlAmou
 if(p.deathType==="annuity"||(p.deathType==="both"&&p.daAmount>0))deathStr=(deathStr==="—"?"":deathStr+" + ")+"月額"+(p.daAmount||0)+"万円";
 var hC=p.careType&&p.careType!=="none";
 var polColor=p.chartColor&&p.chartColor!==""?p.chartColor:"#1a2744";
-var tr2=el("tr");tr2.style.borderBottom="1px solid #ddd8cc";tr2.style.borderLeft="4px solid "+polColor;
+var tr2=el("tr");tr2.style.borderBottom="1px solid #ddd8cc";
 [m.name||m.relation,i+1,cN(p),p.insType||"—",(p.dlPeriodType==="終身"||p.dlPeriodType==="更新後終身")?"終身":((p.dlPeriodEnd||"—")+"歳"),pS(p),deathStr,p.hospDaily?p.hospDaily.toLocaleString()+"円":"—",p.cancerOn?(p.c1st||0)+"万円":"—",
 p.cancerContinue?(p.cancerContinueAmount||0)+(p.cancerContinueType==="monthly"?"万/月":"万/年"):"—",
 b3,b8,p.disType!=="none"?(p.disMonthly?"月"+p.disMonthly+"万":"あり"):"—",hC?(p.careMonthly?"月"+p.careMonthly+"万":(p.careLump||0)+"万"):"—","¥"+pm.toLocaleString()+(p.premUnit==="円/年"?"*":""),peStr,exemptStr,p.notes||""].forEach(function(v,vi){
 var td2=el("td");td2.textContent=v!==undefined?String(v):"—";
+if(vi===0){td2.style.borderLeft="4px solid "+polColor;}
 if(vi===1){td2.style.cssText="font-weight:700;color:"+polColor+";text-align:center;";}
 td2.addEventListener("click",function(){var ep=document.querySelector(".tooltip-popup");if(ep){ep.remove();return;}if(this.scrollWidth>this.clientWidth){var tp=el("div","tooltip-popup",this.textContent);tp.addEventListener("click",function(){tp.remove();});document.body.appendChild(tp);setTimeout(function(){if(tp.parentNode)tp.remove();},4000);}});
 tr2.appendChild(td2);

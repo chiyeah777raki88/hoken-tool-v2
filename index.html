@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0810-タイムライン修正:祝金は払込満了で停止・過去の祝金は薄く(済)表示・今マーカー追加・左端の年齢重なり(500歳)解消。版";
+var APP_VERSION="v2-0619-0830-入力タブの試作一覧を廃止し加入一覧と同じ表(保険料内訳つき)に統一。表生成をbuildKanyuTableに共通化。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1383,76 +1383,9 @@ riderWrap.appendChild(row);
 }
 renderRiders();
 var addRiderBtn=btn("＋ 特約を追加","bg",function(){pol.riders.push({name:"",benefit:"",amount:"",note:""});upd("riders",pol.riders);renderRiders();});
-// ===== 新・保障内容一覧（試作：既存とは別。まだ計算には連動しません） =====
-if(!pol.coverageItems)pol.coverageItems=[];
-var COV_PRESETS=[
- {trigger:"死亡・高度障害",reqOpts:[]},
- {trigger:"入院（疾病）",reqOpts:["日帰り入院から","1泊2日から","5日以上","60日型","120日型","無制限"]},
- {trigger:"入院（災害）",reqOpts:["日帰り入院から","1泊2日から"]},
- {trigger:"手術",reqOpts:["入院中のみ","外来含む","公的保険連動"]},
- {trigger:"通院",reqOpts:["入院前後","がん通院","退院後のみ"]},
- {trigger:"がん診断一時金",reqOpts:["上皮内がん含む","上皮内がんは減額","悪性のみ"]},
- {trigger:"がん入院",reqOpts:["無制限","日数制限あり"]},
- {trigger:"がん手術・治療",reqOpts:["手術","放射線","抗がん剤","自由診療含む"]},
- {trigger:"心疾患",reqOpts:["急性心筋梗塞のみ","心疾患全般","A:60日所定","B:入院10日以上","C:1泊入院"]},
- {trigger:"脳血管疾患",reqOpts:["脳卒中のみ","脳血管疾患全般","A:60日所定","B:入院10日以上","C:1泊入院"]},
- {trigger:"3大疾病一時金",reqOpts:["3大疾病","5大疾病","7大疾病","8大疾病","A:60日所定","B:入院","C:1泊"]},
- {trigger:"先進医療",reqOpts:["通算上限あり","技術料実費"]},
- {trigger:"就業不能",reqOpts:["精神疾患含む","精神疾患除く","支払対象期間あり"]},
- {trigger:"介護",reqOpts:["公的要介護2以上","公的要介護3以上","独自基準"]},
- {trigger:"障害・ケガ",reqOpts:[]},
- {trigger:"祝金・生存給付",reqOpts:["〇年ごと","満期"]},
- {trigger:"保険料免除",reqOpts:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]},
- {trigger:"その他（自由入力）",reqOpts:[]}
-];
-var covWrap=el("div");
-function renderCoverage(){
-covWrap.innerHTML="";
-var tip=el("p");tip.style.cssText="font-size:11px;color:#8a8a8a;margin-bottom:8px;";tip.textContent="この保険にある保障に、左のチェックを入れて中身を埋めてください。保険期間は空欄なら主契約と同じ扱いです。（※現在は入力・記録用の試作です）";
-covWrap.appendChild(tip);
-COV_PRESETS.forEach(function(preset,pi){
- var item=pol.coverageItems[pi]||{on:false,trigger:preset.trigger,req:"",endAge:"",amount:"",amountType:"一時金",freq:"1回",interval:"",premium:""};
- pol.coverageItems[pi]=item;
- var box=el("div");box.style.cssText="border:1px solid #e3e3e3;border-radius:6px;margin-bottom:5px;padding:6px 8px;background:"+(item.on?"#f0f4ff":"#fafafa")+";";
- var head=el("div");head.style.cssText="display:flex;align-items:center;gap:8px;cursor:pointer;";
- var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.on;
- cb.addEventListener("change",function(){item.on=this.checked;upd("coverageItems",pol.coverageItems);renderCoverage();});
- var nm=el("span");nm.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";nm.textContent=preset.trigger;
- head.appendChild(cb);head.appendChild(nm);box.appendChild(head);
- if(item.on){
-  var body=el("div");body.style.cssText="margin-top:6px;display:flex;flex-direction:column;gap:6px;";
-  // 要件
-  if(preset.reqOpts&&preset.reqOpts.length){
-   var reqOpts=[{v:"",l:"（要件を選択）"}].concat(preset.reqOpts.map(function(o){return {v:o,l:o};})).concat([{v:"__other",l:"その他（自由入力）"}]);
-   var reqSel=sel(reqOpts,(preset.reqOpts.indexOf(item.req)>=0?item.req:(item.req?"__other":"")),function(v){if(v==="__other"){item.req=item.req&&preset.reqOpts.indexOf(item.req)<0?item.req:" ";}else{item.req=v;}upd("coverageItems",pol.coverageItems);renderCoverage();});
-   body.appendChild(lbl("要件・条件",reqSel));
-   if(item.req&&preset.reqOpts.indexOf(item.req)<0){
-    body.appendChild(lbl("要件（自由入力）",inp("text",item.req===" "?"":item.req,function(v){item.req=v;upd("coverageItems",pol.coverageItems);})));
-   }
-  }else{
-   body.appendChild(lbl("要件・条件（任意）",inp("text",item.req||"",function(v){item.req=v;upd("coverageItems",pol.coverageItems);})));
-  }
-  // 保険期間
-  body.appendChild(lbl("保険期間（満了年齢・空欄=主契約と同じ）",inp("number",item.endAge||"",function(v){item.endAge=+v;upd("coverageItems",pol.coverageItems);})));
-  // 給付金額 + タイプ
-  var amtRow=el("div");amtRow.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:6px;";
-  amtRow.appendChild(lbl("給付金額",inp("number",item.amount||"",function(v){item.amount=+v;upd("coverageItems",pol.coverageItems);})));
-  amtRow.appendChild(lbl("種類",sel([{v:"日額",l:"日額(円)"},{v:"月額",l:"月額(万円)"},{v:"一時金",l:"一時金(万円)"},{v:"年額",l:"年額(万円)"}],item.amountType||"一時金",function(v){item.amountType=v;upd("coverageItems",pol.coverageItems);})));
-  body.appendChild(amtRow);
-  // 回数 + インターバル
-  var freqRow=el("div");freqRow.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:6px;";
-  freqRow.appendChild(lbl("回数",sel([{v:"1回",l:"1回のみ"},{v:"複数回",l:"複数回"}],item.freq||"1回",function(v){item.freq=v;upd("coverageItems",pol.coverageItems);renderCoverage();})));
-  if(item.freq==="複数回"){freqRow.appendChild(lbl("間隔（例:2年に1回/365日）",inp("text",item.interval||"",function(v){item.interval=v;upd("coverageItems",pol.coverageItems);})));}
-  body.appendChild(freqRow);
-  // 特約保険料
-  body.appendChild(lbl("特約保険料（円/月・任意）",inp("number",item.premium||"",function(v){item.premium=+v;upd("coverageItems",pol.coverageItems);})));
-  box.appendChild(body);
- }
- covWrap.appendChild(box);
-});
-}
-renderCoverage();
-cont.appendChild(sec("保障内容 一覧（新・試作）",null,covWrap,true));
+// ===== 加入内容一覧（全証券・保険料内訳つき。加入一覧タブと同じ表） =====
+var _kp=aPs();var _kPols=_kp.map(function(z){return z.policy;});var _kMem=_kp.map(function(z){return z.member;});
+if(_kPols.length)cont.appendChild(sec("加入内容一覧（保険料内訳つき）",null,buildKanyuTable(_kPols,_kMem),true));
 
 cont.appendChild(sec("特約・付加保険",btn("特約追加","bg",function(){pol.riders.push({name:"",benefit:"",amount:"",note:""});upd("riders",pol.riders);renderRiders();}),riderWrap));
 // 〇年毎の祝金（生存給付金）
@@ -2550,30 +2483,7 @@ cont.appendChild(sec("保険料推移の比較",null,cw));
 setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cc,{type:"line",data:{labels:ages4.map(function(a){return a+"歳";}),datasets:[{label:"現在",data:getPremData(curPols),borderColor:"#2980b9",backgroundColor:"rgba(41,128,185,.1)",fill:true,tension:0.3},{label:"提案",data:getPremData(propPols),borderColor:"#27ae60",backgroundColor:"rgba(39,174,96,.1)",fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top"}},scales:{x:{ticks:{maxTicksLimit:12,font:{size:9}}},y:{ticks:{callback:function(v){return "¥"+v.toLocaleString();},font:{size:9}}}}}});}catch(e){cw.textContent="グラフエラー: "+e.message;}}},100);
 return cont;
 }
-function buildCheckTab(){
-var cont=el("div","content");
-var pairsAll=aPs();
-if(!pairsAll.length){
-var note=el("div");note.style.cssText="background:#fff9e6;border:1px solid #f0d060;border-radius:8px;padding:14px;font-size:12px;";
-note.textContent="証券が未登録です。「入力・編集」タブで証券を追加するか、お客様を選んでください。";
-cont.appendChild(note);return cont;
-}
-if(!state.ansinCov)state.ansinCov={};
-// 表示対象（合算／個別）切替（家族2人以上のとき）
-if(state.family.length>=2){
-if(summaryMember!=="all"&&!state.family.some(function(fm){return fm.id===summaryMember;}))summaryMember="all";
-var memDivC=el("div");memDivC.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
-var mLblC=el("span");mLblC.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";mLblC.textContent="表示対象：";memDivC.appendChild(mLblC);
-var optsC=[["all","合算（全員）"]].concat(state.family.map(function(fm){return[fm.id,fm.name||fm.relation];}));
-optsC.forEach(function(x){
-var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
-b.textContent=x[1];b.addEventListener("click",function(){summaryMember=x[0];render();});memDivC.appendChild(b);
-});
-cont.appendChild(memDivC);
-}
-var pairs=(summaryMember==="all")?pairsAll:pairsAll.filter(function(x){return x.member.id===summaryMember;});
-var curPols=pairs.map(function(x){return x.policy;});
-var memOf=pairs.map(function(x){return x.member;});
+function buildKanyuTable(curPols,memOf){
 function manFromYen(v){v=+v||0;return v>10000?Math.round(v/10000):v;}
 function payMethod(p){if(p.payFreq==="一時"||(p.premUnit||"").indexOf("一時")>=0)return "一時払";var f=p.payFreq||((p.premUnit||"").indexOf("年")>=0?"年":"月");return f+"払";}
 function shortCo(p){var n=cN(p);var m={"SOMPOひまわり生命":"ひまわり","東京海上日動あんしん生命":"あんしん","ネオファースト生命":"第一ネオ","第一ネオ生命":"第一ネオ","メットライフ生命":"メット","はなさく生命":"はなさく","オリックス生命":"オリックス","マニュライフ生命":"マニュライフ","ジブラルタ生命":"ジブラルタ","三井住友海上あいおい生命":"三井住友海上","あいおいニッセイ同和損保":"あいおい"};return m[n]||n.replace("生命","").replace("損保","");}
@@ -2605,9 +2515,10 @@ var ROWS=[
 {k:"celeb",l:"祝金・生存給付",u:"万",grp:"貯蓄",g:function(p){return +p.celebAmount||0;}},
 {k:"cash",l:"解約返戻金/積立",u:"万",grp:"貯蓄",g:function(p){return (+p.refundVal||0)||(+p.currentVal||0);}}
 ];
+var box=el("div");
 var intro=el("div");intro.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px 12px;margin-bottom:10px;";
 intro.textContent="各証券の保障内容を縦並びで比較します（上＝保障性／下＝貯蓄性）。列の見出しに保険料内訳・払込方法も表示。安心ライン（目標額）を入れると合計との過不足が出ます。下に給付条件・免除条件の比較表があります。";
-cont.appendChild(intro);
+box.appendChild(intro);
 var tw=el("div","tw");
 var tbl=el("table");tbl.className="kanyu";
 var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="24px";cg.appendChild(cm);var c0=document.createElement("col");c0.style.width="104px";cg.appendChild(c0);
@@ -2686,7 +2597,34 @@ tr.appendChild(tdG);
 tb.appendChild(tr);
 });
 tbl.appendChild(tb);tw.appendChild(tbl);
-cont.appendChild(sec("加入内容一覧",null,tw,true));
+box.appendChild(tw);return box;
+}
+
+function buildCheckTab(){
+var cont=el("div","content");
+var pairsAll=aPs();
+if(!pairsAll.length){
+var note=el("div");note.style.cssText="background:#fff9e6;border:1px solid #f0d060;border-radius:8px;padding:14px;font-size:12px;";
+note.textContent="証券が未登録です。「入力・編集」タブで証券を追加するか、お客様を選んでください。";
+cont.appendChild(note);return cont;
+}
+if(!state.ansinCov)state.ansinCov={};
+// 表示対象（合算／個別）切替（家族2人以上のとき）
+if(state.family.length>=2){
+if(summaryMember!=="all"&&!state.family.some(function(fm){return fm.id===summaryMember;}))summaryMember="all";
+var memDivC=el("div");memDivC.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
+var mLblC=el("span");mLblC.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";mLblC.textContent="表示対象：";memDivC.appendChild(mLblC);
+var optsC=[["all","合算（全員）"]].concat(state.family.map(function(fm){return[fm.id,fm.name||fm.relation];}));
+optsC.forEach(function(x){
+var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
+b.textContent=x[1];b.addEventListener("click",function(){summaryMember=x[0];render();});memDivC.appendChild(b);
+});
+cont.appendChild(memDivC);
+}
+var pairs=(summaryMember==="all")?pairsAll:pairsAll.filter(function(x){return x.member.id===summaryMember;});
+var curPols=pairs.map(function(x){return x.policy;});
+var memOf=pairs.map(function(x){return x.member;});
+cont.appendChild(sec("加入内容一覧",null,buildKanyuTable(curPols,memOf),true));
 cont.appendChild(sec("給付条件・免除条件の比較",null,buildBigDiseaseMatrix(curPols),true));
 return cont;
 }

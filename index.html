@@ -21,7 +21,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#faf8f3;color:#1a
 .tabs{display:flex;background:#1a2744;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .tab-btn{padding:10px 12px;background:transparent;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:11px;font-weight:500;border-bottom:3px solid transparent;white-space:nowrap;font-family:inherit;}
 .tab-btn.active{color:#c9a84c;border-bottom:3px solid #c9a84c;}
-.content{padding:12px 16px;max-width:1100px;margin:0 auto;}
+.content{padding:12px 16px;max-width:100%;margin:0;}
 .sec{background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
 .sec-hdr{background:#1a2744;color:white;padding:9px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
 .sec-body{padding:14px;}
@@ -142,8 +142,8 @@ try{if(window.localStorage){for(var _k in window.localStorage){_cache[_k]=window
   }catch(e){}
 })();
 
-function storageGet(k){if(_cache[k]!==undefined)return _cache[k];try{if(window.localStorage)return window.storageGet(k);}catch(e){}return null;}
-function storageSet(k,v){_cache[k]=v;try{if(window.localStorage)window.storageSet(k,v);}catch(e){}try{if(window.storage&&window.storage.set)window.storage.set(k,v).catch(function(){});}catch(e){}
+function storageGet(k){if(_cache[k]!==undefined)return _cache[k];try{if(window.localStorage)return window.localStorage.getItem(k);}catch(e){}return null;}
+function storageSet(k,v){_cache[k]=v;try{if(window.localStorage)window.localStorage.setItem(k,v);}catch(e){}try{if(window.storage&&window.storage.set)window.storage.set(k,v).catch(function(){});}catch(e){}
   // サーバー同期：入力が一段落してから(0.8秒後)まとめて1回だけ保存（毎キー入力での連打フリーズを防ぐ）
   try{
     if(SYNC_ON&&sbClient&&sbUser){
@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0905-入力欄を加入一覧と一致:先進医療(特約+給付上限)・がん入院日額・がん通院/治療の入力欄を追加。版";
+var APP_VERSION="v2-0619-0935-保存をlocalStorageに修正(再読込で消えない)＋本文を全幅左寄せ(中央寄せの余白を解消)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

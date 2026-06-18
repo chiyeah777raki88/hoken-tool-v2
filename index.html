@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0300-加入一覧を縦型に統合(保障チェック吸収)・保険料内訳/払込方法行・保障性/貯蓄性分け・表題=加入内容一覧";
+var APP_VERSION="v2-0619-0320-加入一覧の保障項目列を保障性(青)/貯蓄性(緑)で色分け";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2530,7 +2530,7 @@ gtd.colSpan=curPols.length+4;gtd.style.cssText="background:"+(row.grp==="保障"
 gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
-var td0=el("td",null,row.l);td0.style.cssText="font-weight:700;color:#1a2744;white-space:nowrap;font-size:12px;padding:9px 8px;";tr.appendChild(td0);
+var td0=el("td",null,row.l);td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:12px;padding:9px 8px;";tr.appendChild(td0);
 var sum=0;
 curPols.forEach(function(p){
 var v=row.g(p)||0;

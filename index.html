@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-2630-チェックボックス幅修正";
+var APP_VERSION="v2-0618-2700-安心ライン揃え＆資産現在額の整合";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1703,6 +1703,7 @@ var al=state.ansinLine||{};
 function uAl(f,v){state.ansinLine[f]=+v;saveState();}
 var mm7=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var myAge7=getAge(mm7&&mm7.dob?mm7.dob:null)||49;
+var curAge=myAge7;
 function calcAccountTotal(accounts,age){
 var baseAge7=myAge7||35;
 return accounts.reduce(function(s,acc){
@@ -2031,9 +2032,11 @@ var ma2=p.futureValAge||70;if(!matMap[ma2])matMap[ma2]=[];matMap[ma2].push({id:p
 var oR=a.savings+a.realestate+a.stocks+a.other;
 var insV={};pProjs.forEach(function(x){
 var p=x.policy;
-// If refundVal is set, start at 0 (will be set at refundAge in the loop)
-if((+p.refundVal)>0&&(+p.refundAge)>0){insV[p.id]=0;}
-else{insV[p.id]=p.currentVal||0;}
+// 開始時の保険資産価値を「現在の総資産」の計算と一致させる（0始まり不整合の修正）
+var rVal2=+(p.refundVal||0),rAge2=+(p.refundAge||0);
+if(rVal2>0&&rAge2>0){var yy0=Math.max(0,rAge2-curAge);insV[p.id]=(yy0===0?rVal2:Math.round(rVal2/Math.pow(1+scenR,yy0)));}
+else if(p.currentVal>0){insV[p.id]=p.currentVal;}
+else{var pmEn0=+toM(p);if(pmEn0>0&&pmEn0<=500000){var cYrs0=p.contractDate?Math.max(0,nowYr2-new Date(p.contractDate).getFullYear()):0;insV[p.id]=(cYrs0>0?Math.round(pmEn0*12*cYrs0*0.7/10000):0);}else{insV[p.id]=0;}}
 });
 var runout=null;var drawdownRatio=1.0;
 var proj=ages3.map(function(ag){
@@ -2448,7 +2451,7 @@ rows.forEach(function(row){
 if(row.key==="prem")return;
 var tr=el("tr");
 var td0=el("td",null,row.label);td0.style.cssText="font-weight:700;color:#1a2744;white-space:nowrap;padding:6px 8px;font-size:12px;";tr.appendChild(td0);
-var tdL=el("td");tdL.style.cssText="text-align:center;padding:4px 6px;white-space:nowrap;";
+var tdL=el("td");tdL.style.cssText="text-align:left;padding:4px 6px;white-space:nowrap;";
 var li=inp("number",(al[row.key]!=null?al[row.key]:""),function(v){al[row.key]=v;saveState();});
 li.style.cssText="width:78px;text-align:right;font-size:11px;padding:4px;border:1px solid #ddd8cc;border-radius:4px;";
 li.addEventListener("change",function(){render();});

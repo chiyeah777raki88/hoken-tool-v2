@@ -247,7 +247,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3110-復元チェックボタン";
+var APP_VERSION="v2-0618-3200-起動時上書き停止(データ保護)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3570,7 +3570,7 @@ doInit();
     sbClient.auth.getSession().then(async function(r){
       if(r&&r.data&&r.data.session&&r.data.session.user){
         sbUser=r.data.session.user;SYNC_ON=true;
-        try{await sbLoadAll();}catch(e){}
+        /* 起動時のクラウド自動取り込みを無効化（localStorageを正とし、再読込でローカルデータが空クラウドで上書きされるのを防止） */
         try{await sbLoadApiKey();}catch(e){}
         startApp();
       }else{

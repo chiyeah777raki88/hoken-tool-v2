@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-2310-checktab復元";
+var APP_VERSION="v2-0618-2320-authガード修正";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -98,7 +98,7 @@ function showLogin(onDone){
 }
 // 起動時に既存セッションがあれば自動ログイン
 function sbRestore(cb){
-  if(!sbInit()){cb&&cb();return;}
+  if(!(sbInit()&&sbClient&&sbClient.auth&&sbClient.auth.getSession)){cb&&cb();return;}
   try{
     sbClient.auth.getSession().then(async function(r){
       if(r&&r.data&&r.data.session){sbUser=r.data.session.user;SYNC_ON=true;await sbLoadApiKey();}

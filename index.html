@@ -253,7 +253,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1400-保険料の安心度レーダーを追加し、左にレーダー2種/右に参考データの2カラム配置に。版";
+var APP_VERSION="v2-0619-1430-明細の単位被り解消(列幅調整)・条件は縦並び・保険料レーダーの軸差替+1追加・参考データ詳細化(国民/厚生別/高額療養費多数該当・70歳以上/子の加算額)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1141,7 +1141,7 @@ var DET=[
 {k:"cur",l:"積立金 現在(万円)",f:"currentVal",grp:"貯蓄"}
 ];
 var dtw=el("div","tw");var dtbl=el("table");dtbl.className="kanyu cmpct";
-var dcg=el("colgroup");["140px","112px","48px","72px","150px"].forEach(function(w){var c=document.createElement("col");c.style.width=w;dcg.appendChild(c);});dtbl.appendChild(dcg);
+var dcg=el("colgroup");["150px","126px","52px","78px","240px"].forEach(function(w){var c=document.createElement("col");c.style.width=w;dcg.appendChild(c);});dtbl.appendChild(dcg);
 var dthead=el("thead"),dh=el("tr");["保障項目","給付額","満了","保険料","給付条件"].forEach(function(h){dh.appendChild(el("th",null,h));});dthead.appendChild(dh);dtbl.appendChild(dthead);
 var dtb=el("tbody");var dlg="";
 var DMINOR={hospout:1,surgout:1,fhosp:1,fsurg:1,flump:1,chosp:1,cout:1,big8:1,dislump:1,dpen:1,welf:1,carelump:1,injury:1,disDeath:1,injHosp:1,dementia:1,cTreat:1,advLump:1};
@@ -1154,7 +1154,7 @@ var td1=el("td");var cuMap={"万":10000,"円":1,"千円":1000};var cu=r.cu||"万
 var td2=el("td");var ei=inp("number",pol.itemEnd[r.k]||"",function(v){pol.itemEnd[r.k]=+v;saveState();});ei.placeholder="同";ei.title="満了年齢(空欄=主契約と同じ)";ei.style.cssText="width:48px;font-size:11px;padding:2px;text-align:right;";td2.appendChild(ei);tr.appendChild(td2);
 var td3=el("td");var pi=inp("number",pol.itemPrem[r.k]||"",function(v){pol.itemPrem[r.k]=+v;saveState();});pi.placeholder="円/月";pi.style.cssText="width:74px;font-size:11px;padding:2px;text-align:right;";td3.appendChild(pi);tr.appendChild(td3);
 var td4=el("td");td4.style.padding="2px 4px";
-if(r.conds){r.conds.forEach(function(cd){var opts=(typeof cd.o[0]==="object")?cd.o:cd.o.map(function(o){return{v:o,l:o||"（選択）"};});var sc=sel(opts,pol[cd.f]||"",function(v){upd(cd.f,v);});sc.style.cssText="font-size:10px;margin:1px 0;width:100%;";td4.appendChild(sc);});}else{td4.textContent="—";td4.style.color="#ccc";}
+if(r.conds){r.conds.forEach(function(cd){var opts=(typeof cd.o[0]==="object")?cd.o:cd.o.map(function(o){return{v:o,l:o||"（選択）"};});var sc=sel(opts,pol[cd.f]||"",function(v){upd(cd.f,v);});sc.style.cssText="font-size:10px;margin:1px 0;width:100%;display:block;";td4.appendChild(sc);});}else{td4.textContent="—";td4.style.color="#ccc";}
 tr.appendChild(td4);dtb.appendChild(tr);
 });
 dtbl.appendChild(dtb);dtw.appendChild(dtbl);
@@ -1893,7 +1893,7 @@ var grWrap=el("div");grWrap.style.cssText="display:flex;gap:14px;flex-wrap:wrap;
 var grLeft=el("div");grLeft.style.cssText="flex:1;min-width:300px;";
 var grRight=el("div");grRight.style.cssText="flex:1;min-width:280px;";
 grLeft.appendChild(radarCard("保障バランス（5点満点・主観）",[["death","死亡保障"],["medical","入院・医療"],["cancer","がん"],["hb","心臓・脳(3大)"],["care","介護"],["saving","貯蓄性"]],state.radarScores,"#c9a84c","充足度を0〜5点。満点に近い大きな六角形ほどバランス良。凹み＝弱点。"));
-grLeft.appendChild(radarCard("保険料の安心度（払い続けられる？）",[["raise","値上がりしにくさ"],["exempt","病気時の免除"],["oldage","老後の払込負担(軽さ)"],["child","子の保険料の見通し"],["budget","家計の余裕"]],state.premScores,"#1D9E75","『安心なほど高得点』で0〜5点。値上がり・大病時の払込・老後や子の保険料の負担などを主観で。"));
+grLeft.appendChild(radarCard("保険料の安心度（払い続けられる？）",[["raise","値上がりしにくさ"],["exempt","病気時の免除"],["oldage","老後の払込負担(軽さ)"],["valid","保険料の妥当性(高すぎない)"],["budget","家計の余裕"],["flex","見直し・解約のしやすさ"]],state.premScores,"#1D9E75","『安心なほど高得点』で0〜5点。値上がり・大病時の払込・老後の負担・保険料の妥当性・見直しやすさを主観で。"));
 var refWrap=el("div");
 function refTbl(title,rows){
 var box=el("div");box.style.cssText="margin-bottom:12px;";
@@ -1902,11 +1902,12 @@ var t=el("table");t.style.cssText="width:100%;border-collapse:collapse;font-size
 rows.forEach(function(r){var tr=el("tr");var td1=el("td",null,r[0]);td1.style.cssText="border:1px solid #e3e3e3;padding:4px 8px;background:#fafafa;width:42%;vertical-align:top;";var td2=el("td",null,r[1]);td2.style.cssText="border:1px solid #e3e3e3;padding:4px 8px;";tr.appendChild(td1);tr.appendChild(td2);t.appendChild(tr);});
 box.appendChild(t);return box;
 }
-refWrap.appendChild(refTbl("遺族年金（目安）",[["遺族基礎年金","約81万円/年＋子の加算(2人目まで約23万/人、3人目〜約8万/人)"],["遺族厚生年金","老齢厚生年金(報酬比例部分)の約3/4"],["対象","子のある配偶者・子(原則18歳年度末まで)等"]]));
-refWrap.appendChild(refTbl("障害年金（目安）",[["障害基礎年金1級","約101万円/年＋子の加算"],["障害基礎年金2級","約81万円/年＋子の加算"],["障害厚生年金","報酬比例(1級は1.25倍)＋配偶者加給"],["3級","厚生年金のみ・最低保証 約61万円/年"]]));
-refWrap.appendChild(refTbl("高額療養費（70歳未満・1か月の自己負担上限の目安）",[["年収約370〜770万","80,100円＋(医療費-267,000)×1%"],["年収〜約370万","57,600円"],["住民税非課税","35,400円"],["年収770〜1160万","167,400円＋(医療費-558,000)×1%"]]));
-refWrap.appendChild(refTbl("公的年金 老齢（目安）",[["老齢基礎年金(満額)","約81万円/年(月 約6.8万円)"],["厚生年金 標準モデル","夫婦で月 約22〜23万円"],["受給開始","原則65歳(繰上げ/繰下げ可)"]]));
-var rfn=el("p");rfn.style.cssText="font-size:10px;color:#c0392b;margin-top:4px;";rfn.textContent="※金額は制度改定で毎年変わる概算の目安です。提案時は最新の公的金額を必ずご確認ください。";
+refWrap.appendChild(refTbl("遺族年金（目安・概算）",[["遺族基礎年金(定額)","約816,000円/年(月 約68,000円)"],["子の加算 第1・2子","各 約234,800円/年"],["子の加算 第3子以降","各 約78,300円/年"],["遺族厚生年金","亡くなった方の老齢厚生年金(報酬比例)の3/4"],["中高齢寡婦加算","約612,000円/年(40〜65歳・要件あり)"]]));
+refWrap.appendChild(refTbl("障害年金（目安・概算）",[["障害基礎年金 1級","約1,020,000円/年＋子の加算"],["障害基礎年金 2級","約816,000円/年＋子の加算"],["子の加算","第1・2子 各約234,800円/年、第3子〜各約78,300円/年"],["障害厚生年金 1級","報酬比例×1.25＋配偶者加給(約234,800円)"],["障害厚生年金 2級","報酬比例＋配偶者加給"],["障害厚生年金 3級","報酬比例のみ(最低保証 約612,000円/年)"]]));
+refWrap.appendChild(refTbl("高額療養費 70歳未満（年収高い順・1か月上限/多数該当4回目〜）",[["約1,160万〜(区分ア)","252,600円＋(医療費-842,000)×1% / 多数 140,100円"],["約770〜1,160万(イ)","167,400円＋(医療費-558,000)×1% / 多数 93,000円"],["約370〜770万(ウ)","80,100円＋(医療費-267,000)×1% / 多数 44,400円"],["〜約370万(エ)","57,600円 / 多数 44,400円"],["住民税非課税(オ)","35,400円 / 多数 24,600円"]]));
+refWrap.appendChild(refTbl("高額療養費 70歳以上（外来/入院・1か月上限）",[["現役並み(約370万〜)","70歳未満のア〜ウと同じ区分"],["一般(〜約370万)","外来 18,000円(年144,000円上限)/入院 57,600円(多数44,400円)"],["低所得II(非課税)","外来 8,000円/入院 24,600円"],["低所得I","外来 8,000円/入院 15,000円"]]));
+refWrap.appendChild(refTbl("公的年金 老齢（国民/厚生・概算）",[["国民年金 老齢基礎(満額)","約816,000円/年(月 約68,000円)※40年納付"],["会社員 年収300万・40年","合計 月 約12万円(基礎＋厚生)"],["会社員 年収500万・40年","合計 月 約16万円"],["会社員 年収700万・40年","合計 月 約20万円"],["受給開始","原則65歳(繰上げ60〜/繰下げ〜75歳)"]]));
+var rfn=el("p");rfn.style.cssText="font-size:10px;color:#c0392b;margin-top:4px;";rfn.textContent="※すべて概算の目安です。子の加算・各上限額・年金額は制度改定で毎年変わります。提案時は最新の公的金額を必ずご確認ください。";
 refWrap.appendChild(rfn);
 grRight.appendChild(refTbl?refWrap:refWrap);
 grWrap.appendChild(grLeft);grWrap.appendChild(grRight);

@@ -253,7 +253,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1200-災害死亡/災害入院/認知症/がん治療/先進医療一時金を追加。メジャー常時表示・その他は折りたたみ(トグル)で項目増えても省スペース。加入一覧と明細の両方。版";
+var APP_VERSION="v2-0619-1230-給付条件を比較表に網羅:心/脳に7条件(60日所定・60日就業不能・入院or手術・20日以上・10日以上・手術・1泊)＋インターバル(がん/心/脳)。比較表に60日就業不能列(g)追加。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1098,7 +1098,8 @@ pol.deathType=((+pol.dlAmount>0)&&(+pol.daAmount>0))?"both":((+pol.dlAmount>0)?"
 pol.disType=((+pol.disLump>0)&&(+pol.disMonthly>0))?"both":((+pol.disLump>0)?"lump":((+pol.disMonthly>0)?"monthly":"none"));
 pol.careType=((+pol.careLump>0)&&(+pol.careMonthly>0))?"both":((+pol.careLump>0)?"lump":((+pol.careMonthly>0)?"monthly":"none"));
 }
-var ABCD=[{v:"A",l:"60日所定"},{v:"B",l:"入院10日"},{v:"C",l:"1泊"},{v:"D",l:"手術/60日"}];
+var HBOPTS=[{v:"A",l:"60日所定状態"},{v:"W",l:"60日就業不能"},{v:"H",l:"入院or手術"},{v:"T",l:"20日以上入院"},{v:"B",l:"入院10日以上"},{v:"E",l:"手術"},{v:"C",l:"一泊入院"}];
+var INTV=[{v:"",l:"間隔—"},{v:"365",l:"1年に1回"},{v:"730",l:"2年に1回"},{v:"無制限",l:"無制限"}];
 var GRADE=["","1級","2級","3級","4級"];
 var BIG8C=[{v:"days60",l:"60日所定"},{v:"days20",l:"20日以上"},{v:"days10",l:"10日以上"},{v:"hospital1",l:"1泊以上"},{v:"surgery",l:"手術"},{v:"any",l:"手術/1日"}];
 var DET=[
@@ -1120,11 +1121,11 @@ var DET=[
 {k:"dementia",l:"認知症一時金",f:"dementiaLump",grp:"保障"},
 {k:"cTreat",l:"がん治療(月額)",f:"cancerMonthly",grp:"保障",conds:[{f:"cancerMonthlyTarget",o:[{v:"all",l:"全治療"},{v:"hosp",l:"入院中"},{v:"chemo",l:"抗がん剤/放射線"}]}]},
 {k:"advLump",l:"先進医療一時金",f:"advancedMedicalLump",grp:"保障"},
-{k:"cancer",l:"がん診断一時金",f:"c1st",grp:"保障",conds:[{f:"cCond",o:[{v:"A",l:"1回目:悪性のみ"},{v:"B",l:"1回目:上皮内含む"}]},{f:"cancer2ndCond",o:[{v:"",l:"2回目—"},{v:"none",l:"2回目なし"},{v:"2y",l:"2回目:2年後"},{v:"1y",l:"2回目:1年後"},{v:"out",l:"2回目:外来OK"}]}]},
+{k:"cancer",l:"がん診断一時金",f:"c1st",grp:"保障",conds:[{f:"cCond",o:[{v:"A",l:"1回目:悪性のみ"},{v:"B",l:"1回目:上皮内含む"}]},{f:"cancer2ndCond",o:[{v:"",l:"2回目—"},{v:"none",l:"2回目なし"},{v:"2y",l:"2回目:2年後"},{v:"1y",l:"2回目:1年後"},{v:"out",l:"2回目:外来OK"}]},{f:"cancerInterval",o:INTV}]},
 {k:"chosp",l:"がん入院(日額)",f:"cancerHosp",grp:"保障"},
 {k:"cout",l:"がん通院/治療",f:"cancerOut2",grp:"保障",conds:[{f:"cancerOutReq",o:["","入院前後","がん治療通院","退院後のみ","上限日数あり"]}]},
-{k:"heart",l:"心疾患",f:"h1st",grp:"保障",conds:[{f:"hCond",o:ABCD}]},
-{k:"brain",l:"脳血管",f:"b1st",grp:"保障",conds:[{f:"bCond",o:ABCD}]},
+{k:"heart",l:"心疾患",f:"h1st",grp:"保障",conds:[{f:"hCond",o:HBOPTS},{f:"heartInterval",o:INTV}]},
+{k:"brain",l:"脳血管",f:"b1st",grp:"保障",conds:[{f:"bCond",o:HBOPTS},{f:"brainInterval",o:INTV}]},
 {k:"big8",l:"8大疾病(糖尿/高血圧/肝/腎/膵)",f:"big8Amount",grp:"保障",conds:[{f:"big8Cond",o:BIG8C}]},
 {k:"dislump",l:"就業不能一時金",f:"disLump",grp:"保障"},
 {k:"dis",l:"就業不能(月額)",f:"disMonthly",grp:"保障",conds:[{f:"disScope",o:[{v:"3big",l:"3大"},{v:"5big",l:"5疾病"},{v:"7big",l:"7大"},{v:"all",l:"全疾病/障害3級"},{v:"grade2",l:"障害2級"}]}]},
@@ -3054,8 +3055,8 @@ var COLS=[
 function mkCell(text,polIdxs,na){return {text:text||"",polIdxs:polIdxs||[],na:!!na};}
 var ROWS_KYUFU=[
 {id:"cancer",label:"がん",def:{a:"悪性新生物で60日の労働制限",b:"悪性新生物と診断",c:"上皮内がんを含む診断",f:"がんで入院",g:"がんで通院",s1:"無し",s2:"入院",s3:"入院",s4:"外来OK"}},
-{id:"heart",label:"心臓",def:{a:"急性心筋梗塞で60日の所定の状態",b:"急性心筋梗塞で入院or手術",c:"心疾患で20日以上の入院",d:"心疾患で10日以上の入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
-{id:"brain",label:"脳",def:{a:"脳卒中で60日の所定の状態",b:"脳卒中で入院or手術",c:"脳血管疾患で20日以上の入院",d:"脳血管疾患で10日以上の入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
+{id:"heart",label:"心臓",def:{a:"急性心筋梗塞で60日の所定の状態",g:"心疾患で60日の就業不能",b:"急性心筋梗塞で入院or手術",c:"心疾患で20日以上の入院",d:"心疾患で10日以上の入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
+{id:"brain",label:"脳",def:{a:"脳卒中で60日の所定の状態",g:"脳血管疾患で60日の就業不能",b:"脳卒中で入院or手術",c:"脳血管疾患で20日以上の入院",d:"脳血管疾患で10日以上の入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
 {id:"diabetes",label:"糖尿病",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
 {id:"hypertension",label:"高血圧性疾患",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
 {id:"liver",label:"肝硬変",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
@@ -3240,7 +3241,7 @@ return sec2;
 }
 function autoAssign(){
 function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];cd.na=false;if(cd.polIdxs.indexOf(pi)<0)cd.polIdxs.push(pi);}
-function condCol(c){return c==="A"?"a":c==="B"?"d":c==="C"?"f":c==="D"?"e":"a";}
+function condCol(c){var m={A:"a",W:"g",H:"b",T:"c",B:"d",E:"e",C:"f",D:"e"};return m[c]||"a";}
 var K=state.bigMatrixData.kyufu,M=state.bigMatrixData.menjo;
 ["cancer","heart","brain","dis","care","dis_grade","welfare","diabetes","hypertension","liver","kidney","pancreas"].forEach(function(rid){Object.keys(K).forEach(function(ck){if(ck.split("|")[1]===rid)K[ck].polIdxs=[];});});
 ["m_cancer","m_heart","m_brain","m_care"].forEach(function(rid){Object.keys(M).forEach(function(ck){if(ck.split("|")[1]===rid)M[ck].polIdxs=[];});});

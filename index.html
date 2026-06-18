@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0320-加入一覧の保障項目列を保障性(青)/貯蓄性(緑)で色分け";
+var APP_VERSION="v2-0619-0345-給付条件比較に「入力から自動割当」を追加(入力データ連動)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3038,6 +3038,29 @@ tbl.appendChild(tr2);
 outerDiv.appendChild(tbl);sec2.appendChild(outerDiv);
 return sec2;
 }
+function autoAssign(){
+function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];cd.na=false;if(cd.polIdxs.indexOf(pi)<0)cd.polIdxs.push(pi);}
+function condCol(c){return c==="A"?"a":c==="B"?"d":c==="C"?"f":c==="D"?"e":"a";}
+var K=state.bigMatrixData.kyufu,M=state.bigMatrixData.menjo;
+["cancer","heart","brain","dis","care"].forEach(function(rid){Object.keys(K).forEach(function(ck){if(ck.split("|")[1]===rid)K[ck].polIdxs=[];});});
+["m_cancer","m_heart","m_brain","m_care"].forEach(function(rid){Object.keys(M).forEach(function(ck){if(ck.split("|")[1]===rid)M[ck].polIdxs=[];});});
+policies.forEach(function(p,pi){
+if(p.cancerOn||(+p.c1st>0)){var cCol=(p.cCond==="B")?"c":"b";if(+p.c1st>0)setDot(K,"kyufu","cancer",cCol,pi);if(+p.cancerHosp>0)setDot(K,"kyufu","cancer","f",pi);if(+p.cancerOut2>0)setDot(K,"kyufu","cancer","g",pi);}
+if(p.bigOn&&+p.h1st>0)setDot(K,"kyufu","heart",condCol(p.hCond),pi);
+if(p.bigOn&&+p.b1st>0)setDot(K,"kyufu","brain",condCol(p.bCond),pi);
+if(p.disType&&p.disType!=="none"){var ds=p.disScope||"5big";var dcol=(ds==="7big")?"b":(ds==="all"||ds==="grade2")?"c":"a";setDot(K,"kyufu","dis",dcol,pi);}
+if(p.careType&&p.careType!=="none"){var cl=p.careLevel||"";var ccol=(cl.indexOf("1以上")>=0)?"d":(cl.indexOf("3以上")>=0)?"b":(cl.indexOf("所定")>=0)?"a":"c";setDot(K,"kyufu","care",ccol,pi);}
+var et=p.premExemptType;
+if(et&&et!=="none"&&et!==""){var det=p.premExemptDetail||"";
+function mjCol(){if(det.indexOf("60日")>=0)return "a";if(det.indexOf("20日")>=0)return "c";if(det.indexOf("10日")>=0)return "d";if(det.indexOf("手術")>=0)return "e";return "f";}
+var cCol2=(det.indexOf("上皮内")>=0||p.cCond==="B")?"c":"b";
+if(et==="cancer")setDot(M,"menjo","m_cancer","b",pi);
+else if(et==="cancer_jhi")setDot(M,"menjo","m_cancer","c",pi);
+else if(et==="3big"||et==="5big"||et==="8big"||et==="multi"){setDot(M,"menjo","m_cancer",cCol2,pi);setDot(M,"menjo","m_heart",mjCol(),pi);setDot(M,"menjo","m_brain",mjCol(),pi);}
+else if(et==="care")setDot(M,"menjo","m_care","c",pi);}
+});
+saveState();
+}
 function rebuild(){
 wrap.innerHTML="";
 var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:9px;padding:5px 10px;background:#f8f7f4;border-radius:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;";
@@ -3046,6 +3069,9 @@ policies.forEach(function(p,pi){
 var s=el("span");s.style.cssText="padding:2px 6px;border-radius:10px;background:"+POL_LIGHT[pi%POL_LIGHT.length]+";font-size:9px;font-weight:700;color:"+POL_COLS[pi%POL_COLS.length]+";";
 s.textContent=(pi+1)+"."+polLabel(p);leg.appendChild(s);
 });
+var autoBtn=el("button");autoBtn.style.cssText="font-size:10px;font-weight:700;padding:3px 10px;border:1px solid #1a2744;border-radius:4px;background:#1a2744;color:white;cursor:pointer;margin-right:6px;";autoBtn.textContent="\ud83d\udd04 入力から自動割当";autoBtn.title="各証券の入力内容から給付条件・免除条件の色を自動で割り当てます";
+autoBtn.addEventListener("click",function(){if(confirm("各証券の入力内容（がん/心臓/脳の要件・就業不能/介護・免除条件）から、給付条件・免除条件の色を自動で割り当てます。\nがん・心臓・脳・就業不能・介護・免除の各行の色は上書きされます（自由入力テキストや手入力行は残ります）。実行しますか？")){autoAssign();rebuild();}});
+leg.appendChild(autoBtn);
 var ln=el("span");ln.style.cssText="color:#888;";ln.textContent="セルに直接入力。「＋証券」で色割り当て（複数可）。「✕」で非該当の斜線。";leg.appendChild(ln);
 wrap.appendChild(leg);
 wrap.appendChild(buildTable("kyufu",ROWS_KYUFU,"給付条件","#1a2744",false));

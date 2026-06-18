@@ -210,6 +210,7 @@ async function sbLoadAll(){
 }
 // 1顧客分のデータをSupabaseに保存
 async function sbSaveCustomer(cid){
+  return; /* V2はV1クラウドデータ保護のためcustomer_dataへ書き込まない（読み取り専用） */
   if(!sbClient||!sbUser||!SYNC_ON)return;
   try{
     var listRaw=_cache["ins_customer_list"];
@@ -228,6 +229,7 @@ async function sbSaveCustomer(cid){
 }
 // 顧客リスト全体をSupabaseに保存
 async function sbSaveList(){
+  return; /* V2はV1クラウドの顧客リストを書き換えない（読み取り専用） */
   if(!sbClient||!sbUser||!SYNC_ON)return;
   try{
     var list=JSON.parse(_cache["ins_customer_list"]||"[]");
@@ -245,7 +247,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3000-入力改良版を土台に確定(V1無変換読込)";
+var APP_VERSION="v2-0618-3100-クラウド書込停止(V1保護)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

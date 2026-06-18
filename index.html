@@ -48,8 +48,8 @@ table{width:100%;border-collapse:collapse;font-size:11px;}
 th{background:#1a2744;color:white;padding:6px 8px;text-align:left;font-weight:500;white-space:nowrap;}
 td{padding:5px 8px;border-bottom:1px solid #ddd8cc;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
 table.kanyu{table-layout:fixed;width:100%;}
-table.kanyu th,table.kanyu td{border:1px solid #ccc;text-align:center;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;}
-table.kanyu td:first-child,table.kanyu th:first-child{text-align:left;}
+table.kanyu th,table.kanyu td{border:1px solid #ccc;text-align:center;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;padding:4px 4px;}
+table.kanyu td:first-child,table.kanyu th:first-child{text-align:center;}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .cam{padding:12px;background:#f0f4ff;border-radius:8px;margin-bottom:12px;}
 .cbox{border-top:2px solid #c9a84c;background:white;}
@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0510-加入一覧:死亡/入院/就業不能を一時金→月額順に統一・死亡(月額)表記修正・就業不能一時金追加・がん/大病/免除に「表」バッジ・項目列を狭く。版";
+var APP_VERSION="v2-0619-0525-加入一覧:余白圧縮・上段の文字を本文と同サイズ(11px)・保険料12px・保障項目を中央揃え・表バッジを枠線型に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2523,8 +2523,8 @@ thead.appendChild(hr);tbl.appendChild(thead);
 var tb=el("tbody");
 function infoRow(label,color,bg,valFn,sumText,bold){
 var tr=el("tr");if(bg)tr.style.background=bg;
-var t0=el("td",null,label);t0.style.cssText="font-weight:700;color:"+color+";font-size:11px;padding:9px 6px;";tr.appendChild(t0);
-curPols.forEach(function(p){var td=el("td");td.style.cssText="font-size:10px;color:"+color+";"+(bold?"font-weight:700;":"");td.textContent=valFn(p);tr.appendChild(td);});
+var t0=el("td",null,label);t0.style.cssText="font-weight:700;color:"+color+";font-size:11px;padding:4px 4px;";tr.appendChild(t0);
+curPols.forEach(function(p){var td=el("td");td.style.cssText="font-size:"+(bold?"12px":"11px")+";color:"+color+";"+(bold?"font-weight:700;":"");td.textContent=valFn(p);tr.appendChild(td);});
 var ts=el("td",null,sumText||"");ts.style.cssText="font-weight:700;background:#fdf8ec;font-size:11px;color:"+color+";";tr.appendChild(ts);
 tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);
 }
@@ -2542,8 +2542,8 @@ gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
 var td0=el("td");td0.textContent=row.l;
-if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="margin-left:3px;font-size:9px;background:#e67e22;color:white;border-radius:3px;padding:0 3px;font-weight:700;vertical-align:middle;";td0.appendChild(bd);}
-td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:11px;padding:9px 6px;";tr.appendChild(td0);
+if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="margin-left:3px;font-size:8px;background:#fff;color:#e67e22;border:1px solid #e67e22;border-radius:3px;padding:0 2px;font-weight:700;vertical-align:middle;";td0.appendChild(bd);}
+td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:11px;padding:4px 4px;";tr.appendChild(td0);
 var sum=0;
 curPols.forEach(function(p){
 var v=row.g(p)||0;

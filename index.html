@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0635-加入一覧:一時金は括弧なし/月額・日額は括弧付きに統一、障害・ケガをケガ単独にし表マーク除去。版";
+var APP_VERSION="v2-0619-0700-資産計算バグ修正:手動受取に受取年齢追加しシミュ反映・年金の二重計上除外・祝金は開始年齢必須・契約日NaNガード。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1729,7 +1729,7 @@ function polCurVal(p,atAge){
 var aRef=(atAge==null||isNaN(atAge))?curAge:atAge;
 var gy=aRef-curAge;
 var rVal=+(p.refundVal||0),rAge=+(p.refundAge||0);
-var cy=p.contractDate?Math.max(0,(nowYr2+gy)-new Date(p.contractDate).getFullYear()):0;
+var _cYr=p.contractDate?new Date(p.contractDate).getFullYear():0;if(isNaN(_cYr))_cYr=0;var cy=_cYr?Math.max(0,(nowYr2+gy)-_cYr):0;
 if(rVal>0&&rAge>0){ if(aRef>=rAge)return {val:rVal,method:"返戻金"+rVal+"万"}; var yrs=Math.max(0,rAge-aRef); return {val:Math.round(rVal/Math.pow(1+scenR,yrs)),method:"返戻金"+rVal+"万("+rAge+"歳)を"+yrs+"年割戻し"}; }
 if(p.currentVal>0){var r0=(rateForPolicy(p)||0)/100;return {val:Math.round((+p.currentVal)*Math.pow(1+r0,Math.max(0,gy))),method:"積立金"+p.currentVal+"万×"+rateForPolicy(p)+"%"};}
 if(p.targetOn&&+p.targetBase>0){var tr=(+p.targetRate||0)/100;return {val:Math.round((+p.targetBase)*Math.pow(1+tr,cy)),method:"ターゲット型 元本"+(+p.targetBase)+"万×"+(+p.targetRate)+"%×"+cy+"年"};}
@@ -1860,11 +1860,11 @@ extraRows.forEach(function(r,ri){
 var row2=el("div");row2.style.cssText="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:6px;align-items:flex-end;";
 row2.appendChild(lbl(ri===0?"商品名":"",inp("text",r.name,function(v){extraRows[ri].name=v;saveState();})));
 row2.appendChild(lbl(ri===0?"概算受取額（万円）":"",inp("number",r.amount||"",function(v){extraRows[ri].amount=+v;saveState();})));
-row2.appendChild(lbl(ri===0?"受取時期":"",inp("text",r.timing||"",function(v){extraRows[ri].timing=v;saveState();})));
+row2.appendChild(lbl(ri===0?"受取年齢":"",inp("number",r.age||"",function(v){extraRows[ri].age=+v;saveState();})));
 var db=el("button","btn br");db.style.cssText="height:32px;padding:0 10px;"+(ri===0?"margin-top:16px;":"");db.textContent="×";
 db.addEventListener("click",function(){extraRows.splice(ri,1);saveState();render();});row2.appendChild(db);erSection.appendChild(row2);
 });
-erSection.appendChild(btn("＋ 行追加","bg",function(){extraRows.push({name:"",amount:0,timing:""});saveState();render();}));
+erSection.appendChild(btn("＋ 行追加","bg",function(){extraRows.push({name:"",amount:0,age:0});saveState();render();}));
 cont.appendChild(sec("保険の資産価値（解約返戻金・積立・受取額）",null,insItems.concat([erSection])));
 function buildAccountSection(accounts,label,color){
 var wrap=el("div");
@@ -1924,7 +1924,7 @@ var iFV=idecoAccounts.reduce(function(s,a){return s+(+a.bal||0);},0);
 // Future receipts (like 80歳に800万) only appear in simulation, not in current assets
 var insTotal=extraRows.reduce(function(s,r){
 var rowAge=+(r.age||0);
-return s+(rowAge<=curAge?(r.amount||0):0);
+return s+((rowAge>0&&rowAge<=curAge)?(r.amount||0):0);
 },0);
 // 保険の現在価値（polCurValで算出。curAge/scenR/nowYr2/polCurValは冒頭定義）
 var insDetail=[];
@@ -2057,7 +2057,8 @@ var iR=calcAccountTotal(idecoAccounts,ag);
 var matMapIds=matMap[ag]?matMap[ag].map(function(e){return e.id;}):[];
 if(matMap[ag])matMap[ag].forEach(function(ev2){if(ev2.replace){insV[ev2.id]=ev2.val;}else{insV[ev2.id]=(insV[ev2.id]||0)+ev2.val;}});
 // 〇年毎の祝金：受取年に、その年の収入として資産（oR）に加算（年金と同じ扱い）
-pProjs.forEach(function(x){var p=x.policy;if(p.celebAmount>0&&p.celebInterval>0&&ag>=(p.celebStartAge||0)&&(!(p.celebEndAge>0)||ag<=p.celebEndAge)){if(((ag-(p.celebStartAge||0))%p.celebInterval)===0){oR+=toJPY(p,p.celebAmount);}}});
+pProjs.forEach(function(x){var p=x.policy;if(p.celebAmount>0&&p.celebInterval>0&&p.celebStartAge>0&&ag>=p.celebStartAge&&(!(p.celebEndAge>0)||ag<=p.celebEndAge)){if(((ag-p.celebStartAge)%p.celebInterval)===0){oR+=toJPY(p,p.celebAmount);}}});
+extraRows.forEach(function(r){if((+r.amount)>0&&(+r.age)===ag){oR+=(+r.amount||0);}});
 pProjs.forEach(function(x){
 var p=x.policy;
 if(matMapIds.indexOf(p.id)>=0)return;
@@ -2171,7 +2172,7 @@ var pEnd=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd>0?p.dlPeriodEnd:120);
 if(ag>pEnd){row[polLabel(p)]=0;return;}
 var v=Math.round(insV[p.id])||0;
 // Fallback: only if no specific asset value is defined
-if(v===0&&ag<=pEnd&&!(p.refundVal>0&&p.refundAge>0)){v=polCurVal(p,ag).val||0;}
+if(v===0&&ag<=pEnd&&!(p.refundVal>0&&p.refundAge>0)&&!(p.pensionStartAge>0&&p.annualPension>0)){v=polCurVal(p,ag).val||0;}
 row[polLabel(p)]=v||0;
 });
 return row;

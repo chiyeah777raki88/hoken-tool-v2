@@ -31,6 +31,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#faf8f3;color:#1a
 @media(max-width:600px){.g3,.g4{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
 .fl{display:flex;flex-direction:column;gap:3px;font-size:11px;color:#8a8a8a;font-weight:500;}
 input,select,textarea{border:1px solid #ddd8cc;border-radius:4px;padding:6px 9px;font-family:inherit;font-size:12px;color:#1a2744;background:white;width:100%;}
+input[type=checkbox],input[type=radio]{width:auto;min-width:0;flex:none;transform:scale(1.2);cursor:pointer;padding:0;margin:0;}
 textarea{resize:vertical;min-height:56px;}
 .btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;}
 .bn{background:#1a2744;color:white;}.bg{background:#c9a84c;color:#1a2744;}.br{background:#c0392b;color:white;}.bv{background:#27ae60;color:white;}
@@ -247,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-2615-詳細一覧セル最小幅で横スクロール";
+var APP_VERSION="v2-0618-2630-チェックボックス幅修正";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

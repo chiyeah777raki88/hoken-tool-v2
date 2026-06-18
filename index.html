@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-1345";
+var APP_VERSION="v2-0618-2200";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -383,7 +383,7 @@ function acctValueAt(acc,age,baseAge,ratePct){
   var start=+acc.startAge||baseAge;
   if(age<start)return +acc.current||0;
   var yrs=age-start;
-  return fvCalc(+acc.current||0,(+acc.monthly||0)/10,ratePct,yrs); // monthlyは円→万に
+  return fvCalc(+acc.current||0,(+acc.monthly||0),ratePct,yrs); // monthlyは円→万に
 }
 function buildAssetsTab(){
   var wrap=el("div","wrap");

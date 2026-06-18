@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0830-入力タブの試作一覧を廃止し加入一覧と同じ表(保険料内訳つき)に統一。表生成をbuildKanyuTableに共通化。版";
+var APP_VERSION="v2-0619-0835-buildKanyuTableにansinCovガード追加(入力タブからの呼び出しでdeath未定義エラー解消)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2484,6 +2484,7 @@ setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cc,{type:"lin
 return cont;
 }
 function buildKanyuTable(curPols,memOf){
+if(!state.ansinCov)state.ansinCov={};
 function manFromYen(v){v=+v||0;return v>10000?Math.round(v/10000):v;}
 function payMethod(p){if(p.payFreq==="一時"||(p.premUnit||"").indexOf("一時")>=0)return "一時払";var f=p.payFreq||((p.premUnit||"").indexOf("年")>=0?"年":"月");return f+"払";}
 function shortCo(p){var n=cN(p);var m={"SOMPOひまわり生命":"ひまわり","東京海上日動あんしん生命":"あんしん","ネオファースト生命":"第一ネオ","第一ネオ生命":"第一ネオ","メットライフ生命":"メット","はなさく生命":"はなさく","オリックス生命":"オリックス","マニュライフ生命":"マニュライフ","ジブラルタ生命":"ジブラルタ","三井住友海上あいおい生命":"三井住友海上","あいおいニッセイ同和損保":"あいおい"};return m[n]||n.replace("生命","").replace("損保","");}

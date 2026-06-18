@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-2320-authガード修正";
+var APP_VERSION="v2-0618-2345-同期画面に版表示";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -70,12 +70,12 @@ function showLogin(onDone){
   ov.style.cssText="position:fixed;inset:0;background:rgba(26,39,68,0.97);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;";
   var box=document.createElement("div");
   box.style.cssText="background:#fff;border-radius:12px;padding:24px;max-width:360px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);";
-  box.innerHTML='<div style="font-size:18px;font-weight:800;color:#1a2744;margin-bottom:4px;">同期ログイン</div>'+
+  box.innerHTML='<div style="font-size:18px;font-weight:800;color:#1a2744;margin-bottom:2px;">同期ログイン</div>'+'<div style="font-size:11px;color:#c9a84c;font-weight:700;margin-bottom:8px;">版 '+APP_VERSION+'</div>'+
     '<div style="font-size:12px;color:#666;margin-bottom:16px;">v1と同じメール・パスワードでログインすると、鍵やデータがPC・スマホ共通になります。</div>'+
     '<input id="sbEmail" type="email" placeholder="メールアドレス" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;">'+
     '<input id="sbPass" type="password" placeholder="パスワード" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;">'+
     '<button id="sbLoginBtn" style="width:100%;padding:11px;background:#c9a84c;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;">ログイン</button>'+
-    '<button id="sbCancelBtn" style="width:100%;padding:8px;background:transparent;color:#888;border:none;font-size:12px;cursor:pointer;text-decoration:underline;">この端末だけで使う（同期しない）</button>'+
+    '<button id="sbCancelBtn" style="width:100%;padding:10px;background:#eef1f6;color:#1a2744;border:1px solid #c9ced8;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">✕ 閉じる（ログインせずこの端末だけで使う）</button>'+
     '<div id="sbMsg" style="font-size:12px;margin-top:10px;text-align:center;min-height:16px;"></div>';
   ov.appendChild(box);document.body.appendChild(ov);
   var msg=box.querySelector("#sbMsg");

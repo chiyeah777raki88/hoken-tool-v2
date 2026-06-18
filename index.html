@@ -251,7 +251,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0525-加入一覧:余白圧縮・上段の文字を本文と同サイズ(11px)・保険料12px・保障項目を中央揃え・表バッジを枠線型に。版";
+var APP_VERSION="v2-0619-0535-表バッジを廃止し、表の枠外(下)に詳細表ありの注釈を表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2542,7 +2542,6 @@ gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
 var td0=el("td");td0.textContent=row.l;
-if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="margin-left:3px;font-size:8px;background:#fff;color:#e67e22;border:1px solid #e67e22;border-radius:3px;padding:0 2px;font-weight:700;vertical-align:middle;";td0.appendChild(bd);}
 td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:11px;padding:4px 4px;";tr.appendChild(td0);
 var sum=0;
 curPols.forEach(function(p){
@@ -2569,6 +2568,9 @@ tb.appendChild(tr);
 });
 tbl.appendChild(tb);tw.appendChild(tbl);
 cont.appendChild(sec("加入内容一覧",null,tw,true));
+var dnote=el("div");dnote.style.cssText="font-size:11px;color:#b35900;background:#fff7ee;border:1px solid #f0c89a;border-radius:6px;padding:7px 10px;margin:-4px 0 12px;";
+dnote.innerHTML="\u203b <strong>がん・心疾患・脳血管・3大疾病・保険料免除</strong> は、下の「給付条件・免除条件の比較」で条件まで詳しく比較できます。";
+cont.appendChild(dnote);
 cont.appendChild(sec("給付条件・免除条件の比較",null,buildBigDiseaseMatrix(curPols),true));
 return cont;
 }

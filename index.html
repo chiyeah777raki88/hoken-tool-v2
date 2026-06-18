@@ -48,7 +48,7 @@ th{background:#1a2744;color:white;padding:6px 8px;text-align:left;font-weight:50
 td{padding:5px 8px;border-bottom:1px solid #ddd8cc;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;}
 .tw table{width:auto;min-width:100%;}
-.tw th,.tw td{white-space:nowrap;}
+.tw th,.tw td{white-space:nowrap;min-width:72px;max-width:200px;}
 .cam{padding:12px;background:#f0f4ff;border-radius:8px;margin-bottom:12px;}
 .cbox{border-top:2px solid #c9a84c;background:white;}
 .chdr{background:#c9a84c;color:#1a2744;padding:8px 14px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
@@ -247,7 +247,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-2600-詳細一覧 横スクロール修正";
+var APP_VERSION="v2-0618-2615-詳細一覧セル最小幅で横スクロール";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

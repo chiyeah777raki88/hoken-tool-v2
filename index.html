@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-2900-2210版に復帰(本物の保障チェック)";
+var APP_VERSION="v2-0618-2910-取込診断";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -602,7 +602,9 @@ function showV1Import(){
           if(!data){alert("このお客様のデータを取得できませんでした。");return;}
           var conv=convertV1Customer(data);
           STATE=conv;saveState();ov.remove();render();
-          alert("「"+(conv.custName||c.name||"")+"」を取り込みました。各タブで確認してください。");
+          var _nCash=conv.policies.filter(function(pp){return pp.hasCashValue&&pp.futureVals&&pp.futureVals.length;}).length;
+          var _raw=0,_rawFV=0;try{var _src=data.polSave||data.policies||{};var _arrs=Array.isArray(_src)?[_src]:Object.keys(_src).map(function(k){return _src[k];});_arrs.forEach(function(a){if(Array.isArray(a))a.forEach(function(vp){_raw++;if((vp.futureVals&&vp.futureVals.length)||(+vp.currentVal>0)||(+vp.refundVal>0))_rawFV++;});});}catch(e){}
+          alert("「"+(conv.custName||c.name||"")+"」を取り込みました。\n【診断】証券 "+conv.policies.length+"件 / 元データで返戻金・積立あり "+_rawFV+"件(全"+_raw+") / 取込後に資産反映 "+_nCash+"件");
         });
       });
       ul.appendChild(b);

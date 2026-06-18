@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3320-資産curAgeバグ修正";
+var APP_VERSION="v2-0618-3400-加入一覧改名+保障チェック文字大+グラフ表示整理";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1654,8 +1654,8 @@ var curTotalPrem=ap.reduce(function(s,x){var m=+toM(x.policy);return(!m||isNaN(m
 var exemptPols=ap.filter(function(x){var t=x.policy.premExemptType;return t&&t!=="none"&&t!=="";}).map(function(x){return polLabel(x.policy)+"["+ET[x.policy.premExemptType]+"]";});
 var nonExemptPols=ap.filter(function(x){var t=x.policy.premExemptType;return !t||t==="none"||t==="";}).map(function(x){return polLabel(x.policy);});
 var debugPols=ap.map(function(x){var p=x.policy;var m=toM(p);return polLabel(p)+"="+m+"(raw:"+p.premAmount+")";}); var debugSum=ap.reduce(function(s,x){var m=toM(x.policy);return s+((!m||isNaN(m)||m>500000)?0:m);},0);
-var noteStr="月払合計: ¥"+curTotalPrem.toLocaleString()+"円"+(exemptPols.length>0?" ▶免除あり: "+exemptPols.join("・"):"")+(nonExemptPols.length>0?" ▶免除なし: "+nonExemptPols.join("・"):"")+(exemptPols.length>0?" 免除あり: "+exemptPols.join("・"):"")+(nonExemptPols.length>0?" 免除なし: "+nonExemptPols.join("・"):"")+" 【内訳:"+debugPols.join(" | ")+"]";
-var note2=el("div");note2.style.cssText="font-size:11px;background:#f8f4e8;padding:8px 12px;border-radius:6px;margin-bottom:10px;";note2.textContent=noteStr;
+var noteStr="月払保険料 合計：¥"+curTotalPrem.toLocaleString()+"円／月"+(exemptPols.length>0?"　（免除になる証券："+exemptPols.join("・")+"）":"");
+var note2=el("div");note2.style.cssText="font-size:12px;background:#f8f4e8;padding:10px 14px;border-radius:6px;margin-bottom:10px;line-height:1.6;";note2.textContent=noteStr;
 var premData=ages.map(function(a2){
 var n=0,e=0;
 ap.forEach(function(x){
@@ -2469,7 +2469,9 @@ hr.appendChild(el("th",null,"保障項目"));
 curPols.forEach(function(p,pi){
 var th=el("th");th.style.cssText="text-align:center;white-space:nowrap;";
 var prem=toM(p);
-th.innerHTML=String.fromCharCode(65+pi)+"<br><span style='font-weight:400;font-size:9px;color:#cfe0ff;'>"+cN(p)+"</span><br><span style='font-weight:400;font-size:9px;color:#ffe9a8;'>¥"+prem.toLocaleString()+"/月</span>";
+var coNm=cN(p).replace("生命","").replace("ひまわり","ひまわり").trim();
+th.style.lineHeight="1.7";th.style.padding="8px 8px";
+th.innerHTML=String.fromCharCode(65+pi)+"<br><span style='font-weight:700;font-size:12px;color:#dfe9ff;'>"+coNm+"</span><br><span style='font-weight:700;font-size:11px;color:#ffe39a;'>¥"+prem.toLocaleString()+"/月</span>";
 hr.appendChild(th);
 });
 hr.appendChild(el("th",null,"合計"));
@@ -2479,7 +2481,7 @@ thead.appendChild(hr);tbl.appendChild(thead);
 var tb=el("tbody");
 ROWS.forEach(function(row){
 var tr=el("tr");
-var td0=el("td",null,row.l);td0.style.cssText="font-weight:700;color:#1a2744;white-space:nowrap;font-size:11px;";tr.appendChild(td0);
+var td0=el("td",null,row.l);td0.style.cssText="font-weight:700;color:#1a2744;white-space:nowrap;font-size:12px;padding:9px 8px;";tr.appendChild(td0);
 var sum=0;
 curPols.forEach(function(p){
 var v=row.g(p)||0;
@@ -3457,7 +3459,7 @@ window.location.href=window.location.href;
 /*削除:草刈復元*/
 hdr.appendChild(ioWrap);hdr.appendChild(custWrap);app.appendChild(hdr);
 var tabs=el("div","tabs");
-[["input","入力・編集"],["summary","詳細一覧"],["check","保障チェック"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["print","印刷"]].forEach(function(t){
+[["input","入力・編集"],["summary","加入一覧"],["check","保障チェック"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["print","印刷"]].forEach(function(t){
 var b=el("button","tab-btn"+(currentTab===t[0]?" active":""),t[1]);
 b.addEventListener("click",function(){currentTab=t[0];render();});tabs.appendChild(b);
 });

@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3310-チェック欄崩れ修正(再)";
+var APP_VERSION="v2-0618-3320-資産curAgeバグ修正";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1887,6 +1887,7 @@ var rowAge=+(r.age||0);
 return s+(rowAge<=curAge?(r.amount||0):0);
 },0);
 // Calculate current value of insurance policies via reverse calculation (all in 万円)
+var curAge=myAge7; /* hoisting由来のNaN回避：現在年齢を先に定義 */
 var scenR=(scenRate==="1"?0.01:scenRate==="5"?0.05:scenRate==="6"?0.06:0.03);
 var nowYr2=new Date().getFullYear();
 var insCurrentTotal=pProjs.reduce(function(s,x){

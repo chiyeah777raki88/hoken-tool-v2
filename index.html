@@ -247,7 +247,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3100-クラウド書込停止(V1保護)";
+var APP_VERSION="v2-0618-3110-復元チェックボタン";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3126,6 +3126,22 @@ ov.appendChild(box);document.body.appendChild(ov);
 setTimeout(function(){ta.focus();},200);
 });
 custWrap.appendChild(impBtn);;
+var chkBtn=el("button","btn");chkBtn.style.cssText="padding:3px 12px;font-size:12px;font-weight:700;white-space:nowrap;background:#8e44ad;color:white;border-radius:4px;cursor:pointer;border:none;";
+chkBtn.textContent="🔍復元チェック";
+chkBtn.addEventListener("click",async function(){
+  function scan(store,labelStore){
+    var out=[];try{
+      var keys=Object.keys(store).filter(function(k){return k.indexOf("ins_customer_")===0&&k!=="ins_customer_list";});
+      keys.forEach(function(k){try{var d=JSON.parse(store[k]);var ps=(d&&d.polSave)||{};var n=0,c=0;Object.keys(ps).forEach(function(mk){var a=ps[mk];if(Array.isArray(a))a.forEach(function(pp){n++;if((pp.futureVals&&pp.futureVals.length)||(+pp.currentVal>0)||(+pp.annualPension>0)||(+pp.refundVal>0))c++;});});var nm=(d&&d.custName)|| (d&&d.famSave&&d.famSave[0]&&d.famSave[0].name)||k;out.push(nm+"：証券"+n+"・貯蓄性"+c);}catch(e){}});
+    }catch(e){}
+    return labelStore+"\n"+(out.length?out.join("\n"):"（顧客データ無し）");
+  }
+  var localPart=scan(localStorage,"【この端末(localStorage)】");
+  var bkPart="【バックアップ(hoken_backup)】\n（読めず）";
+  try{ if(window.storage&&window.storage.get){ var bk=await window.storage.get("hoken_backup"); if(bk){ var obj=(typeof bk==="string")?JSON.parse(bk):bk; bkPart=scan(obj,"【バックアップ(hoken_backup)】"); } else { bkPart="【バックアップ(hoken_backup)】\n（バックアップ無し）"; } } }catch(e){ bkPart="【バックアップ(hoken_backup)】\nエラー:"+e.message; }
+  alert("貯蓄性データ(返戻金/積立/年金)の残存チェック：\n\n"+localPart+"\n\n"+bkPart+"\n\n※「貯蓄性」が1以上なら、その顧客にデータが残っています。");
+});
+custWrap.appendChild(chkBtn);
 if(currentCustomerId!=="kudo"){
 var delCustBtn=el("button","btn br");delCustBtn.style.cssText="padding:2px 8px;font-size:11px;white-space:nowrap;";delCustBtn.textContent="削除";
 delCustBtn.addEventListener("click",function(){

@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3400-加入一覧改名+保障チェック文字大+グラフ表示整理";
+var APP_VERSION="v2-0618-3500-資産に保険の計算根拠を表示";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1890,28 +1890,16 @@ return s+(rowAge<=curAge?(r.amount||0):0);
 var curAge=myAge7; /* hoisting由来のNaN回避：現在年齢を先に定義 */
 var scenR=(scenRate==="1"?0.01:scenRate==="5"?0.05:scenRate==="6"?0.06:0.03);
 var nowYr2=new Date().getFullYear();
+var insDetail=[];
 var insCurrentTotal=pProjs.reduce(function(s,x){
-var p=x.policy;
-// 1. refundVal+refundAge: reverse PV calculation (refundVal is in 万円)
+var p=x.policy;var nm=cN(p).replace("生命","");var val=0,method="";
 var rVal=+(p.refundVal||0);var rAge=+(p.refundAge||0);
-if(rVal>0&&rAge>0){
-var yrs=Math.max(0,rAge-curAge);
-if(yrs===0)return s+rVal;
-return s+Math.round(rVal/Math.pow(1+scenR,yrs));
-}
-// 2. currentVal: directly in 万円
-if(p.currentVal>0)return s+p.currentVal;
-// 3. refundAge set but no refundVal: show 0 (user needs to enter refundVal)
-if((+p.refundAge)>0){return s;} // placeholder - user enters refundVal in input tab
-// 4. Estimate from paid premiums for 変額/年金 type only: toM returns 円/月
-var pmEn=+toM(p); // 円/月
-if(pmEn>0&&pmEn<=500000){
-var cYrs=p.contractDate?Math.max(0,nowYr2-new Date(p.contractDate).getFullYear()):0;
-if(cYrs>0){
-return s+Math.round(pmEn*12*cYrs*0.7/10000);
-}
-}
-return s;
+if(rVal>0&&rAge>0){var yrs=Math.max(0,rAge-curAge);val=(yrs===0?rVal:Math.round(rVal/Math.pow(1+scenR,yrs)));method=(yrs===0?"返戻金"+rVal+"万":"返戻金"+rVal+"万("+rAge+"歳)を"+yrs+"年割戻し");}
+else if(p.currentVal>0){val=p.currentVal;method="現在の積立金";}
+else if((+p.refundAge)>0){val=0;method="返戻金額が未入力";}
+else{var pmEn=+toM(p);if(pmEn>0&&pmEn<=500000){var cYrs=p.contractDate?Math.max(0,nowYr2-new Date(p.contractDate).getFullYear()):0;if(cYrs>0){val=Math.round(pmEn*12*cYrs*0.7/10000);method="保険料×経過"+cYrs+"年×0.7の概算";}}}
+if(val>0||method)insDetail.push({nm:nm,val:val,method:method});
+return s+val;
 },0);
 var totalA=nFV+iFV+a.savings+a.realestate+a.stocks+a.other+insTotal+insCurrentTotal;
 var totalD=a.mortgage+a.carLoan+a.otherDebt;
@@ -1919,7 +1907,7 @@ var net=totalA-totalD;
 var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:14px;background:"+x[2]+";border-radius:8px;";d.innerHTML="<div style='font-size:10px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:22px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</div>";return d;}));
 // Breakdown of current assets
 var dbgDiv=el("div");dbgDiv.style.cssText="font-size:10px;color:#555;background:#fffbeb;border:1px solid #f59e0b;border-radius:4px;padding:6px 10px;margin-top:6px;";
-dbgDiv.innerHTML="<b>現在の資産 内訳：</b><br>預貯金 "+a.savings+"万 / 不動産 "+a.realestate+"万 / 株式 "+a.stocks+"万 / その他 "+a.other+"万<br>NISA "+Math.round(nFV)+"万 / iDeCo "+Math.round(iFV)+"万 / 受取済手動追加 "+insTotal+"万<br><small style='color:#888'>※将来の受取額（保険解約等）はシミュレーションに表示</small>";
+var _insLines=insDetail.filter(function(d){return d.val>0;}).map(function(d){return "・"+d.nm+" "+d.val.toLocaleString()+"万（"+d.method+"）";}).join("<br>");dbgDiv.innerHTML="<b>現在の資産 内訳：</b><br>預貯金 "+a.savings+"万 / 不動産 "+a.realestate+"万 / 株式 "+a.stocks+"万 / その他 "+a.other+"万<br>NISA "+Math.round(nFV)+"万 / iDeCo "+Math.round(iFV)+"万 / 受取済手動追加 "+insTotal+"万<br><b>保険の現在価値（計 "+Math.round(insCurrentTotal).toLocaleString()+"万）の根拠：</b><br>"+(_insLines||"（貯蓄性のある保険なし）")+"<br><small style='color:#888'>※返戻金・積立金が未入力の証券は「保険料×経過年×0.7」の概算です。正確には入力タブで設計書の数値（解約返戻金/積立金/年金額）を入れてください。</small>";
 tg.appendChild(dbgDiv);
 var bItems=[{label:"NISA",val:nFV,color:"#c9a84c"},{label:"iDeCo",val:iFV,color:"#27ae60"},{label:"預貯金",val:a.savings,color:"#2980b9"},{label:"不動産",val:a.realestate,color:"#16a085"},{label:"株式・投信",val:a.stocks,color:"#8e44ad"},{label:"その他",val:a.other,color:"#d35400"},{label:"保険積立（シミュレーション参照）",val:0,color:"#1a2744"},{label:"手動追加",val:insTotal,color:"#7f8c8d"}].filter(function(b){return b.val>0;});
 var bGrid=el("div");bGrid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-top:10px;";

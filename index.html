@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3610-給付条件セル文字11px(セル本体)";
+var APP_VERSION="v2-0618-3620-手入力1行化+保障内容一覧に自由入力追加";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1394,7 +1394,8 @@ var COV_PRESETS=[
  {trigger:"介護",reqOpts:["公的要介護2以上","公的要介護3以上","独自基準"]},
  {trigger:"障害・ケガ",reqOpts:[]},
  {trigger:"祝金・生存給付",reqOpts:["〇年ごと","満期"]},
- {trigger:"保険料免除",reqOpts:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]}
+ {trigger:"保険料免除",reqOpts:["がん","3大疾病","5大疾病","8大疾病","就業不能","介護","死亡","複数"]},
+ {trigger:"その他（自由入力）",reqOpts:[]}
 ];
 var covWrap=el("div");
 function renderCoverage(){
@@ -2802,7 +2803,6 @@ var ROWS_KYUFU=[
 {id:"kidney",label:"腎疾患",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
 {id:"pancreas",label:"膵疾患",def:{a:"60日の所定の状態",b:"入院or手術",c:"20日以上の入院",d:"10日以上の入院",e:"手術",f:"入院"}},
 {id:"custom1",label:"",editable:true,def:{}},
-{id:"custom2",label:"",editable:true,def:{}},
 {id:"dis",label:"介護・就業不能",def:{a:"5疾病",b:"7疾病",c:"全疾病"}},
 {id:"dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
@@ -2816,8 +2816,7 @@ var ROWS_MENJO=[
 {id:"m_dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"m_welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"m_care",label:"介護",def:{a:"要介護4",b:"要介護3",c:"要介護2",d:"要介護1"}},
-{id:"m_custom1",label:"",editable:true,def:{}},
-{id:"m_custom2",label:"",editable:true,def:{}}
+{id:"m_custom1",label:"",editable:true,def:{}}
 ];
 function ensureCell(data,ck,defText){
 if(!data[ck]){

@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3920-一時払い債券・ターゲット型の現在価値を計算";
+var APP_VERSION="v2-0618-3930-資産シミュを現在価値と一致(マニュ反映・メット過大修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2038,9 +2038,8 @@ var ma2=p.futureValAge||70;if(!matMap[ma2])matMap[ma2]=[];matMap[ma2].push({id:p
 var oR=a.savings+a.realestate+a.stocks+a.other;
 var insV={};pProjs.forEach(function(x){
 var p=x.policy;
-// If refundVal is set, start at 0 (will be set at refundAge in the loop)
 if((+p.refundVal)>0&&(+p.refundAge)>0){insV[p.id]=0;}
-else{insV[p.id]=p.currentVal||0;}
+else{insV[p.id]=polCurVal(p).val||0;}
 });
 var runout=null;var drawdownRatio=1.0;
 var proj=ages3.map(function(ag){
@@ -2163,7 +2162,7 @@ var pEnd=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd>0?p.dlPeriodEnd:120);
 if(ag>pEnd){row[polLabel(p)]=0;return;}
 var v=Math.round(insV[p.id])||0;
 // Fallback: only if no specific asset value is defined
-if(v===0&&ag<=pEnd&&!(p.refundVal>0&&p.refundAge>0)){var pm2b=+toM(p);if(pm2b>0&&pm2b<=500000){var futYrs=Math.max(0,ag-curAge);var rrb=rateForPolicy(p);var bvb=p.currentVal||0;v=Math.round(fvCalc(bvb,pm2b,rrb,futYrs));}}
+if(v===0&&ag<=pEnd&&!(p.refundVal>0&&p.refundAge>0)){var _cvb=polCurVal(p).val||0;var _pmMan=polIsLump(p)?0:((+toM(p))/10000);var _fy=Math.max(0,ag-curAge);if(_cvb>0||_pmMan>0)v=Math.round(fvCalc(_cvb,_pmMan,rateForPolicy(p),_fy));}
 row[polLabel(p)]=v||0;
 });
 return row;

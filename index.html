@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-0220-メット(リターンズ)還付金371万・祝金5万×5回を計算反映";
+var APP_VERSION="v2-0619-0235-推定で資産を埋める挙動を廃止：未入力の貯蓄性保険は0＋未入力表示に";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1730,7 +1730,8 @@ if(p.currentVal>0){var r0=(rateForPolicy(p)||0)/100;return {val:Math.round((+p.c
 if(p.targetOn&&+p.targetBase>0){var tr=(+p.targetRate||0)/100;return {val:Math.round((+p.targetBase)*Math.pow(1+tr,cy)),method:"ターゲット型 元本"+(+p.targetBase)+"万×"+(+p.targetRate)+"%×"+cy+"年"};}
 if(polIsLump(p)&&+p.premAmount>0){var base=Math.round((+p.premAmount)/10000);var r=(rateForPolicy(p)||0)/100;return {val:Math.round(base*Math.pow(1+r,cy)),method:"一時払い元本"+base+"万×"+(rateForPolicy(p))+"%×"+cy+"年(固定利率)"};}
 if(rAge>0)return {val:0,method:"払込満了まで返戻金なし/未入力"};
-var pmEn=+toM(p);if(pmEn>0&&pmEn<=500000&&cy>0){var mult=(cy<5?0.7:cy<10?1:cy<15?2:cy<20?2.5:3);return {val:Math.round(pmEn*12*cy*mult/10000),method:"保険料×経過"+cy+"年×"+mult+"の概算"};}
+var _savKw=/(変額|年金|終身|養老|還付|リターンズ|ドル|債券|外貨|積立|アニュ)/;
+if(_savKw.test((p.insType||"")+(p.notes||""))){return {val:0,method:"貯蓄性だが還付金/積立金/年金が未入力（要設計書）"};}
 return {val:0,method:""};}
 function calcAccountTotal(accounts,age){
 var baseAge7=myAge7||35;

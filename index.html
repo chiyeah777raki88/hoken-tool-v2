@@ -41,7 +41,7 @@ input[type=checkbox]{width:auto;transform:scale(1.2);}
 <body>
 <div id="app"></div>
 <script>
-var APP_VERSION="v2-0618-2200";
+var APP_VERSION="v2-0618-2210";
 var AI_API_KEY=(function(){try{return localStorage.getItem("ins_ai_api_key")||"";}catch(e){return "";}})();
 
 // ===== サーバー同期（Supabase）v1と同じプロジェクト・同じログインを使用 =====
@@ -185,7 +185,7 @@ function premToMonthly(p){
 }
 function polName(p,i){var nm=letterOf(i);var co=p.company||p.companySel||"";var pl=p.planName||"";return nm+(co?"・"+co:"")+(pl?"／"+pl:"");}
 function ageDisp(num,whole){if(whole)return "終身";return num?(num+"歳"):"—";}
-function peopleList(){var arr=["本人"];STATE.family.forEach(function(f){if(f.label&&f.label!=="本人")arr.push(f.label);});return arr;}
+function peopleList(){var arr=[(STATE.custName?STATE.custName:"本人")];STATE.family.forEach(function(f){if(f.label&&f.label!=="本人")arr.push(f.name?f.name:f.label);});return arr;}
 
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e;}
 

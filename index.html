@@ -248,7 +248,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0618-3800-保険の現在価値を保険欄に集約・資産合計は保険関連計のみ";
+var APP_VERSION="v2-0618-3810-保険料推定を経過年数の段階倍率に";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1710,7 +1710,7 @@ function polCurVal(p){var val=0,method="";var rVal=+(p.refundVal||0),rAge=+(p.re
 if(rVal>0&&rAge>0){var yrs=Math.max(0,rAge-curAge);val=(yrs===0?rVal:Math.round(rVal/Math.pow(1+scenR,yrs)));method=(yrs===0?"返戻金"+rVal+"万":"返戻金"+rVal+"万("+rAge+"歳)を"+yrs+"年割戻し");}
 else if(p.currentVal>0){val=p.currentVal;method="現在の積立金";}
 else if(rAge>0){val=0;method="返戻金額が未入力";}
-else{var pmEn=+toM(p);if(pmEn>0&&pmEn<=500000){var cYrs=p.contractDate?Math.max(0,nowYr2-new Date(p.contractDate).getFullYear()):0;if(cYrs>0){val=Math.round(pmEn*12*cYrs*0.7/10000);method="保険料×経過"+cYrs+"年×0.7の概算";}}}
+else{var pmEn=+toM(p);if(pmEn>0&&pmEn<=500000){var cYrs=p.contractDate?Math.max(0,nowYr2-new Date(p.contractDate).getFullYear()):0;if(cYrs>0){var mult=(cYrs<5?0.7:cYrs<10?1:cYrs<15?2:cYrs<20?2.5:3);val=Math.round(pmEn*12*cYrs*mult/10000);method="保険料×経過"+cYrs+"年×"+mult+"の概算";}}}
 return {val:val,method:method};}
 function calcAccountTotal(accounts,age){
 var baseAge7=myAge7||35;

@@ -253,7 +253,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1530-明細の満了欄を還付金=受取年齢・年金=開始年齢としても入力可に(詳細設定を開かず現在価値が計算される)。版";
+var APP_VERSION="v2-0619-1545-個人年金の据置(待機)期間に対応:払込満了までは保険料込みで積立、満了後〜受取開始は保険料ナシで運用のみ。払込満了と受取開始を別入力可。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2283,9 +2283,12 @@ var isPension=p.pensionStartAge>0&&p.annualPension>0;
 var payEnd=p.dlPayEnd>0?p.dlPayEnd:(p.pensionStartAge||65);
 if(isPension){
 if(ag<p.pensionStartAge){
-var curV=p.currentVal||0;var yrs=ag-curAge;
 var rrP=rateForPolicy(p);
-insV[p.id]=Math.round(fvCalc(curV,toM(p),rrP,yrs));
+var pe=p.dlPayEnd>0?p.dlPayEnd:p.pensionStartAge; // 払込満了
+var payYrs=Math.max(0,Math.min(ag,pe)-curAge); // 払込満了までの保険料拠出年数
+var valAtPay=fvCalc(p.currentVal||0,toM(p),rrP,payYrs); // 払込満了まで保険料込みで積立
+var deferYrs=Math.max(0,ag-Math.max(curAge,pe)); // 据置(待機)年数=払込満了後〜受取開始
+insV[p.id]=Math.round(fvCalc(valAtPay,0,rrP,deferYrs)); // 据置中は保険料ナシで運用のみ
 } else {
 var endAge=p.pensionYears>0?p.pensionStartAge+p.pensionYears:999;
 if(ag<=endAge){

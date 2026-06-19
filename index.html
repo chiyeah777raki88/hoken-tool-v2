@@ -260,7 +260,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2400-加入一覧を前半後半分割でなく横1枚に(比較表は別シート)。計4枚構成へ。版";
+var APP_VERSION="v2-0619-2430-資産印刷:設定欄(運用シナリオ/表示対象/利率設定/NISA/iDeCo入力)を印刷時非表示にし、グラフ+資産価値+評価を縦1枚に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2018,7 +2018,7 @@ var b=el("button","btn");b.style.cssText="padding:4px 12px;border:1px solid #ddd
 b.textContent=x[1];b.style.background=scenRate===x[0]?"#1a2744":"white";b.style.color=scenRate===x[0]?"white":"#1a2744";
 b.addEventListener("click",function(){scenRate=x[0];saveState();render();});scBtns.appendChild(b);
 });
-scenDiv.appendChild(scBtns);cont.appendChild(scenDiv);
+scenDiv.appendChild(scBtns);scenDiv.className="no-print";cont.appendChild(scenDiv);
 // 表示対象（合算／本人／配偶者）の切替（家族が2人以上のときだけ表示）
 if(state.family.length>=2){
   var memDiv=el("div");memDiv.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;";
@@ -2033,7 +2033,7 @@ if(state.family.length>=2){
     b.textContent=x[1];b.style.background=assetMember===x[0]?"#1a2744":"white";b.style.color=assetMember===x[0]?"white":"#1a2744";
     b.addEventListener("click",function(){assetMember=x[0];render();});mBtns.appendChild(b);
   });
-  memDiv.appendChild(mBtns);cont.appendChild(memDiv);
+  memDiv.appendChild(mBtns);memDiv.className="no-print";cont.appendChild(memDiv);
 }
 // 保険種類別 想定利率の設定（折りたたみ）
 (function(){
@@ -2069,7 +2069,7 @@ if(state.family.length>=2){
   });
   var open=false;
   head.addEventListener("click",function(){open=!open;body.style.display=open?"block":"none";head.querySelector("span:last-child").textContent=open?"▲ 閉じる":"▼ 開く";});
-  wrap.appendChild(head);wrap.appendChild(body);cont.appendChild(wrap);
+  wrap.appendChild(head);wrap.appendChild(body);wrap.className="no-print";cont.appendChild(wrap);
 })();
 var pProjs=aPs().filter(function(x){
   // 表示対象フィルタ（合算以外なら、その家族メンバーの証券だけ）
@@ -2151,8 +2151,8 @@ var addBtn3=btn("＋ "+label+"を追加","bg",function(){accounts.push({label:""
 var secBody=el("div");secBody.appendChild(wrap);secBody.appendChild(addBtn3);
 return sec(label+"（複数口座対応）",null,secBody);
 }
-cont.appendChild(buildAccountSection(nisaAccounts,"NISA","#c9a84c"));
-cont.appendChild(buildAccountSection(idecoAccounts,"iDeCo","#27ae60"));
+var _nsec=buildAccountSection(nisaAccounts,"NISA","#c9a84c");_nsec.className+=" no-print";cont.appendChild(_nsec);
+var _isec=buildAccountSection(idecoAccounts,"iDeCo","#27ae60");_isec.className+=" no-print";cont.appendChild(_isec);
 var a=assetsData;
 function ua(f,v){a[f]=+v;saveState();}
 cont.appendChild(sec("預貯金・不動産・その他資産",null,grd("g4",[
@@ -3230,7 +3230,7 @@ bw1.appendChild(bAll);bw1.appendChild(bM);cont.appendChild(bw1);
 var sp2=el("div");sp2.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:8px 0 4px;";sp2.textContent="② その他のタブ（A4横1枚・画面のまま）";cont.appendChild(sp2);
 var bw=el("div");bw.style.cssText="display:flex;flex-wrap:wrap;gap:10px;";
 [["graph","保障グラフ"],["assets","資産・老後"],["compare","提案"]].forEach(function(x){
-var b=btn(x[1]+"を印刷","bn",function(){setPageOrient("landscape");currentTab=x[0];render();setTimeout(function(){var _ot=document.title;document.title=printName(x[1]);window.print();setTimeout(function(){document.title=_ot;},500);},800);});
+var b=btn(x[1]+"を印刷","bn",function(){setPageOrient(x[0]==="assets"?"portrait":"landscape");currentTab=x[0];render();setTimeout(function(){var _ot=document.title;document.title=printName(x[1]);window.print();setTimeout(function(){document.title=_ot;},500);},800);});
 b.style.cssText="padding:12px 18px;font-size:14px;background:#475067;color:#fff;border-radius:6px;font-weight:700;";
 bw.appendChild(b);
 });

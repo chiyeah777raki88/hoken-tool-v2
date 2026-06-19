@@ -260,7 +260,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2230-保障グラフ印刷を専用レイアウト(上:タイムライン/下:レーダー2つ横並び・固定サイズで確実描画)でA4横にぎっしり。版";
+var APP_VERSION="v2-0619-2300-加入一覧分割を縦向き(1枚に収まる)に・保障グラフ印刷を全部入り(保障額/保険料グラフ復活)に戻す。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2892,6 +2892,7 @@ o.n.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).o
 var h=o.n.scrollHeight,w=o.n.scrollWidth;var sc=Math.min(748/w,1058/h,1);o.n.style.transform=(sc<1?"scale("+sc+")":"none");});}
 setTimeout(_doScale,350);setTimeout(_doScale,1000);
 }
+function setPageOrient(o){var st=document.getElementById("dynpage");if(!st){st=document.createElement("style");st.id="dynpage";document.head.appendChild(st);}st.textContent="@media print{@page{size:A4 "+o+" !important;margin:6mm !important;}}";}
 function printName(secLabel){var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];var nm=(mm&&mm.name)?mm.name.replace(/\s+/g,""):"顧客";var t=new Date();var ymd=t.getFullYear()+("0"+(t.getMonth()+1)).slice(-2)+("0"+t.getDate()).slice(-2);return nm+"様_"+secLabel+"_"+ymd;}
 function printKanyuSplit(half){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
@@ -2906,7 +2907,7 @@ var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=((mm&&mm.name)||"")+" 様　"+ymd;
 hd.appendChild(h1);hd.appendChild(h2);pa.appendChild(hd);
 pa.appendChild(buildKanyuTable(pols,mem));
-document.body.classList.add("psplit");
+document.body.classList.add("psplit");setPageOrient("portrait");
 var _ot=document.title;document.title=printName("加入一覧"+(half===0?"前半":"後半"));
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},350);
 }
@@ -3203,7 +3204,7 @@ bw1.appendChild(bL);bw1.appendChild(bR);cont.appendChild(bw1);
 var sp2=el("div");sp2.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:8px 0 4px;";sp2.textContent="② その他のタブ（A4横1枚・画面のまま）";cont.appendChild(sp2);
 var bw=el("div");bw.style.cssText="display:flex;flex-wrap:wrap;gap:10px;";
 [["graph","保障グラフ"],["assets","資産・老後"],["compare","提案"]].forEach(function(x){
-var b=btn(x[1]+"を印刷","bn",function(){if(x[0]==="graph"){printGraph();return;}currentTab=x[0];render();setTimeout(function(){var _ot=document.title;document.title=printName(x[1]);window.print();setTimeout(function(){document.title=_ot;},500);},700);});
+var b=btn(x[1]+"を印刷","bn",function(){setPageOrient("landscape");currentTab=x[0];render();setTimeout(function(){var _ot=document.title;document.title=printName(x[1]);window.print();setTimeout(function(){document.title=_ot;},500);},800);});
 b.style.cssText="padding:12px 18px;font-size:14px;background:#475067;color:#fff;border-radius:6px;font-weight:700;";
 bw.appendChild(b);
 });

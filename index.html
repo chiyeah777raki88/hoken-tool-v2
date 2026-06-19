@@ -253,7 +253,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1545-個人年金の据置(待機)期間に対応:払込満了までは保険料込みで積立、満了後〜受取開始は保険料ナシで運用のみ。払込満了と受取開始を別入力可。版";
+var APP_VERSION="v2-0619-1620-基準設定タブを復活し費用控除率(正味率)を実装。想定率-費用控除=正味率で計算、払込満了後は控除を別設定可。運用シナリオ/保険種類別利率/老後安心ラインも集約。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -524,6 +524,7 @@ var detShowAll=false,kanyuShowAll=false; // マイナー特約の表示トグル
 // 保険種類別の想定利率（％）。"scenario"＝運用シナリオ連動（変額系）。貯蓄性のない種類は0。
 var RATE_DEFAULT={"終身保険":1.5,"外貨建て終身保険":2.5,"定期保険":0,"変額定期保険":"scenario","収入保障保険":0,"逓減定期保険":0,"養老保険":1.5,"変額終身保険":"scenario","変額養老保険":"scenario","医療保険":0,"がん保険":0,"3大疾病保険":0,"就業不能保険":0,"介護保険":0,"個人年金保険":3,"学資保険":1,"変額年金保険":"scenario","ドル建て災害終身保険":2.5,"総合保険（複合型）":1.5,"その他":1.5};
 var rateByType=JSON.parse(JSON.stringify(RATE_DEFAULT));
+var feeRate=1.0,feeRateAfter=0; // 費用控除率(全期間/払込満了後)
 var CAM_FIELDS=["company","insType","policyNo","insuredName","contractDate","deathType","dlAmount","dlPeriodType","dlPeriodEnd","dlPayType","dlPayEnd","hospDaily","hospLimit","hospLumpIn","hospLumpOut","surgInp","surgOut","outType","outAmount","injuryAmount","cancerOn","c1st","c2nd","cCond","cancerHosp","cancerSurg","cancerOut2","advancedMedical","advancedMedicalAmount","bigOn","bigCount","h1st","b1st","hCond","bCond","heartType","brainType","disType","disMonthly","disPayLimit","careType","careLump","careMonthly","careLevel","premUnit","premAmount","premExempt","premExemptAmount","premExemptType","premExemptDetail","currentVal","futureVals","futureValAge","annualPension","pensionStartAge","pensionYears","currency","exchangeRate","refundVal","refundAge","celebAmount","celebInterval","celebStartAge","celebEndAge","renewalRates","contractEndsOnClaim","notes"];
 var currentCustomerId=storageGet("kudo_current_customer")||"kudo";
 function getCustomerKey(){return "ins_customer_"+currentCustomerId;}
@@ -554,7 +555,7 @@ if(sv.extraRows){extraRows.splice(0,extraRows.length);sv.extraRows.forEach(funct
 if(sv.evalAge)evalAge=sv.evalAge;
 if(sv.drawRate)drawRate=sv.drawRate;
 if(sv.drawEvents){drawEvents.splice(0,drawEvents.length);sv.drawEvents.forEach(function(e){drawEvents.push(e);});}
-if(sv.scenRate)scenRate=sv.scenRate;if(sv.rateByType)rateByType=Object.assign(JSON.parse(JSON.stringify(RATE_DEFAULT)),sv.rateByType);
+if(sv.scenRate)scenRate=sv.scenRate;if(sv.feeRate!=null)feeRate=sv.feeRate;if(sv.feeRateAfter!=null)feeRateAfter=sv.feeRateAfter;if(sv.rateByType)rateByType=Object.assign(JSON.parse(JSON.stringify(RATE_DEFAULT)),sv.rateByType);
 if(sv.famSave&&Array.isArray(sv.famSave)&&sv.famSave.length>0){base.family=sv.famSave;base.policies={};base.family.forEach(function(m){base.policies[m.id]=[];});}
 if(sv.polSave){base.family.forEach(function(m){if(sv.polSave[m.id]&&sv.polSave[m.id].length>0)base.policies[m.id]=sv.polSave[m.id];});}
 // 旧データ互換：新フィールド（払込回数・法人）を補完
@@ -585,7 +586,7 @@ function saveState(){
 try{var si=document.getElementById("save-ind");if(si){si.textContent="● 保存済";si.style.color="#27ae60";}}catch(e){} window._lastSaved=Date.now();
 try{
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{}}));
+storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{}}));
 }catch(e){}
 // Save customer list to localStorage first
 try{var cl2=listCustomers();if(cl2.length)saveCustomerList(cl2);}catch(e){}
@@ -674,13 +675,15 @@ if(p.currency&&p.currency!=="JPY")return Math.round(amt*(p.exchangeRate||150)/10
 return amt;
 }
 function scenNum(){return scenRate==="6"?6:scenRate==="5"?5:scenRate==="4"?4:scenRate==="1"?1:3;}
-function rateForPolicy(p){
-  // 変額系は運用シナリオ連動。それ以外は保険種類別の固定利率。
+function rateForPolicy(p,atAge){
+  // 想定運用率 − 費用控除率 = 正味率。変額系は運用シナリオ連動。払込満了後は控除を下げられる。
   var t=p.insType||"";
-  if(t.indexOf("変額")>=0)return scenNum();
-  var r=(rateByType&&rateByType[t]!==undefined)?rateByType[t]:(RATE_DEFAULT[t]!==undefined?RATE_DEFAULT[t]:1.5);
-  if(r==="scenario")return scenNum();
-  return +r||0;
+  var base;
+  if(t.indexOf("変額")>=0){base=scenNum();}
+  else{var r=(rateByType&&rateByType[t]!==undefined)?rateByType[t]:(RATE_DEFAULT[t]!==undefined?RATE_DEFAULT[t]:1.5);base=(r==="scenario")?scenNum():(+r||0);}
+  var fee=(+feeRate||0);
+  if(atAge!=null&&(+p.dlPayEnd)>0&&atAge>=(+p.dlPayEnd))fee=(+feeRateAfter||0);
+  var net=base-fee;return net>0?net:0;
 }
 function fvCalc(b,m,r,y){var rate=r/100/12,n=y*12;if(rate===0)return Math.round((b*10000+m*n)/10000);return Math.round((b*10000*Math.pow(1+rate,n)+m*((Math.pow(1+rate,n)-1)/rate))/10000);}
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
@@ -1919,6 +1922,43 @@ function scheduleChartRefresh(){
 clearTimeout(_chartRefreshTimer);
 _chartRefreshTimer=setTimeout(function(){if(currentTab==="assets"){try{render();}catch(e){}}},800);
 }
+function buildSettingsTab(){
+var cont=el("div","content");
+var al=state.ansinLine||{};
+// 費用控除率
+var fb=el("div");
+fb.appendChild(lbl("費用控除率（全期間・%）",inp("number",feeRate,function(v){feeRate=+v||0;saveState();render();})));
+fb.appendChild(lbl("払込満了後の費用控除率（%）",inp("number",feeRateAfter,function(v){feeRateAfter=+v||0;saveState();render();})));
+var fn=el("p");fn.style.cssText="font-size:12px;color:#8a8a8a;margin-top:6px;";
+fn.textContent="想定運用率からこの率を引いた『正味率』で計算します。例：想定6% − 費用控除1.5% = 正味4.5%。払込満了後は保険関係費が無くなるので控除を下げられます（0なら満了後は想定率そのまま）。変額・積立・一時払い・年金の増え方に効きます。";
+fb.appendChild(fn);
+cont.appendChild(sec("費用控除率（正味率の設定）",null,fb,true));
+// 運用シナリオ
+var sc=el("div");sc.style.cssText="display:flex;gap:6px;flex-wrap:wrap;";
+[["1","最低保証/1%"],["3","3%"],["4","4.5%"],["5","5%"],["6","6%"]].forEach(function(x){var b=el("button","btn");b.style.cssText="padding:5px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;background:"+(scenRate===x[0]?"#1a2744":"#fff")+";color:"+(scenRate===x[0]?"#fff":"#1a2744")+";";b.textContent=x[1];b.addEventListener("click",function(){scenRate=x[0];saveState();render();});sc.appendChild(b);});
+cont.appendChild(sec("運用シナリオ（変額・NISA等の想定運用率）",null,sc,true));
+// 保険種類別 想定運用率
+var types={};aPs().forEach(function(x){if(x.policy.insType)types[x.policy.insType]=true;});
+var tl=Object.keys(types);if(!tl.length)tl=["終身保険","個人年金保険","変額終身保険","養老保険","ドル建て災害終身保険"];
+var rb=el("div");
+tl.forEach(function(t){
+var row=el("div");row.style.cssText="display:flex;align-items:center;gap:10px;margin-bottom:6px;";
+var lab=el("span");lab.textContent=t;lab.style.cssText="width:210px;font-size:12px;color:#1a2744;";row.appendChild(lab);
+if(t.indexOf("変額")>=0){var sp=el("span");sp.textContent="運用シナリオに連動";sp.style.cssText="font-size:12px;color:#7c3aed;font-weight:600;";row.appendChild(sp);}
+else{var cur=(rateByType[t]!==undefined&&rateByType[t]!=="scenario")?rateByType[t]:(RATE_DEFAULT[t]!==undefined&&RATE_DEFAULT[t]!=="scenario"?RATE_DEFAULT[t]:1.5);var inb=inp("number",cur,function(v){rateByType[t]=(v===""?0:+v);saveState();});inb.style.cssText="width:80px;font-size:12px;padding:3px;text-align:right;";row.appendChild(inb);var pc=el("span");pc.textContent="％（想定）";pc.style.cssText="font-size:12px;color:#8a8a8a;";row.appendChild(pc);}
+rb.appendChild(row);
+});
+var rbn=el("p");rbn.style.cssText="font-size:12px;color:#8a8a8a;margin-top:6px;";rbn.textContent="保険種類ごとの想定運用率。ここから上の費用控除率を引いた正味率で計算します。変額系は運用シナリオに連動。";
+rb.appendChild(rbn);
+cont.appendChild(sec("保険種類別 想定運用率",null,rb,true));
+// 老後の安心ライン・評価年齢
+var rl=el("div");
+rl.appendChild(lbl("老後の安心ライン（評価年齢時点の目標総資産・万円）",inp("number",al.retire||"",function(v){if(!state.ansinLine)state.ansinLine={};state.ansinLine.retire=+v;saveState();render();})));
+rl.appendChild(lbl("評価年齢（資産を確認する年齢）",inp("number",evalAge||"",function(v){evalAge=+v;saveState();render();})));
+cont.appendChild(sec("老後の安心ライン・評価年齢",null,rl,true));
+return cont;
+}
+
 function buildAssetsTab(){
 var cont=el("div","content");
 var al=state.ansinLine||{};
@@ -1935,9 +1975,9 @@ var gy=aRef-curAge;
 var rVal=+(p.refundVal||0),rAge=+(p.refundAge||0);
 var _cYr=p.contractDate?new Date(p.contractDate).getFullYear():0;if(isNaN(_cYr))_cYr=0;var cy=_cYr?Math.max(0,(nowYr2+gy)-_cYr):0;
 if(rVal>0&&rAge>0){ if(aRef>=rAge)return {val:rVal,method:"返戻金"+rVal+"万"}; var yrs=Math.max(0,rAge-aRef); return {val:Math.round(rVal/Math.pow(1+scenR,yrs)),method:"返戻金"+rVal+"万("+rAge+"歳)を"+yrs+"年割戻し"}; }
-if(p.currentVal>0){var r0=(rateForPolicy(p)||0)/100;return {val:Math.round((+p.currentVal)*Math.pow(1+r0,Math.max(0,gy))),method:"積立金"+p.currentVal+"万×"+rateForPolicy(p)+"%"};}
+if(p.currentVal>0){var r0=(rateForPolicy(p,aRef)||0)/100;return {val:Math.round((+p.currentVal)*Math.pow(1+r0,Math.max(0,gy))),method:"積立金"+p.currentVal+"万×正味"+rateForPolicy(p,aRef)+"%"};}
 if(p.targetOn&&+p.targetBase>0){var tr=(+p.targetRate||0)/100;return {val:Math.round((+p.targetBase)*Math.pow(1+tr,cy)),method:"ターゲット型 元本"+(+p.targetBase)+"万×"+(+p.targetRate)+"%×"+cy+"年"};}
-if(polIsLump(p)&&+p.premAmount>0){var base=Math.round((+p.premAmount)/10000);var r=(rateForPolicy(p)||0)/100;return {val:Math.round(base*Math.pow(1+r,cy)),method:"一時払い元本"+base+"万×"+(rateForPolicy(p))+"%×"+cy+"年(固定利率)"};}
+if(polIsLump(p)&&+p.premAmount>0){var base=Math.round((+p.premAmount)/10000);var r=(rateForPolicy(p,aRef)||0)/100;return {val:Math.round(base*Math.pow(1+r,cy)),method:"一時払い元本"+base+"万×正味"+(rateForPolicy(p,aRef))+"%×"+cy+"年"};}
 if(rAge>0)return {val:0,method:"払込満了まで返戻金なし/未入力"};
 var _savKw=/(変額|年金|終身|養老|還付|リターンズ|ドル|債券|外貨|積立|アニュ)/;
 if(_savKw.test((p.insType||"")+(p.notes||""))){return {val:0,method:"貯蓄性だが還付金/積立金/年金が未入力（要設計書）"};}
@@ -2283,7 +2323,7 @@ var isPension=p.pensionStartAge>0&&p.annualPension>0;
 var payEnd=p.dlPayEnd>0?p.dlPayEnd:(p.pensionStartAge||65);
 if(isPension){
 if(ag<p.pensionStartAge){
-var rrP=rateForPolicy(p);
+var rrP=rateForPolicy(p,ag);
 var pe=p.dlPayEnd>0?p.dlPayEnd:p.pensionStartAge; // 払込満了
 var payYrs=Math.max(0,Math.min(ag,pe)-curAge); // 払込満了までの保険料拠出年数
 var valAtPay=fvCalc(p.currentVal||0,toM(p),rrP,payYrs); // 払込満了まで保険料込みで積立
@@ -3786,7 +3826,7 @@ window.location.href=window.location.href;
 /*削除:草刈復元*/
 hdr.appendChild(ioWrap);hdr.appendChild(custWrap);app.appendChild(hdr);
 var tabs=el("div","tabs");
-[["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["print","印刷"]].forEach(function(t){
+[["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
 var b=el("button","tab-btn"+(currentTab===t[0]?" active":""),t[1]);
 b.addEventListener("click",function(){currentTab=t[0];render();});tabs.appendChild(b);
 });
@@ -3800,6 +3840,7 @@ else if(currentTab==="proposal")app.appendChild(buildProposalTab());
 else if(currentTab==="compare")app.appendChild(buildCompareTab());
 else if(currentTab==="assets")app.appendChild(buildAssetsTab());
 else if(currentTab==="family")app.appendChild(buildFamilyTab());
+else if(currentTab==="settings")app.appendChild(buildSettingsTab());
 else if(currentTab==="print")app.appendChild(buildPrintTab());
 }catch(e){
 var errDiv=document.createElement("div");errDiv.style.cssText="padding:20px;color:#c0392b;font-size:13px;";

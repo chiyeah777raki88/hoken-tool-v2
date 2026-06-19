@@ -74,7 +74,13 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 #print-overlay input, #print-overlay select, #print-overlay textarea{ border:none !important; background:transparent !important; -webkit-appearance:none; appearance:none; padding:0 !important; color:#000 !important; }
 .printpage{ page-break-inside:auto; }
 #print-overlay table { page-break-inside: avoid; }
-@page { size: A4 landscape; margin: 6mm; }
+#print-overlay table{ width:100% !important; table-layout:fixed !important; }
+#print-overlay col{ width:auto !important; }
+#print-overlay .tw{ overflow:visible !important; }
+#print-overlay table.kanyu{ font-size:8px !important; }
+#print-overlay table.kanyu td, #print-overlay table.kanyu th{ padding:1px 2px !important; word-break:break-all; }
+#print-overlay .printpage{ width:auto !important; padding:4mm !important; }
+@page { size: A4 landscape; margin: 5mm; }
 }
 #print-area { display: none; }
 </style>
@@ -256,7 +262,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1700-印刷を作り替え:選んだタブ(加入一覧/保障グラフ/資産/提案)を1ページずつA4横で出力。各ページに顧客名・日付ヘッダ、操作系は印刷時非表示。版";
+var APP_VERSION="v2-0619-1715-印刷時に表をページ幅へ自動縮小(table-layout:fixed/width100%/列幅auto/小フォント)し横はみ出しの見切れを解消。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

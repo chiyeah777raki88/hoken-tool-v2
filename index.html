@@ -66,17 +66,14 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .cnote{padding:6px 12px;background:#fffde7;border-top:1px solid #ddd8cc;font-size:12px;color:#856404;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 @media print {
-* { visibility: hidden !important; }
-#print-overlay { display: block !important; position: static !important; width: auto !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-#print-overlay .printpage{ page-break-after: always; width:1560px !important; height:1090px !important; overflow:hidden !important; box-sizing:border-box !important; border:none !important; display:flex !important; gap:8px !important; }
-#print-overlay .printpage:last-child{ page-break-after: auto; }
-#print-overlay * { visibility: visible !important; }
-#print-overlay .no-print { display: none !important; }
-#print-overlay button{ display:none !important; }
-#print-overlay input, #print-overlay select, #print-overlay textarea{ border:none !important; background:transparent !important; -webkit-appearance:none; appearance:none; padding:0 !important; color:#000 !important; }
-#print-overlay .tw{ overflow:visible !important; }
-#print-overlay .printinner{ box-sizing:border-box; }
-@page { size: A3 landscape; margin: 6mm; }
+.hdr, .tabs, .ptabs, .poltabs, .no-print { display: none !important; }
+#app button { display: none !important; }
+#app input, #app select, #app textarea { border: none !important; background: transparent !important; -webkit-appearance: none; appearance: none; padding: 0 2px !important; color: #000 !important; }
+.tw { overflow: visible !important; }
+div[style*="overflow-x"] { overflow: visible !important; }
+table { page-break-inside: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+@page { size: A3 landscape; margin: 8mm; }
 }
 #print-area { display: none; }
 </style>
@@ -258,7 +255,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2000-印刷をA3横・2タブ並べ(各A4縦相当)に。横に2枚を読める大きさで配置。用紙A3指定。版";
+var APP_VERSION="v2-0619-2030-印刷を確実版(ライブ印刷)に:ボタンでそのタブに切替→画面のまま印刷。overlay再構築を廃止しグラフ・表の欠落を解消。A3横・用紙に合わせる推奨。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3151,21 +3148,18 @@ document.body.appendChild(ov);
 alert("Error: "+showErr.message);
 }
 }
-var psNote=el("p");psNote.style.cssText="font-size:13px;color:#1a2744;font-weight:600;margin-bottom:8px;";psNote.textContent="印刷するタブを選び、プレビューを開いてCtrl+Pで印刷（各タブ＝1ページ・A4横）。";
+var psNote=el("div");psNote.style.cssText="font-size:14px;line-height:1.9;color:#1a2744;margin-bottom:12px;";
+psNote.innerHTML="<b>印刷（確実版）</b><br>下のボタンを押すと、そのタブをそのまま印刷します（画面の表・グラフがそのまま出るので欠けません）。<br>印刷ダイアログで <b>用紙＝A3・向き＝横・倍率＝「用紙に合わせる(または縮小)」</b> を選ぶと全列1枚に収まります。";
 cont.appendChild(psNote);
-var cbW=el("div");cbW.style.cssText="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;";
-[["summary","加入一覧"],["graph","保障グラフ"],["assets","資産・老後"],["compare","提案(ビフォーアフター)"]].forEach(function(x){
-var lab=el("label");lab.style.cssText="font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;";
-var c=document.createElement("input");c.type="checkbox";c.checked=printSel[x[0]]!==false;
-c.addEventListener("change",function(){printSel[x[0]]=c.checked;});
-lab.appendChild(c);lab.appendChild(document.createTextNode(x[1]));cbW.appendChild(lab);
+var bw=el("div");bw.style.cssText="display:flex;flex-wrap:wrap;gap:10px;";
+[["summary","加入一覧"],["graph","保障グラフ"],["assets","資産・老後"],["compare","提案"]].forEach(function(x){
+var b=btn(x[1]+"を印刷","bn",function(){currentTab=x[0];render();setTimeout(function(){window.print();},700);});
+b.style.cssText="padding:12px 20px;font-size:14px;background:#1a2744;color:#fff;border-radius:6px;font-weight:700;";
+bw.appendChild(b);
 });
-cont.appendChild(cbW);
-var pbtn=btn("印刷プレビューを開く","bn",function(){showTabPrint();});
-pbtn.style.cssText="padding:11px 22px;font-size:14px;margin-bottom:10px;display:block;background:#1a2744;color:#fff;border-radius:6px;font-weight:700;";
-cont.appendChild(pbtn);
-var note=el("div");note.style.cssText="font-size:12px;color:#555;padding:8px;background:#f0f4ff;border-radius:4px;line-height:1.8;";
-note.innerHTML="選んだタブが1ページずつ表示されます。プレビュー上部の<b>🖨印刷</b>か<b>Ctrl+P</b>で印刷。<br>1ページに収まらない時は、加入一覧の<b>『その他の特約も表示』を閉じる</b>／不要な証券を外すと収まりやすくなります。";
+cont.appendChild(bw);
+var note=el("div");note.style.cssText="font-size:12px;color:#555;padding:8px;background:#f0f4ff;border-radius:4px;line-height:1.8;margin-top:10px;";
+note.innerHTML="※ ボタンを押すと自動でそのタブに切り替わり、印刷ダイアログが開きます（グラフ描画を待って約0.7秒後）。<br>※ 小さすぎる/入り切らない時は、加入一覧の『その他の特約』を閉じる・不要な証券を外すと余裕が出ます。<br>※ 1タブずつ印刷してください（印刷後は基準設定→印刷タブに戻って次を）。";
 cont.appendChild(note);
 return cont;
 }

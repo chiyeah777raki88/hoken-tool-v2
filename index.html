@@ -105,6 +105,12 @@ body.p_assets #app .g4 > * { flex: 1 1 0 !important; min-width: 0 !important; }
 body.p_assets #app .g4 label, body.p_assets #app .g4 .lbl { font-size: 9px !important; }
 /* 資産合計の3カードを半分の高さに */
 body.p_assets #app .g3 > div { padding: 2px 6px !important; }
+/* グラフ下の余白を詰める（コンテナを実際の描画高に合わせる） */
+body.p_assets #app .sim-wrap { height: 140px !important; margin-top: 4px !important; }
+body.p_assets #app .sim-wrap canvas { max-height: 132px !important; }
+/* NISA/iDeCoを横1行で */
+body.p_assets #app .ni-row { display: flex !important; flex-wrap: nowrap !important; gap: 10px !important; }
+body.p_assets #app .ni-row > * { flex: 1 1 0 !important; min-width: 0 !important; }
 /* 給付条件比較表を1枚に収める: 文字と余白を縮小 */
 body.pmatrix #print-area table { font-size: 8.5px !important; }
 body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.15 !important; }
@@ -290,7 +296,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2835-資産印刷:負債を横1行/合計カードを半分の高さ/フォント縮小/グラフ高さ低く。版";
+var APP_VERSION="v2-0619-2850-資産:NISA/iDeCo横1行/黄色囲みは全幅2行/前提を小さく/グラフ下の余白を詰める。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2197,8 +2203,8 @@ var addBtn3=btn("＋ "+label+"を追加","bg",function(){accounts.push({label:""
 var secBody=el("div");secBody.appendChild(wrap);secBody.appendChild(addBtn3);
 return sec(label+"（複数口座対応）",null,secBody);
 }
-var _nsec=buildAccountSection(nisaAccounts,"NISA","#c9a84c");_nsec.className+=" no-print";cont.appendChild(_nsec);
-var _isec=buildAccountSection(idecoAccounts,"iDeCo","#27ae60");_isec.className+=" no-print";cont.appendChild(_isec);
+var _nsec=buildAccountSection(nisaAccounts,"NISA","#c9a84c");var _isec=buildAccountSection(idecoAccounts,"iDeCo","#27ae60");
+var _niRow=el("div");_niRow.className="ni-row";_niRow.style.cssText="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;";_nsec.style.flex="1";_nsec.style.minWidth="280px";_isec.style.flex="1";_isec.style.minWidth="280px";_niRow.appendChild(_nsec);_niRow.appendChild(_isec);cont.appendChild(_niRow);
 var a=assetsData;
 function ua(f,v){a[f]=+v;saveState();}
 cont.appendChild(sec("預貯金・不動産・その他資産",null,grd("g4",[
@@ -2241,10 +2247,8 @@ bItems.forEach(function(b){var d=el("div");d.style.cssText="padding:8px 10px;bac
 tg.appendChild(bGrid);
 var retInp=el("div");retInp.style.cssText="min-width:170px;";
 retInp.appendChild(lbl("老後資金 安心ライン（万円）",inp("number",al.retire||"",function(v){uAl("retire",v);})));
-var infoRow=el("div");infoRow.style.cssText="display:flex;gap:12px;align-items:flex-start;margin-top:6px;flex-wrap:wrap;";
-dbgDiv.style.flex="1";dbgDiv.style.marginTop="0";
-infoRow.appendChild(dbgDiv);infoRow.appendChild(retInp);
-tg.appendChild(infoRow);
+tg.appendChild(dbgDiv);
+retInp.style.marginTop="6px";tg.appendChild(retInp);
 cont.appendChild(sec("資産合計・老後資金評価",null,[tg]));
 if(!state.goals)state.goals=[];
 var childRefs=[];
@@ -2499,7 +2503,7 @@ if(targetInfo&&targetInfo.length>0){
   });
 }
 var simC=document.createElement("canvas");simC.id="ac"+Date.now();
-var simW=el("div");simW.style.cssText="position:relative;height:200px;margin-top:8px;";simW.appendChild(simC);
+var simW=el("div");simW.className="sim-wrap";simW.style.cssText="position:relative;height:200px;margin-top:8px;";simW.appendChild(simC);
 var allKeys=["NISA","iDeCo"].concat(pProjs.map(function(x){return polLabel(x.policy);})).concat(["預貯金等"]);
 var defaultColors=["#c9a84c","#2ecc71","#8e44ad","#e74c3c","#e67e22","#1abc9c","#f39c12","#3498db","#e91e63","#795548","#607d8b","#f48fb1","#81d4fa","#8d6e63","#8bc34a"];
 var aColors=[];
@@ -2571,7 +2575,7 @@ cont.appendChild(sec("取り崩し予定・運用設定",null,[simTop,evNote,evR
 cont.appendChild(sec("資産推移シミュレーション",null,[simW].filter(function(x){return x;})));
 // ===== シミュレーションの前提＋商品別内訳（印刷にも掲載） =====
 var asmWrap=el("div");
-var asm=el("ul");asm.style.cssText="margin:0 0 10px;padding-left:18px;font-size:12px;line-height:1.7;color:#333;";
+var asm=el("ul");asm.style.cssText="margin:0 0 6px;padding-left:16px;font-size:10px;line-height:1.3;color:#666;";
 function _li(h){var x=el("li");x.innerHTML=h;asm.appendChild(x);}
 _li("運用シナリオ：<b>年"+scenRate+"％</b>の<b>複利</b>で計算（変額・運用連動型に適用）。");
 _li("取り崩し（老後）：評価年齢 <b>"+(evalAge||65)+"歳</b>、取り崩し期の運用利回り <b>年"+(drawRate||0)+"％</b>。");

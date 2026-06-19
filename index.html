@@ -82,13 +82,12 @@ body.psplit .hdr{ display:none !important; }
 #print-area .no-print{ display:none !important; }
 /* グラフ等が用紙の境目で見切れないようにする */
 canvas, .radar-card, .ref-table-wrap, .chart-block { page-break-inside: avoid; break-inside: avoid; }
-/* 保障グラフ印刷を1枚に収める: 参考データと補足注は隠し、グラフ高さを縮め、レーダーを横並びに */
-body.p_graph .ref-table-wrap { display: none !important; }
+/* 保障グラフ印刷を1枚(縦)に収める: 補足注は隠し、グラフ高さを縮め、レーダーを横並び・縮小 */
 body.p_graph .gnote { display: none !important; }
 body.p_graph .gchart { height: 150px !important; }
-body.p_graph .radar-col { display: flex !important; flex-direction: row !important; gap: 10px !important; min-width: 0 !important; }
+body.p_graph .radar-col { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 10px !important; }
 body.p_graph .radar-card { flex: 1 1 0 !important; min-width: 0 !important; margin-bottom: 0 !important; }
-body.p_graph .radarwrap { height: 190px !important; }
+body.p_graph .radar-card canvas { width: 235px !important; height: 235px !important; }
 /* グラフ・資産印刷時(body.pbig)は文字を一段大きく */
 body.pbig #app, body.pbig #app * { font-size: 13.5px; }
 body.pbig #app .pbig-title { font-size: 16px !important; }
@@ -274,7 +273,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2555-グラフ:家族年齢帯(本人重複行)削除/途切れ注釈削除/「保険料合計に含める」行は印刷時のみ非表示。版";
+var APP_VERSION="v2-0619-2610-グラフ:参考データ削除/レーダーを固定サイズ横並び(重なり解消)/印刷は縦1枚に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1893,7 +1892,7 @@ setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(c2,{type:"bar
 if(!state.radarScores)state.radarScores={death:3,medical:3,cancer:3,hb:3,care:3,saving:3};
 if(!state.premScores)state.premScores={raise:3,exempt:3,oldage:3,child:3,budget:3};
 function radarCard(title,axes,sc,color,note){
-var box=el("div");box.className="radar-card";box.style.cssText="background:#fff;border:1px solid #ddd8cc;border-radius:8px;padding:10px;margin-bottom:12px;";
+var box=el("div");box.className="radar-card";box.style.cssText="flex:1;min-width:280px;max-width:430px;background:#fff;border:1px solid #ddd8cc;border-radius:8px;padding:10px;margin-bottom:12px;";
 var ht=el("div");ht.style.cssText="font-size:12px;font-weight:700;color:#1a2744;margin-bottom:8px;";ht.textContent=title;box.appendChild(ht);
 var row=el("div");row.style.cssText="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;";
 axes.forEach(function(ax){
@@ -1904,34 +1903,15 @@ ri.addEventListener("change",function(){sc[ax[0]]=Math.max(0,Math.min(5,+this.va
 w.appendChild(l);w.appendChild(ri);row.appendChild(w);
 });
 box.appendChild(row);
-var cv=document.createElement("canvas");cv.id="rad"+Math.random().toString(36).slice(2);var cw=el("div");cw.className="radarwrap";cw.style.cssText="position:relative;height:260px;";cw.appendChild(cv);box.appendChild(cw);
+var cv=document.createElement("canvas");cv.id="rad"+Math.random().toString(36).slice(2);cv.width=300;cv.height=300;cv.style.cssText="max-width:100%;height:auto;display:inline-block;";var cw=el("div");cw.className="radarwrap";cw.style.cssText="position:relative;text-align:center;";cw.appendChild(cv);box.appendChild(cw);
 var nt=el("p");nt.style.cssText="font-size:11px;color:#8a8a8a;margin-top:4px;";nt.textContent=note;box.appendChild(nt);
-setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cv,{type:"radar",data:{labels:axes.map(function(a){return a[1];}),datasets:[{data:axes.map(function(a){return sc[a[0]]||0;}),backgroundColor:color+"40",borderColor:color,borderWidth:2,pointBackgroundColor:"#1a2744",pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:11}},pointLabels:{font:{size:13}}}},plugins:{legend:{display:false}}}});}catch(e){}}},150);
+setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cv,{type:"radar",data:{labels:axes.map(function(a){return a[1];}),datasets:[{data:axes.map(function(a){return sc[a[0]]||0;}),backgroundColor:color+"40",borderColor:color,borderWidth:2,pointBackgroundColor:"#1a2744",pointRadius:3}]},options:{responsive:false,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10}},pointLabels:{font:{size:12}}}},plugins:{legend:{display:false}}}});}catch(e){}}},150);
 return box;
 }
-var grWrap=el("div");grWrap.style.cssText="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;";
-var grLeft=el("div");grLeft.className="radar-col";grLeft.style.cssText="flex:1;min-width:300px;";
-var grRight=el("div");grRight.style.cssText="flex:1;min-width:280px;";
-grLeft.appendChild(radarCard("保障バランス（5点満点・主観）",[["death","死亡保障"],["medical","入院・医療"],["cancer","がん"],["hb","心臓・脳(3大)"],["care","介護"],["saving","貯蓄性"]],state.radarScores,"#c9a84c","充足度を0〜5点。満点に近い大きな六角形ほどバランス良。凹み＝弱点。"));
-grLeft.appendChild(radarCard("保険料の安心度（払い続けられる？）",[["raise","値上がりしにくさ"],["exempt","病気時の免除"],["oldage","老後の払込負担(軽さ)"],["valid","保険料の妥当性(高すぎない)"],["budget","家計の余裕"],["flex","見直し・解約のしやすさ"]],state.premScores,"#1D9E75","『安心なほど高得点』で0〜5点。値上がり・大病時の払込・老後の負担・保険料の妥当性・見直しやすさを主観で。"));
-var refWrap=el("div");refWrap.className="ref-table-wrap";
-function refTbl(title,rows){
-var box=el("div");box.style.cssText="margin-bottom:12px;";
-var h=el("div");h.style.cssText="font-size:12px;font-weight:700;color:#1a2744;background:#eef3fb;padding:5px 8px;border-radius:4px 4px 0 0;";h.textContent=title;box.appendChild(h);
-var t=el("table");t.style.cssText="width:100%;border-collapse:collapse;font-size:12px;";
-rows.forEach(function(r){var tr=el("tr");var td1=el("td",null,r[0]);td1.style.cssText="border:1px solid #e3e3e3;padding:4px 8px;background:#fafafa;width:42%;vertical-align:top;";var td2=el("td",null,r[1]);td2.style.cssText="border:1px solid #e3e3e3;padding:4px 8px;";tr.appendChild(td1);tr.appendChild(td2);t.appendChild(tr);});
-box.appendChild(t);return box;
-}
-refWrap.appendChild(refTbl("遺族年金（目安・概算）",[["遺族基礎年金(定額)","約816,000円/年(月 約68,000円)"],["子の加算 第1・2子","各 約234,800円/年"],["子の加算 第3子以降","各 約78,300円/年"],["遺族厚生年金","亡くなった方の老齢厚生年金(報酬比例)の3/4"],["中高齢寡婦加算","約612,000円/年(40〜65歳・要件あり)"]]));
-refWrap.appendChild(refTbl("障害年金（目安・概算）",[["障害基礎年金 1級","約1,020,000円/年＋子の加算"],["障害基礎年金 2級","約816,000円/年＋子の加算"],["子の加算","第1・2子 各約234,800円/年、第3子〜各約78,300円/年"],["障害厚生年金 1級","報酬比例×1.25＋配偶者加給(約234,800円)"],["障害厚生年金 2級","報酬比例＋配偶者加給"],["障害厚生年金 3級","報酬比例のみ(最低保証 約612,000円/年)"]]));
-refWrap.appendChild(refTbl("高額療養費 70歳未満（年収高い順・1か月上限/多数該当4回目〜）",[["約1,160万〜(区分ア)","252,600円＋(医療費-842,000)×1% / 多数 140,100円"],["約770〜1,160万(イ)","167,400円＋(医療費-558,000)×1% / 多数 93,000円"],["約370〜770万(ウ)","80,100円＋(医療費-267,000)×1% / 多数 44,400円"],["〜約370万(エ)","57,600円 / 多数 44,400円"],["住民税非課税(オ)","35,400円 / 多数 24,600円"]]));
-refWrap.appendChild(refTbl("高額療養費 70歳以上（外来/入院・1か月上限）",[["現役並み(約370万〜)","70歳未満のア〜ウと同じ区分"],["一般(〜約370万)","外来 18,000円(年144,000円上限)/入院 57,600円(多数44,400円)"],["低所得II(非課税)","外来 8,000円/入院 24,600円"],["低所得I","外来 8,000円/入院 15,000円"]]));
-refWrap.appendChild(refTbl("公的年金 老齢（国民/厚生・概算）",[["国民年金 老齢基礎(満額)","約816,000円/年(月 約68,000円)※40年納付"],["会社員 年収300万・40年","合計 月 約12万円(基礎＋厚生)"],["会社員 年収500万・40年","合計 月 約16万円"],["会社員 年収700万・40年","合計 月 約20万円"],["受給開始","原則65歳(繰上げ60〜/繰下げ〜75歳)"]]));
-var rfn=el("p");rfn.style.cssText="font-size:11px;color:#c0392b;margin-top:4px;";rfn.textContent="※すべて概算の目安です。子の加算・各上限額・年金額は制度改定で毎年変わります。提案時は最新の公的金額を必ずご確認ください。";
-refWrap.appendChild(rfn);
-grRight.appendChild(refTbl?refWrap:refWrap);
-grWrap.appendChild(grLeft);grWrap.appendChild(grRight);
-cont.appendChild(sec("保障バランス＆参考データ",null,grWrap,true));
+var grWrap=el("div");grWrap.className="radar-col";grWrap.style.cssText="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;justify-content:center;";
+grWrap.appendChild(radarCard("保障バランス（5点満点・主観）",[["death","死亡保障"],["medical","入院・医療"],["cancer","がん"],["hb","心臓・脳(3大)"],["care","介護"],["saving","貯蓄性"]],state.radarScores,"#c9a84c","充足度を0〜5点。満点に近い大きな六角形ほどバランス良。凹み＝弱点。"));
+grWrap.appendChild(radarCard("保険料の安心度（払い続けられる？）",[["raise","値上がりしにくさ"],["exempt","病気時の免除"],["oldage","老後の払込負担(軽さ)"],["valid","保険料の妥当性(高すぎない)"],["budget","家計の余裕"],["flex","見直し・解約のしやすさ"]],state.premScores,"#1D9E75","『安心なほど高得点』で0〜5点。値上がり・大病時の払込・老後の負担・保険料の妥当性・見直しやすさを主観で。"));
+cont.appendChild(sec("保障バランス",null,grWrap,true));
 return cont;
 }
 var _chartRefreshTimer=null;
@@ -3239,7 +3219,7 @@ bw1.appendChild(bAll);bw1.appendChild(bM);cont.appendChild(bw1);
 var sp2=el("div");sp2.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:8px 0 4px;";sp2.textContent="② その他のタブ（A4横1枚・画面のまま）";cont.appendChild(sp2);
 var bw=el("div");bw.style.cssText="display:flex;flex-wrap:wrap;gap:10px;";
 [["graph","保障グラフ"],["assets","資産・老後"],["compare","提案"]].forEach(function(x){
-var b=btn(x[1]+"を印刷","bn",function(){setPageOrient(x[0]==="assets"?"portrait":"landscape");currentTab=x[0];render();var _big=(x[0]==="graph"||x[0]==="assets");if(_big)document.body.classList.add("pbig");document.body.classList.add("p_"+x[0]);setTimeout(function(){var _ot=document.title;document.title=printName(x[1]);window.print();setTimeout(function(){document.title=_ot;if(_big)document.body.classList.remove("pbig");document.body.classList.remove("p_"+x[0]);},600);},800);});
+var b=btn(x[1]+"を印刷","bn",function(){setPageOrient((x[0]==="assets"||x[0]==="graph")?"portrait":"landscape");currentTab=x[0];render();var _big=(x[0]==="graph"||x[0]==="assets");if(_big)document.body.classList.add("pbig");document.body.classList.add("p_"+x[0]);setTimeout(function(){var _ot=document.title;document.title=printName(x[1]);window.print();setTimeout(function(){document.title=_ot;if(_big)document.body.classList.remove("pbig");document.body.classList.remove("p_"+x[0]);},600);},800);});
 b.style.cssText="padding:12px 18px;font-size:14px;background:#475067;color:#fff;border-radius:6px;font-weight:700;";
 bw.appendChild(b);
 });

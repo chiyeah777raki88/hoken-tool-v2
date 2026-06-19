@@ -276,7 +276,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2720-資産:シミュ前提(年%複利/費用控除/為替注記)+商品別内訳テーブル(通貨/正味利率/根拠/受取)を追加。版";
+var APP_VERSION="v2-0619-2735-資産:費用控除の前提行と正味利率列を削除/内訳を商品×年齢の予測テーブル(何歳でいくら)に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2532,28 +2532,30 @@ var asmWrap=el("div");
 var asm=el("ul");asm.style.cssText="margin:0 0 10px;padding-left:18px;font-size:12px;line-height:1.7;color:#333;";
 function _li(h){var x=el("li");x.innerHTML=h;asm.appendChild(x);}
 _li("運用シナリオ：<b>年"+scenRate+"％</b>の<b>複利</b>で計算（変額・運用連動型に適用）。");
-_li("保険関係費の控除：払込期間中は <b>"+feeRate+"％</b>、払込満了後は <b>"+feeRateAfter+"％</b> を想定運用率から差し引いた<b>正味率</b>で計算。");
 _li("取り崩し（老後）：評価年齢 <b>"+(evalAge||65)+"歳</b>、取り崩し期の運用利回り <b>年"+(drawRate||0)+"％</b>。");
 _li("外貨建て（米ドル・豪ドル建債券など）：受取額は契約通貨の予定額を入力為替レートで円換算。<b>為替および債券利率の変動は織り込んでいません</b>（円高・円安や利率改定で実際の受取額は増減します）。");
 _li("解約返戻金・積立金・年金額は設計書の入力値を基に算定。未入力の項目は0として扱います。");
 asmWrap.appendChild(asm);
-// 商品別内訳テーブル
+// 商品別 年齢別予測テーブル（どの商品が何歳でいくら）
+// 年齢の刻みは本人の年齢と余白に合わせてざっくり自動調整
+var _cand=[60,65,70,75,80,85,90].filter(function(a){return a>curAge+1;});
+while(_cand.length>5){_cand=_cand.filter(function(a,ii){return ii%2===0;});}
+var ageCols=[curAge].concat(_cand);
 var pt=el("table");pt.style.cssText="width:100%;border-collapse:collapse;font-size:12px;";
-var thr=el("tr");["商品","区分","通貨","正味想定利率","現在価値","受取（年金・還付）"].forEach(function(h){var th=el("th",null,h);th.style.cssText="border:1px solid #d8d8d8;background:#eef3fb;padding:3px 6px;text-align:left;font-size:11px;color:#1a2744;";thr.appendChild(th);});pt.appendChild(thr);
+var thr=el("tr");
+var thN=el("th",null,"商品");thN.style.cssText="border:1px solid #d8d8d8;background:#eef3fb;padding:3px 6px;text-align:left;font-size:11px;color:#1a2744;";thr.appendChild(thN);
+ageCols.forEach(function(ag,gi){var th=el("th",null,(gi===0?"現在("+ag+"歳)":ag+"歳"));th.style.cssText="border:1px solid #d8d8d8;background:#eef3fb;padding:3px 6px;text-align:right;font-size:11px;color:#1a2744;";thr.appendChild(th);});
+var thR=el("th",null,"受取（年金・還付）");thR.style.cssText="border:1px solid #d8d8d8;background:#eef3fb;padding:3px 6px;text-align:left;font-size:11px;color:#1a2744;";thr.appendChild(thR);
+pt.appendChild(thr);
 pProjs.forEach(function(x){var p=x.policy;var tr=el("tr");
 function _td(h,al){var td=el("td");td.innerHTML=h;td.style.cssText="border:1px solid #e3e3e3;padding:3px 6px;vertical-align:top;"+(al?"text-align:"+al+";":"");return td;}
-var cur=(p.currency&&p.currency!=="JPY")?(p.currency+"建"):"円建";
-var nr=rateForPolicy(p,curAge);var nrTxt=(nr||nr===0)?(nr+"%"):"—";
-var cv=polCurVal(p);
+var cur=(p.currency&&p.currency!=="JPY")?(p.currency+"建"):"";
+tr.appendChild(_td("<b>"+cN(p).replace("生命","")+"</b> <span style='color:#8a8a8a;font-size:10px;'>"+(isSavings(p)?"貯蓄性":"保障性")+(cur?"・"+cur:"")+"</span>"));
+ageCols.forEach(function(ag){var v=polCurVal(p,ag);tr.appendChild(_td(v.val>0?v.val.toLocaleString()+"万":"—","right"));});
 var recv="";
-if(+p.annualPension>0&&+p.pensionStartAge>0){var jp=toJPY(p,p.annualPension);recv+="年金 "+(+p.annualPension).toLocaleString()+(cur==="円建"?"万":p.currency)+"/年"+(cur!=="円建"?"(≈"+jp.toLocaleString()+"万)":"")+"（"+p.pensionStartAge+"歳〜"+(p.pensionYears>0?p.pensionYears+"年":"")+"）";}
+if(+p.annualPension>0&&+p.pensionStartAge>0){var jp=toJPY(p,p.annualPension);recv+="年金 "+(+p.annualPension).toLocaleString()+(cur?p.currency:"万")+"/年"+(cur?"(≈"+jp.toLocaleString()+"万)":"")+"（"+p.pensionStartAge+"歳〜"+(p.pensionYears>0?p.pensionYears+"年":"")+"）";}
 if(+p.refundVal>0&&+p.refundAge>0){recv+=(recv?"<br>":"")+"還付 "+(+p.refundVal).toLocaleString()+"万（"+p.refundAge+"歳）";}
 if(!recv)recv="—";
-tr.appendChild(_td("<b>"+cN(p).replace("生命","")+"</b><br><span style='color:#8a8a8a;font-size:11px;'>"+(p.insType||"")+"</span>"));
-tr.appendChild(_td(isSavings(p)?"貯蓄性":"保障性"));
-tr.appendChild(_td(cur));
-tr.appendChild(_td(nrTxt,"right"));
-tr.appendChild(_td((cv.val>0?cv.val.toLocaleString()+"万":"—")+(cv.method?"<br><span style='color:#999;font-size:10px;'>"+cv.method+"</span>":""),"right"));
 tr.appendChild(_td(recv));
 pt.appendChild(tr);});
 cont.appendChild(sec("シミュレーションの前提・商品別内訳",null,[asmWrap,pt]));

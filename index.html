@@ -260,7 +260,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2130-印刷/PDF保存名を「顧客名様_セクション_日付」に自動設定(上書き固定を解消)。版";
+var APP_VERSION="v2-0619-2200-印刷直前に全Chartを再描画(beforeprint)し、六角形レーダー・棒グラフが印刷で空白になる問題を解消。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3444,6 +3444,7 @@ rebuild();
 return wrap;
 }
 var _resizeTimer=null;
+window.addEventListener("beforeprint",function(){try{if(window.Chart){var _ci=Chart.instances||{};Object.keys(_ci).forEach(function(k){try{_ci[k].resize();_ci[k].update("none");}catch(e){}});}}catch(e){}});
 window.addEventListener("resize",function(){
 clearTimeout(_resizeTimer);
 _resizeTimer=setTimeout(function(){if(currentTab==="graph"||currentTab==="assets"){try{render();}catch(e){}}},600);

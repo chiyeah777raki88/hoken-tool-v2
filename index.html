@@ -267,7 +267,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2455-印刷:同期不可バナー削除/グラフ情報バー非表示/お金マーク等の色を印刷で保持(color-adjust)/グラフ見切れ防止/グラフ・資産の文字拡大。版";
+var APP_VERSION="v2-0619-2510-お金マークを絵文字💰に変更(フォント不要で印刷も表示)/家族年齢は本人のみ表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1767,7 +1767,7 @@ var bagBand=el("div");bagBand.style.cssText="position:relative;height:58px;borde
 var bagLbl=el("div");bagLbl.style.cssText="position:absolute;left:2px;top:2px;font-size:11px;color:#999;";bagLbl.textContent="祝金・満期・還付";bagBand.appendChild(bagLbl);
 events.forEach(function(e){if(e.ax<minAge||e.ax>maxAge)return;var past=e.ax<baseAge;var sz=e.big?38:26,fs=e.big?20:14;
 var d=el("div");d.style.cssText="position:absolute;left:"+pct(e.ax)+"%;top:"+(e.big?6:16)+"px;transform:translateX(-50%);text-align:center;opacity:"+(past?"0.45":"1")+";";
-d.innerHTML="<div style='width:"+sz+"px;height:"+sz+"px;border-radius:50%;background:"+e.c+";display:flex;align-items:center;justify-content:center;margin:auto;'><i class='ti ti-moneybag' style='color:#fff;font-size:"+fs+"px;'></i></div><div style='font-size:11px;color:"+e.c+";font-weight:500;'>"+e.amt+"万"+(past?"<span style=\"color:#999;\">済</span>":"")+"</div>";
+d.innerHTML="<div style='width:"+sz+"px;height:"+sz+"px;border-radius:50%;background:"+e.c+";display:flex;align-items:center;justify-content:center;margin:auto;'><span style='font-size:"+fs+"px;line-height:1;'>\uD83D\uDCB0</span></div><div style='font-size:11px;color:"+e.c+";font-weight:500;'>"+e.amt+"万"+(past?"<span style=\"color:#999;\">済</span>":"")+"</div>";
 bagBand.appendChild(d);});
 plot.appendChild(bagBand);
 
@@ -1788,7 +1788,7 @@ plot.appendChild(barsWrap);
 // --- 家族年齢帯 ---
 if(tlFamShow){var famBand=el("div");famBand.style.cssText="position:relative;background:#f6f8fb;border-radius:6px;padding:5px 0 5px 0;margin-top:4px;";
 var grid=[];for(var ga=gridStart();ga<=maxAge;ga+=10)grid.push(ga);
-fam.forEach(function(m){var fr=el("div");fr.style.cssText="position:relative;height:16px;font-size:11px;";
+fam.filter(function(m){return m.relation==="本人";}).forEach(function(m){var fr=el("div");fr.style.cssText="position:relative;height:16px;font-size:11px;";
 var rl=el("span");rl.style.cssText="position:absolute;left:4px;color:#1a2744;font-weight:600;background:#f6f8fb;padding-right:3px;z-index:2;";rl.textContent=(m.relation||m.name||"")+" "+aNow(m);fr.appendChild(rl);
 grid.forEach(function(ga){var fa=aNow(m)+(ga-baseAge);if(fa<0)return;var sp=el("span");sp.style.cssText="position:absolute;left:"+pct(ga)+"%;transform:translateX(-50%);color:#475067;";sp.textContent=fa;fr.appendChild(sp);});
 famBand.appendChild(fr);});

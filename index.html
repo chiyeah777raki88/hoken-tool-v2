@@ -68,7 +68,7 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 @media print {
 * { visibility: hidden !important; }
 #print-overlay { display: block !important; position: static !important; width: auto !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-#print-overlay .printpage{ page-break-after: always; width:1077px !important; height:744px !important; overflow:hidden !important; box-sizing:border-box !important; border:none !important; }
+#print-overlay .printpage{ page-break-after: always; width:1077px !important; height:744px !important; overflow:hidden !important; box-sizing:border-box !important; border:none !important; display:flex !important; gap:6px !important; }
 #print-overlay .printpage:last-child{ page-break-after: auto; }
 #print-overlay * { visibility: visible !important; }
 #print-overlay .no-print { display: none !important; }
@@ -258,7 +258,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1920-印刷:横スクロール枠で6社以降が切れる不具合を修正(全列を展開して全幅で縮小)。A4横に。版";
+var APP_VERSION="v2-0619-1940-印刷を2up(横に2タブ並べ)に。欠落原因(空表/列切れ)は修正済みのまま全列展開→縮小で全部表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2869,20 +2869,25 @@ if(printSel.graph)pages.push(["保障グラフ",buildGraphTab]);
 if(printSel.assets)pages.push(["資産・老後シミュレーション",buildAssetsTab]);
 if(printSel.compare)pages.push(["提案（ビフォーアフター）",buildCompareTab]);
 var _sq=[];
-pages.forEach(function(pg,i){
-var page=el("div");page.className="printpage";page.style.cssText="width:1077px;height:744px;overflow:hidden;margin:0 auto 12px;background:#fff;border:1px solid #ccc;box-sizing:border-box;";
-var inner=el("div");inner.className="printinner";inner.style.cssText="transform-origin:top left;width:1040px;padding:8px;box-sizing:border-box;";
-var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
-var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(i+1)+". "+pg[0];
-var h2=el("span");h2.style.cssText="font-size:11px;color:#555;";h2.textContent=cust+" 様　"+ymd;
+for(var pidx=0;pidx<pages.length;pidx+=2){
+var sheet=el("div");sheet.className="printpage";sheet.style.cssText="width:1077px;height:744px;overflow:hidden;margin:0 auto 12px;background:#fff;border:1px solid #ccc;box-sizing:border-box;display:flex;gap:6px;";
+[pages[pidx],pages[pidx+1]].forEach(function(pg,j){
+if(!pg){var ph=el("div");ph.style.cssText="width:50%;";sheet.appendChild(ph);return;}
+var panel=el("div");panel.style.cssText="width:50%;height:100%;overflow:hidden;box-sizing:border-box;"+(j===0?"border-right:1px solid #eee;":"");
+var inner=el("div");inner.className="printinner";inner.style.cssText="transform-origin:top left;width:524px;padding:6px;box-sizing:border-box;";
+var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:3px;margin-bottom:6px;";
+var h1=el("span");h1.style.cssText="font-size:13px;font-weight:700;color:#1a2744;";h1.textContent=(pidx+j+1)+". "+pg[0];
+var h2=el("span");h2.style.cssText="font-size:10px;color:#555;";h2.textContent=cust+" 様　"+ymd;
 hd.appendChild(h1);hd.appendChild(h2);inner.appendChild(hd);
 try{inner.appendChild(pg[1]());}catch(e){var er=el("div");er.style.color="#c0392b";er.textContent="表示エラー: "+e.message;inner.appendChild(er);}
-page.appendChild(inner);ov.appendChild(page);_sq.push({n:inner});
+panel.appendChild(inner);sheet.appendChild(panel);_sq.push({n:inner});
 });
+ov.appendChild(sheet);
+}
 document.body.appendChild(ov);
 function _doScale(){_sq.forEach(function(o){
 o.n.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll")e2.style.overflow="visible";}catch(_e){}});
-var h=o.n.scrollHeight,w=o.n.scrollWidth;var sc=Math.min(1040/w,712/h,1);o.n.style.transform=(sc<1?"scale("+sc+")":"none");});}
+var h=o.n.scrollHeight,w=o.n.scrollWidth;var sc=Math.min(512/w,706/h,1);o.n.style.transform=(sc<1?"scale("+sc+")":"none");});}
 setTimeout(_doScale,350);setTimeout(_doScale,1000);
 }
 function buildPrintTab(){

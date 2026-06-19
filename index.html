@@ -274,7 +274,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2540-貯蓄性は斜め線パターン/年金もお金マーク/保障グラフ印刷は参考データを外しレーダー横並びで1枚化。版";
+var APP_VERSION="v2-0619-2555-グラフ:家族年齢帯(本人重複行)削除/途切れ注釈削除/「保険料合計に含める」行は印刷時のみ非表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1753,17 +1753,14 @@ var infoR=el("span");infoR.innerHTML="選択中の保険料合計 <b style='colo
 info.appendChild(infoL);info.appendChild(infoR);wrap.appendChild(info);
 
 // ===== チェック =====
-var cbWrap=el("div");cbWrap.style.cssText="font-size:12px;color:#475067;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;";
+var cbWrap=el("div");cbWrap.className="no-print";cbWrap.style.cssText="font-size:12px;color:#475067;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;";
 var cbLbl=el("span");cbLbl.textContent="保険料合計に含める：";cbWrap.appendChild(cbLbl);
 pairs.forEach(function(x,i){var p=x.policy;var lab=el("label");lab.style.cssText="cursor:pointer;display:inline-flex;align-items:center;gap:2px;";
 var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!tlPremSel[p.id];
 cb.addEventListener("change",function(){tlPremSel[p.id]=cb.checked;render();});
 var dot=el("span");dot.style.cssText="display:inline-block;width:9px;height:9px;border-radius:50%;background:"+colOf(p,i)+";";
 lab.appendChild(cb);lab.appendChild(dot);lab.appendChild(document.createTextNode(String.fromCharCode(65+i)+" "+shortN(p)));cbWrap.appendChild(lab);});
-var famLab=el("label");famLab.style.cssText="cursor:pointer;margin-left:auto;";
-var famCb=document.createElement("input");famCb.type="checkbox";famCb.checked=tlFamShow;
-famCb.addEventListener("change",function(){tlFamShow=famCb.checked;render();});
-famLab.appendChild(famCb);famLab.appendChild(document.createTextNode(" 家族の年齢を表示"));cbWrap.appendChild(famLab);
+// 家族年齢トグルは削除
 wrap.appendChild(cbWrap);
 
 // ===== プロット =====
@@ -1797,13 +1794,7 @@ barsWrap.appendChild(row);});
 plot.appendChild(barsWrap);
 
 // --- 家族年齢帯 ---
-if(tlFamShow){var famBand=el("div");famBand.style.cssText="position:relative;background:#f6f8fb;border-radius:6px;padding:5px 0 5px 0;margin-top:4px;";
-var grid=[];for(var ga=gridStart();ga<=maxAge;ga+=10)grid.push(ga);
-fam.filter(function(m){return m.relation==="本人";}).forEach(function(m){var fr=el("div");fr.style.cssText="position:relative;height:16px;font-size:11px;";
-var rl=el("span");rl.style.cssText="position:absolute;left:4px;color:#1a2744;font-weight:600;background:#f6f8fb;padding-right:3px;z-index:2;";rl.textContent=(m.relation||m.name||"")+" "+aNow(m);fr.appendChild(rl);
-grid.forEach(function(ga){var fa=aNow(m)+(ga-baseAge);if(fa<0)return;var sp=el("span");sp.style.cssText="position:absolute;left:"+pct(ga)+"%;transform:translateX(-50%);color:#475067;";sp.textContent=fa;fr.appendChild(sp);});
-famBand.appendChild(fr);});
-plot.appendChild(famBand);}
+// 家族年齢帯は削除（年齢軸と重複するため）
 
 // --- 年齢軸 ---
 var axis=el("div");axis.style.cssText="position:relative;height:16px;margin-top:4px;font-size:11px;color:#999;";
@@ -1820,7 +1811,7 @@ plot.addEventListener("mouseleave",function(){cur.style.opacity="0";infoL.innerH
 wrap.appendChild(plot);
 
 // --- 途切れ警告 ---
-if(termNotes.length){var warn=el("div");warn.style.cssText="margin-top:10px;background:#fdecea;border:1px solid #f5b7b1;border-radius:6px;padding:7px 10px;font-size:12px;color:#922b21;";warn.innerHTML="<b>⚠ 保障が途切れる時期：</b> "+termNotes.join(" ／ ")+"　— この後の備えを検討しましょう。";wrap.appendChild(warn);}
+// 「保障が途切れる時期」注釈は削除
 return wrap;
 }
 

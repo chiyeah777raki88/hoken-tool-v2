@@ -91,6 +91,9 @@ body.p_graph .radar-card canvas { width: 235px !important; height: 235px !import
 /* グラフ・資産印刷時(body.pbig)は文字を一段大きく */
 body.pbig #app, body.pbig #app * { font-size: 13.5px; }
 body.pbig #app .pbig-title { font-size: 16px !important; }
+/* 給付条件比較表を1枚に収める: 文字と余白を縮小 */
+body.pmatrix #print-area table { font-size: 8.5px !important; }
+body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.15 !important; }
 @page { size: A4 landscape; margin: 8mm; }
 }
 #print-area { display: none; }
@@ -273,7 +276,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2645-家族年齢を表示トグル追加(既定OFF・本人以外を表示)。版";
+var APP_VERSION="v2-0619-2700-給付条件比較表を印刷時に縮小し1枚に収める。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2961,8 +2964,8 @@ var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=((mm&&mm.name)||"")+" 様　"+ymd;
 hd.appendChild(h1);hd.appendChild(h2);pa.appendChild(hd);
 try{pa.appendChild(buildBigDiseaseMatrix(aPs().map(function(x){return x.policy;})));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pa.appendChild(er);}
-document.body.classList.add("psplit");setPageOrient("landscape");var _ot=document.title;document.title=printName("給付条件比較");
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},350);
+document.body.classList.add("psplit","pmatrix");setPageOrient("landscape");var _ot=document.title;document.title=printName("給付条件比較");
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pmatrix");pa.innerHTML="";document.title=_ot;},400);},350);
 }
 function buildPrintTab(){
 var cont=el("div","content");

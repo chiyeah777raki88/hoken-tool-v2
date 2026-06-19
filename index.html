@@ -67,7 +67,9 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 @media print {
 * { visibility: hidden !important; }
-#print-overlay { display: block !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 297mm !important; min-height: 210mm !important; background: white !important; z-index: 9999999 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+#print-overlay { display: block !important; position: static !important; width: auto !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+#print-overlay .printpage{ page-break-after: always; }
+#print-overlay .printpage:last-child{ page-break-after: auto; }
 #print-overlay * { visibility: visible !important; }
 #print-overlay .no-print { display: none !important; }
 #print-overlay button{ display:none !important; }
@@ -262,7 +264,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1715-印刷時に表をページ幅へ自動縮小(table-layout:fixed/width100%/列幅auto/小フォント)し横はみ出しの見切れを解消。版";
+var APP_VERSION="v2-0619-1730-印刷の複数ページ修正:print-overlayのposition:fixed(1ページしか出ない原因)をstaticに。タブ毎に改ページして全ページ印刷。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

@@ -276,7 +276,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2750-資産:上部を年齢別予測テーブルに統合/預貯金・負債・取り崩し予定も印刷(空欄でも)。版";
+var APP_VERSION="v2-0619-2805-資産評価をコンパクト化(カード縮小/重複の内訳カード非表示)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2216,16 +2216,17 @@ var insCurrentTotal=pProjs.reduce(function(s,x){var p=x.policy;var r=polCurVal(p
 var totalA=nFV+iFV+a.savings+a.realestate+a.stocks+a.other+insTotal+insCurrentTotal;
 var totalD=a.mortgage+a.carLoan+a.otherDebt;
 var net=totalA-totalD;
-var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:14px;background:"+x[2]+";border-radius:8px;";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;margin-bottom:3px;'>"+x[0]+"</div><div style='font-size:22px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</div>";return d;}));
+var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:7px 8px;background:"+x[2]+";border-radius:6px;";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;'>"+x[0]+"</div><div style='font-size:18px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</div>";return d;}));
 // Breakdown of current assets
-var dbgDiv=el("div");dbgDiv.style.cssText="font-size:11px;color:#555;background:#fffbeb;border:1px solid #f59e0b;border-radius:4px;padding:6px 10px;margin-top:6px;";
+var dbgDiv=el("div");dbgDiv.style.cssText="font-size:11px;color:#555;background:#fffbeb;border:1px solid #f59e0b;border-radius:4px;padding:5px 9px;margin-top:6px;line-height:1.4;";
 dbgDiv.innerHTML="<b>現在の資産 内訳：</b><br>預貯金 "+a.savings+"万 ／ 不動産 "+a.realestate+"万 ／ 株式 "+a.stocks+"万 ／ その他 "+a.other+"万<br>NISA "+Math.round(nFV)+"万 ／ iDeCo "+Math.round(iFV)+"万<br><b>保険関連（現在価値）計 "+Math.round(insCurrentTotal).toLocaleString()+"万</b>（各証券の内訳・根拠は上の「保険の資産価値」欄）"+(insTotal>0?" ／ 受取済手動追加 "+insTotal+"万":"");
 tg.appendChild(dbgDiv);
 var bItems=[{label:"NISA",val:nFV,color:"#c9a84c"},{label:"iDeCo",val:iFV,color:"#27ae60"},{label:"預貯金",val:a.savings,color:"#2980b9"},{label:"不動産",val:a.realestate,color:"#16a085"},{label:"株式・投信",val:a.stocks,color:"#8e44ad"},{label:"その他",val:a.other,color:"#d35400"},{label:"保険積立（シミュレーション参照）",val:0,color:"#1a2744"},{label:"手動追加",val:insTotal,color:"#7f8c8d"}].filter(function(b){return b.val>0;});
-var bGrid=el("div");bGrid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-top:10px;";
+var bGrid=el("div");// 内訳テーブルと重複するため非表示
+bGrid.style.display="none";
 bItems.forEach(function(b){var d=el("div");d.style.cssText="padding:8px 10px;background:#f8f7f4;border-radius:6px;border-left:3px solid "+b.color+";";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;'>"+b.label+"</div><div style='font-size:14px;font-weight:700;color:#1a2744;'>"+b.val.toLocaleString()+"万円</div>";bGrid.appendChild(d);});
 tg.appendChild(bGrid);
-var retInp=el("div");retInp.style.cssText="margin-top:12px;max-width:200px;";
+var retInp=el("div");retInp.style.cssText="margin-top:8px;max-width:220px;display:inline-block;";
 retInp.appendChild(lbl("老後資金 安心ライン（万円）",inp("number",al.retire||"",function(v){uAl("retire",v);})));
 cont.appendChild(sec("資産合計・老後資金評価",null,[tg,retInp]));
 if(!state.goals)state.goals=[];

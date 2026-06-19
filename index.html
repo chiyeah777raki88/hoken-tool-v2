@@ -296,7 +296,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2910-資産:黄色囲みを全幅2行/NISA・iDeCoはエクセル風1口座1行(縦)/前提は2行・極小/負債横1行。版";
+var APP_VERSION="v2-0619-2920-資産印刷:期間スライダーを非表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2515,13 +2515,13 @@ aColors.push(extraRowColors[ri%extraRowColors.length]);
 aColors.push("#607d8b");
 var totals=proj.map(function(d){var t=0;allKeys.forEach(function(k){t+=(d[k]||0);});return t;});
 var dsets=allKeys.map(function(k,i){return{label:k,data:proj.map(function(d){return d[k]>0?d[k]:null;}),backgroundColor:aColors[i%aColors.length],stack:"s"};});
-var sliderDiv=el("div");sliderDiv.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;align-items:flex-end;";
+var sliderDiv=el("div");sliderDiv.className="no-print";sliderDiv.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;align-items:flex-end;";
 var startAgeVal=curAge;var endAgeVal=90;
 var startSlider=document.createElement("input");startSlider.type="range";startSlider.min=curAge;startSlider.max=89;startSlider.value=curAge;startSlider.style.width="100%";
 var endSlider=document.createElement("input");endSlider.type="range";endSlider.min=curAge+1;endSlider.max=90;endSlider.value=90;endSlider.style.width="100%";
 var startLbl2=el("div");startLbl2.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";startLbl2.textContent="表示開始: "+curAge+"歳";
 var endLbl2=el("div");endLbl2.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";endLbl2.textContent="表示終了: 90歳";
-var sliderNote=el("p");sliderNote.style.cssText="font-size:11px;color:#8a8a8a;margin-top:4px;";sliderNote.textContent="スライダーで表示期間を絞り込めます";
+var sliderNote=el("p");sliderNote.className="no-print";sliderNote.style.cssText="font-size:11px;color:#8a8a8a;margin-top:4px;";sliderNote.textContent="スライダーで表示期間を絞り込めます";
 var chartRef={chart:null};
 function updateChartRange(){
 if(!chartRef.chart)return;

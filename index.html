@@ -273,7 +273,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2610-グラフ:参考データ削除/レーダーを固定サイズ横並び(重なり解消)/印刷は縦1枚に。版";
+var APP_VERSION="v2-0619-2630-タイムライン見出し(保障期間・受取)/証券枚数で自動調整/合算時は被保険者表示/資産印刷は入力欄を隠し1枚化。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -798,6 +798,7 @@ function makeDobInput(initialVal,onChange){
 }
 function btn(text,cls,cb){var b=el("button","btn "+(cls||"bn"),text);if(cb)b.addEventListener("click",cb);return b;}
 function grd(cls,children){var d=el("div",cls);children.forEach(function(c){if(c)d.appendChild(c);});return d;}
+function npSec(){var e=sec.apply(null,arguments);try{e.classList.add("no-print");}catch(_){}return e;}
 function sec(title,rightBtn,children,noPad){
 var s=el("div","sec"),hd=el("div","sec-hdr",title);
 if(rightBtn)hd.appendChild(rightBtn);s.appendChild(hd);
@@ -1781,12 +1782,20 @@ plot.appendChild(bagBand);
 // --- 保障の横棒 ---
 var barsWrap=el("div");barsWrap.style.cssText="position:relative;padding:4px 0;";
 var termNotes=[];
+// 証券枚数に応じて行の高さ・文字を自動調整（多いほどコンパクトに）
+var _nP=pairs.length;
+var _rh=_nP>14?13:(_nP>10?15:(_nP>6?18:22));
+var _bh=_rh-3, _mb=_nP>10?2:4, _fs=_nP>12?9:(_nP>8?10:12);
+// 合算（複数の被保険者が混在）かどうか
+var _memSet={};pairs.forEach(function(x){if(x.member)_memSet[(x.member.relation||x.member.name||"")]=1;});
+var _multiMem=Object.keys(_memSet).length>1;
 pairs.forEach(function(x,i){var p=x.policy,m=x.member,c=colOf(p,i);var ce=covEnd(p);
 var endAxis=(ce==null)?maxAge:toAxis(ce,m);
-var row=el("div");row.style.cssText="position:relative;height:22px;margin-bottom:5px;";
+var row=el("div");row.style.cssText="position:relative;height:"+_rh+"px;margin-bottom:"+_mb+"px;";
 var bar=el("div");var wpc=Math.max(2,pct(endAxis));
-bar.style.cssText="position:absolute;left:0;width:"+wpc+"%;height:18px;background:"+barFill(c,p)+";border-radius:4px;display:flex;align-items:center;padding-left:7px;overflow:hidden;";
-bar.innerHTML="<span style='color:#fff;font-size:12px;white-space:nowrap;'>"+String.fromCharCode(65+i)+" "+shortN(p)+"（"+(p.insType||"")+"）</span>";
+bar.style.cssText="position:absolute;left:0;width:"+wpc+"%;height:"+_bh+"px;background:"+barFill(c,p)+";border-radius:4px;display:flex;align-items:center;padding-left:7px;overflow:hidden;";
+var _who=_multiMem?("【"+(m&&(m.relation||m.name)||"")+"】"):"";
+bar.innerHTML="<span style='color:#fff;font-size:"+_fs+"px;white-space:nowrap;'>"+_who+String.fromCharCode(65+i)+" "+shortN(p)+"（"+(p.insType||"")+"）</span>";
 row.appendChild(bar);
 if(ce!=null&&endAxis<maxAge){var term=el("div");term.style.cssText="position:absolute;left:"+pct(endAxis)+"%;top:-2px;transform:translateX(-2px);font-size:11px;color:#c0392b;font-weight:700;white-space:nowrap;z-index:3;";term.innerHTML="<span style='border-left:2px solid #c0392b;padding-left:3px;'>⚠"+ce+"歳で終了</span>";row.appendChild(term);termNotes.push(shortN(p)+"は"+ce+"歳で保障終了");}
 barsWrap.appendChild(row);});
@@ -1816,7 +1825,7 @@ return wrap;
 
 function buildGraphTab(){
 var cont=el("div","content");
-cont.appendChild(buildTimeline());
+cont.appendChild(sec("保障期間・受取のタイムライン",null,buildTimeline()));
 var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var baseAge=getAge(mm&&mm.dob?mm.dob:null)||49;
 var ap=aPs();
@@ -2144,13 +2153,13 @@ var _nsec=buildAccountSection(nisaAccounts,"NISA","#c9a84c");_nsec.className+=" 
 var _isec=buildAccountSection(idecoAccounts,"iDeCo","#27ae60");_isec.className+=" no-print";cont.appendChild(_isec);
 var a=assetsData;
 function ua(f,v){a[f]=+v;saveState();}
-cont.appendChild(sec("預貯金・不動産・その他資産",null,grd("g4",[
+cont.appendChild(npSec("預貯金・不動産・その他資産",null,grd("g4",[
 lbl("預貯金（万円）",inp("number",a.savings||"",function(v){ua("savings",v);})),
 lbl("不動産評価額（万円）",inp("number",a.realestate||"",function(v){ua("realestate",v);})),
 lbl("株式・投資信託（万円）",inp("number",a.stocks||"",function(v){ua("stocks",v);})),
 lbl("その他資産（万円）",inp("number",a.other||"",function(v){ua("other",v);}))
 ])));
-cont.appendChild(sec("負債",null,grd("g4",[
+cont.appendChild(npSec("負債",null,grd("g4",[
 lbl("住宅ローン残高（万円）",inp("number",a.mortgage||"",function(v){ua("mortgage",v);})),
 lbl("住宅ローン残り年数",inp("number",a.mortgageYrs||"",function(v){ua("mortgageYrs",v);})),
 lbl("住宅ローン金利（%）",inp("number",a.mortgageRate||"",function(v){ua("mortgageRate",v);})),
@@ -2209,7 +2218,7 @@ totDiv.textContent="資金計画合計："+tot.toLocaleString()+"万円";goalRow
 }
 renderGoals();
 var goalNote=el("p");goalNote.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";goalNote.textContent="本人の年齢で入力してください。子供の年齢は自動計算して横に表示します。";
-cont.appendChild(sec("資金計画・必要資金",btn("＋ 追加","bg",function(){if(!state.goals)state.goals=[];state.goals.push({age:65,label:"",amount:0});saveState();renderGoals();}),
+cont.appendChild(npSec("資金計画・必要資金",btn("＋ 追加","bg",function(){if(!state.goals)state.goals=[];state.goals.push({age:65,label:"",amount:0});saveState();renderGoals();}),
 [goalNote,goalRows]));
 var simTop=grd("g2",[
 lbl("評価基準年齢",inp("number",evalAge,function(v){evalAge=+v||65;saveState();})),
@@ -2506,7 +2515,8 @@ tbl2.appendChild(tb2);
 var tw3=el("div","tw");tw3.appendChild(tbl2);tableDiv.appendChild(tw3);
 });
 tableToggleBtn.style.cssText="padding:4px 12px;font-size:12px;margin-top:8px;";
-cont.appendChild(sec("資産推移・取り崩しシミュレーション",null,[simTop,evNote,evRows,addEvBtn,evalDiv,roDiv,tgtDiv,sliderDiv,sliderNote,simW,tableToggleBtn,tableDiv].filter(function(x){return x;})));
+cont.appendChild(npSec("資産推移シミュレーション 設定",null,[simTop,evNote,evRows,addEvBtn,evalDiv,roDiv,tgtDiv,sliderDiv,sliderNote,tableToggleBtn,tableDiv].filter(function(x){return x;})));
+cont.appendChild(sec("資産推移シミュレーション",null,[simW].filter(function(x){return x;})));
 setTimeout(function(){if(typeof Chart!=="undefined"){try{chartRef.chart=new Chart(simC,{type:"bar",data:{labels:proj.map(function(d){return d.age+"歳";}),datasets:dsets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"top",labels:{font:{size:10}}},tooltip:{callbacks:{footer:function(items){var idx2=items[0]?items[0].dataIndex:0;return "合計: "+totals[idx2].toLocaleString()+"万円";},label:function(ctx){return ctx.dataset.label+": "+(ctx.parsed.y||0).toLocaleString()+"万円";}}}},scales:{x:{stacked:true,ticks:{maxTicksLimit:12,font:{size:9}}},y:{stacked:true,ticks:{callback:function(v){return v.toLocaleString()+"万円";},font:{size:9}}}}}});}catch(e){simW.textContent="グラフエラー: "+e.message;}}},200);
 return cont;
 }

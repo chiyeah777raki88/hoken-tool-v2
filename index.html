@@ -68,7 +68,7 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 @media print {
 * { visibility: hidden !important; }
 #print-overlay { display: block !important; position: static !important; width: auto !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-#print-overlay .printpage{ page-break-after: always; }
+#print-overlay .printpage{ page-break-after: always; width:1060px !important; height:730px !important; overflow:hidden !important; box-sizing:border-box !important; border:none !important; }
 #print-overlay .printpage:last-child{ page-break-after: auto; }
 #print-overlay * { visibility: visible !important; }
 #print-overlay .no-print { display: none !important; }
@@ -81,7 +81,7 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 #print-overlay .tw{ overflow:visible !important; }
 #print-overlay table.kanyu{ font-size:8px !important; }
 #print-overlay table.kanyu td, #print-overlay table.kanyu th{ padding:1px 2px !important; word-break:break-all; }
-#print-overlay .printpage{ width:auto !important; padding:4mm !important; }
+#print-overlay .printinner{ box-sizing:border-box; }
 @page { size: A4 landscape; margin: 5mm; }
 }
 #print-area { display: none; }
@@ -264,7 +264,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1730-印刷の複数ページ修正:print-overlayのposition:fixed(1ページしか出ない原因)をstaticに。タブ毎に改ページして全ページ印刷。版";
+var APP_VERSION="v2-0619-1745-印刷:各タブを1ページ(A4横)に自動縮小して1タブ=1枚に。内容が多いタブはスケール縮小で1枚に収める。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2874,16 +2874,20 @@ if(printSel.summary)pages.push(["加入内容一覧",buildCheckTab]);
 if(printSel.graph)pages.push(["保障グラフ",buildGraphTab]);
 if(printSel.assets)pages.push(["資産・老後シミュレーション",buildAssetsTab]);
 if(printSel.compare)pages.push(["提案（ビフォーアフター）",buildCompareTab]);
+var _sq=[];
 pages.forEach(function(pg,i){
-var page=el("div");page.className="printpage";page.style.cssText="width:285mm;max-width:100%;margin:0 auto 8mm;padding:6mm;box-sizing:border-box;border-bottom:1px dashed #ccc;background:#fff;"+(i<pages.length-1?"page-break-after:always;":"");
+var page=el("div");page.className="printpage";page.style.cssText="width:1060px;height:730px;overflow:hidden;margin:0 auto 12px;background:#fff;border:1px solid #ccc;box-sizing:border-box;";
+var inner=el("div");inner.className="printinner";inner.style.cssText="transform-origin:top left;width:1060px;padding:10px;box-sizing:border-box;";
 var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
 var h1=el("span");h1.style.cssText="font-size:16px;font-weight:700;color:#1a2744;";h1.textContent=(i+1)+". "+pg[0];
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=cust+"　"+ymd;
-hd.appendChild(h1);hd.appendChild(h2);page.appendChild(hd);
-try{page.appendChild(pg[1]());}catch(e){var er=el("div");er.style.color="#c0392b";er.textContent="表示エラー: "+e.message;page.appendChild(er);}
-ov.appendChild(page);
+hd.appendChild(h1);hd.appendChild(h2);inner.appendChild(hd);
+try{inner.appendChild(pg[1]());}catch(e){var er=el("div");er.style.color="#c0392b";er.textContent="表示エラー: "+e.message;inner.appendChild(er);}
+page.appendChild(inner);ov.appendChild(page);_sq.push({p:page,n:inner});
 });
 document.body.appendChild(ov);
+function _doScale(){_sq.forEach(function(o){var h=o.n.scrollHeight,w=o.n.scrollWidth;var sc=Math.min(1040/w,710/h,1);o.n.style.transform=(sc<1?"scale("+sc+")":"none");});}
+setTimeout(_doScale,300);setTimeout(_doScale,900);
 }
 function buildPrintTab(){
 var cont=el("div","content");

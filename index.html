@@ -92,13 +92,19 @@ body.p_graph .radar-card canvas { width: 235px !important; height: 235px !import
 body.pbig #app, body.pbig #app * { font-size: 13.5px; }
 body.pbig #app .pbig-title { font-size: 16px !important; }
 /* 資産印刷はコンパクトに（1枚に収める） */
-body.p_assets #app { font-size: 11px !important; }
-body.p_assets #app .sec { margin-bottom: 6px !important; }
-body.p_assets #app .sec-hdr { padding: 3px 8px !important; font-size: 12px !important; }
-body.p_assets #app .sec-body { padding: 6px 8px !important; }
-body.p_assets #app table { font-size: 10px !important; }
-body.p_assets #app td, body.p_assets #app th { padding: 1px 4px !important; line-height: 1.25 !important; }
-body.p_assets #app canvas { max-height: 170px !important; }
+body.p_assets #app { font-size: 10px !important; }
+body.p_assets #app .sec { margin-bottom: 5px !important; }
+body.p_assets #app .sec-hdr { padding: 2px 8px !important; font-size: 11px !important; }
+body.p_assets #app .sec-body { padding: 5px 8px !important; }
+body.p_assets #app table { font-size: 9.5px !important; }
+body.p_assets #app td, body.p_assets #app th { padding: 1px 3px !important; line-height: 1.2 !important; }
+body.p_assets #app canvas { max-height: 130px !important; }
+/* 預貯金・負債を横1行にズラッと並べる */
+body.p_assets #app .g4 { display: flex !important; flex-wrap: nowrap !important; gap: 6px !important; }
+body.p_assets #app .g4 > * { flex: 1 1 0 !important; min-width: 0 !important; }
+body.p_assets #app .g4 label, body.p_assets #app .g4 .lbl { font-size: 9px !important; }
+/* 資産合計の3カードを半分の高さに */
+body.p_assets #app .g3 > div { padding: 2px 6px !important; }
 /* 給付条件比較表を1枚に収める: 文字と余白を縮小 */
 body.pmatrix #print-area table { font-size: 8.5px !important; }
 body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.15 !important; }
@@ -284,7 +290,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2820-資産印刷:文字拡大(pbig)を解除しコンパクト化/内訳を1行に/安心ラインを右に。版";
+var APP_VERSION="v2-0619-2835-資産印刷:負債を横1行/合計カードを半分の高さ/フォント縮小/グラフ高さ低く。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2224,7 +2230,7 @@ var insCurrentTotal=pProjs.reduce(function(s,x){var p=x.policy;var r=polCurVal(p
 var totalA=nFV+iFV+a.savings+a.realestate+a.stocks+a.other+insTotal+insCurrentTotal;
 var totalD=a.mortgage+a.carLoan+a.otherDebt;
 var net=totalA-totalD;
-var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:7px 8px;background:"+x[2]+";border-radius:6px;";d.innerHTML="<div style='font-size:11px;color:#8a8a8a;'>"+x[0]+"</div><div style='font-size:18px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</div>";return d;}));
+var tg=grd("g3",[["現在の総資産",totalA,"#faf8f3","#1a2744"],["総負債",totalD,"#fee2e2","#c0392b"],["純資産",net,"#f0fff4",net>=0?"#27ae60":"#c0392b"]].map(function(x){var d=el("div");d.style.cssText="text-align:center;padding:4px 8px;background:"+x[2]+";border-radius:6px;display:flex;align-items:baseline;justify-content:center;gap:6px;";d.innerHTML="<span style='font-size:11px;color:#8a8a8a;'>"+x[0]+"</span><span style='font-size:16px;font-weight:700;color:"+x[3]+";'>"+x[1].toLocaleString()+"万円</span>";return d;}));
 // Breakdown of current assets
 var dbgDiv=el("div");dbgDiv.style.cssText="font-size:11px;color:#555;background:#fffbeb;border:1px solid #f59e0b;border-radius:4px;padding:5px 9px;margin-top:6px;line-height:1.4;";
 dbgDiv.innerHTML="<b>現在の資産 内訳：</b> 預貯金 "+a.savings+"万 ／ 不動産 "+a.realestate+"万 ／ 株式 "+a.stocks+"万 ／ その他 "+a.other+"万 ／ NISA "+Math.round(nFV)+"万 ／ iDeCo "+Math.round(iFV)+"万 ／ <b>保険(現在価値)計 "+Math.round(insCurrentTotal).toLocaleString()+"万</b>"+(insTotal>0?" ／ 受取済手動追加 "+insTotal+"万":"");
@@ -2493,7 +2499,7 @@ if(targetInfo&&targetInfo.length>0){
   });
 }
 var simC=document.createElement("canvas");simC.id="ac"+Date.now();
-var simW=el("div");simW.style.cssText="position:relative;height:260px;margin-top:10px;";simW.appendChild(simC);
+var simW=el("div");simW.style.cssText="position:relative;height:200px;margin-top:8px;";simW.appendChild(simC);
 var allKeys=["NISA","iDeCo"].concat(pProjs.map(function(x){return polLabel(x.policy);})).concat(["預貯金等"]);
 var defaultColors=["#c9a84c","#2ecc71","#8e44ad","#e74c3c","#e67e22","#1abc9c","#f39c12","#3498db","#e91e63","#795548","#607d8b","#f48fb1","#81d4fa","#8d6e63","#8bc34a"];
 var aColors=[];

@@ -68,7 +68,7 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 @media print {
 * { visibility: hidden !important; }
 #print-overlay { display: block !important; position: static !important; width: auto !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-#print-overlay .printpage{ page-break-after: always; width:744px !important; height:1052px !important; overflow:hidden !important; box-sizing:border-box !important; border:none !important; }
+#print-overlay .printpage{ page-break-after: always; width:1110px !important; height:780px !important; overflow:hidden !important; box-sizing:border-box !important; border:none !important; display:flex !important; gap:4px !important; }
 #print-overlay .printpage:last-child{ page-break-after: auto; }
 #print-overlay * { visibility: visible !important; }
 #print-overlay .no-print { display: none !important; }
@@ -82,7 +82,7 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 #print-overlay table.kanyu{ font-size:8px !important; }
 #print-overlay table.kanyu td, #print-overlay table.kanyu th{ padding:1px 2px !important; word-break:break-all; }
 #print-overlay .printinner{ box-sizing:border-box; }
-@page { size: A4 portrait; margin: 6mm; }
+@page { size: A4 landscape; margin: 2mm; }
 }
 #print-area { display: none; }
 </style>
@@ -264,7 +264,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-1800-印刷をA4縦に変更(縦長コンテンツに最適)。各タブ1ページに縦で自動縮小。説明文・表示切替は印刷時非表示。版";
+var APP_VERSION="v2-0619-1815-印刷をA4横・2タブ並べ(余白ほぼ0)に変更。1枚に2タブを左右で配置し各パネルを自動縮小。読めるか実機確認用。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2875,18 +2875,23 @@ if(printSel.graph)pages.push(["保障グラフ",buildGraphTab]);
 if(printSel.assets)pages.push(["資産・老後シミュレーション",buildAssetsTab]);
 if(printSel.compare)pages.push(["提案（ビフォーアフター）",buildCompareTab]);
 var _sq=[];
-pages.forEach(function(pg,i){
-var page=el("div");page.className="printpage";page.style.cssText="width:744px;height:1052px;overflow:hidden;margin:0 auto 12px;background:#fff;border:1px solid #ccc;box-sizing:border-box;";
-var inner=el("div");inner.className="printinner";inner.style.cssText="transform-origin:top left;width:744px;padding:10px;box-sizing:border-box;";
-var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
-var h1=el("span");h1.style.cssText="font-size:16px;font-weight:700;color:#1a2744;";h1.textContent=(i+1)+". "+pg[0];
-var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=cust+"　"+ymd;
+for(var pi=0;pi<pages.length;pi+=2){
+var sheet=el("div");sheet.className="printpage";sheet.style.cssText="width:1110px;height:780px;overflow:hidden;margin:0 auto 12px;background:#fff;border:1px solid #ccc;box-sizing:border-box;display:flex;gap:4px;";
+[pages[pi],pages[pi+1]].forEach(function(pg,j){
+if(!pg){var ph=el("div");ph.style.cssText="width:50%;";sheet.appendChild(ph);return;}
+var panel=el("div");panel.style.cssText="width:50%;height:100%;overflow:hidden;box-sizing:border-box;"+(j===0?"border-right:1px dashed #ccc;":"");
+var inner=el("div");inner.className="printinner";inner.style.cssText="transform-origin:top left;width:548px;padding:6px;box-sizing:border-box;";
+var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:3px;margin-bottom:6px;";
+var h1=el("span");h1.style.cssText="font-size:14px;font-weight:700;color:#1a2744;";h1.textContent=(pi+j+1)+". "+pg[0];
+var h2=el("span");h2.style.cssText="font-size:11px;color:#555;";h2.textContent=cust+"　"+ymd;
 hd.appendChild(h1);hd.appendChild(h2);inner.appendChild(hd);
 try{inner.appendChild(pg[1]());}catch(e){var er=el("div");er.style.color="#c0392b";er.textContent="表示エラー: "+e.message;inner.appendChild(er);}
-page.appendChild(inner);ov.appendChild(page);_sq.push({p:page,n:inner});
+panel.appendChild(inner);sheet.appendChild(panel);_sq.push({n:inner});
 });
+ov.appendChild(sheet);
+}
 document.body.appendChild(ov);
-function _doScale(){_sq.forEach(function(o){var h=o.n.scrollHeight,w=o.n.scrollWidth;var sc=Math.min(724/w,1032/h,1);o.n.style.transform=(sc<1?"scale("+sc+")":"none");});}
+function _doScale(){_sq.forEach(function(o){var h=o.n.scrollHeight,w=o.n.scrollWidth;var sc=Math.min(536/w,760/h,1);o.n.style.transform=(sc<1?"scale("+sc+")":"none");});}
 setTimeout(_doScale,300);setTimeout(_doScale,900);
 }
 function buildPrintTab(){

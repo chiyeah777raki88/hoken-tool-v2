@@ -296,7 +296,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-2945-給付条件:がん列を並べ替え(③→⑦/⑥→⑤/⑦→⑥)/免除に不慮の事故180日以内の身体障がいを追加。版";
+var APP_VERSION="v2-0619-3000-入力:手術給付に入院日額×5/10/20/40倍の選択を追加(入院・外来とも)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1237,8 +1237,8 @@ lbl("入院日額（円）",inp("number",pol.hospDaily,function(v){upd("hospDail
 lbl("入院支払限度",sel(["60日","120日","180日","365日","無制限"].map(function(v){return{v:v,l:v};}),pol.hospLimit,function(v){upd("hospLimit",v);})),
 lbl("入院一時金（万円）",inp("number",pol.hospLumpIn||"",function(v){upd("hospLumpIn",+v);})),
 lbl("退院一時金（万円）",inp("number",pol.hospLumpOut||"",function(v){upd("hospLumpOut",+v);})),
-lbl("手術給付金・入院時（万円）",inp("number",pol.surgInp,function(v){upd("surgInp",+v);})),
-lbl("外来手術給付金（万円）",inp("number",pol.surgOut||"",function(v){upd("surgOut",+v);})),
+lbl("手術給付金・入院時（万円）",(function(){var ni=inp("number",pol.surgInp||"",function(v){upd("surgInp",+v);});ni.style.flex="1";var ms=sel([{v:"",l:"倍率で入力"},{v:"5",l:"入院日額×5"},{v:"10",l:"入院日額×10"},{v:"20",l:"入院日額×20"},{v:"40",l:"入院日額×40"}],"",function(v){if(v){var amt=Math.round((+pol.hospDaily||0)*(+v)/10000*100)/100;upd("surgInp",amt);ni.value=amt;}});ms.style.cssText="width:auto;flex:0 0 auto;";var w=el("div");w.style.cssText="display:flex;gap:6px;";w.appendChild(ni);w.appendChild(ms);return w;})()),
+lbl("外来手術給付金（万円）",(function(){var ni=inp("number",pol.surgOut||"",function(v){upd("surgOut",+v);});ni.style.flex="1";var ms=sel([{v:"",l:"倍率で入力"},{v:"5",l:"入院日額×5"},{v:"10",l:"入院日額×10"},{v:"20",l:"入院日額×20"},{v:"40",l:"入院日額×40"}],"",function(v){if(v){var amt=Math.round((+pol.hospDaily||0)*(+v)/10000*100)/100;upd("surgOut",amt);ni.value=amt;}});ms.style.cssText="width:auto;flex:0 0 auto;";var w=el("div");w.style.cssText="display:flex;gap:6px;";w.appendChild(ni);w.appendChild(ms);return w;})()),
 lbl("通院タイプ",sel([{v:"none",l:"なし"},{v:"daily",l:"日額"},{v:"monthly",l:"月額"}],pol.outType,function(v){upd("outType",v);render();})),
 pol.outType!=="none"?lbl("通院給付額",inp("number",pol.outAmount,function(v){upd("outAmount",+v);})):null,
 lbl("ケガ給付金（万円）",inp("number",pol.injuryAmount,function(v){upd("injuryAmount",+v);})),

@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3215-特約ごとの満了をタイムラインに⚠終了表示/特定疾患給付特約と満了年齢(80歳等)を読取&反映。版";
+var APP_VERSION="v2-0619-3230-証券読取:画像のドラッグ&ドロップ対応(ファイル選択の並び順問題を回避)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -942,7 +942,7 @@ box.appendChild(cb);
 function buildCamera(pol,onResult){
 var box=el("div","cam");
 var title=el("div");title.style.cssText="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a2744;";title.textContent="証券画像から自動入力（複数ページ対応）";
-var desc=el("p");desc.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";desc.textContent="スマホは「カメラで撮影」、パソコンは「画像を選択」。設計書は複数ページまとめて読み取れます。読み取り後に確認画面が出ます。";
+var desc=el("p");desc.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";desc.textContent="スマホは「カメラで撮影」、パソコンは「画像を選択」または下の枠に画像をドラッグ＆ドロップ。設計書は複数ページまとめて読み取れます。読み取り後に確認画面が出ます。";
 var row=el("div");row.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;";
 var lbl2=el("label","btn bg");lbl2.style.cssText="display:inline-block;cursor:pointer;padding:8px 16px;border-radius:6px;font-weight:600;font-size:12px;";lbl2.textContent="画像を選択（複数可）";
 var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.multiple=true;fi.style.display="none";
@@ -966,6 +966,14 @@ processImages(filePromises);
 }
 camFi.addEventListener("change",function(){handleFiles(this.files);this.value="";});
 fi.addEventListener("change",function(){handleFiles(this.files);this.value="";});
+// ドラッグ&ドロップ対応（ファイル選択画面の並び順と戦わずに済む）
+var dropZone=el("div");dropZone.style.cssText="margin-top:8px;border:2px dashed #c7cdd9;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#8a96ab;background:#fafbfd;";dropZone.textContent="ここに証券の画像をドラッグ＆ドロップ（複数可）";
+function _dzOn(e){e.preventDefault();e.stopPropagation();dropZone.style.borderColor="#1a2744";dropZone.style.background="#eef3fb";dropZone.style.color="#1a2744";}
+function _dzOff(e){if(e){e.preventDefault();e.stopPropagation();}dropZone.style.borderColor="#c7cdd9";dropZone.style.background="#fafbfd";dropZone.style.color="#8a96ab";}
+["dragenter","dragover"].forEach(function(ev){dropZone.addEventListener(ev,_dzOn);box.addEventListener(ev,function(e){e.preventDefault();});});
+["dragleave"].forEach(function(ev){dropZone.addEventListener(ev,_dzOff);});
+dropZone.addEventListener("drop",function(e){e.preventDefault();e.stopPropagation();_dzOff();var fl=(e.dataTransfer&&e.dataTransfer.files)?Array.from(e.dataTransfer.files).filter(function(f){return /image\//.test(f.type)||/\.(png|jpe?g|gif|webp|heic)$/i.test(f.name||"");}):[];if(fl.length){handleFiles(fl);}else{msgEl.textContent="画像ファイルが見つかりません（PDFは画像にしてからどうぞ）";msgEl.style.color="#c0392b";}});
+box.addEventListener("drop",function(e){e.preventDefault();});
 function processImages(filePromises){
 Promise.all(filePromises).then(function(imgs){
 var content=imgs.map(function(im){return{type:"image",source:{type:"base64",media_type:im.type,data:im.b64}};});
@@ -1046,7 +1054,7 @@ msgEl.textContent="エラー："+e.message;msgEl.style.color="#c0392b";
 });
 }
 camLbl.appendChild(camFi);lbl2.appendChild(fi);row.appendChild(camLbl);row.appendChild(lbl2);row.appendChild(msgEl);
-box.appendChild(title);box.appendChild(desc);box.appendChild(row);
+box.appendChild(title);box.appendChild(desc);box.appendChild(row);box.appendChild(dropZone);
 return box;
 }
 function buildPolForm(pol,mid,pidx2){

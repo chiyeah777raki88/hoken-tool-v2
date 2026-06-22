@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3425-給付条件比較:表示の度に全ドットをクリアして再割当(免除も他人の古いドットが残らない)。版";
+var APP_VERSION="v2-0619-3500-給付条件比較を証券ID基準で保存し手動修正が残るように(自動上書き廃止/初回のみ自動割当)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3348,6 +3348,8 @@ return cont;
 }
 function buildBigDiseaseMatrix(policies){
 var wrap=el("div");
+function _pid2idx(pid){for(var _i=0;_i<policies.length;_i++){if(policies[_i].id===pid)return _i;}return -1;}
+function _visIdxs(cd){return ((cd&&cd.polIdxs)||[]).map(_pid2idx).filter(function(i){return i>=0;});}
 var _defCols=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];
 var POL_COLS=policies.map(function(p,i){return p.chartColor&&p.chartColor!==""?p.chartColor:_defCols[i%_defCols.length];});
 var POL_LIGHT=POL_COLS.map(function(col){return col+"22";});
@@ -3408,11 +3410,8 @@ return "white";
 }
 function cellBorder(cd){
 if(cd.na)return "1px solid #ccc";
-if(cd.polIdxs&&cd.polIdxs.length===1)return "3px solid "+POL_COLS[cd.polIdxs[0]%POL_COLS.length];
-if(cd.polIdxs&&cd.polIdxs.length>1){
-// Multiple: show gradient border
-return "3px solid "+POL_COLS[cd.polIdxs[0]%POL_COLS.length];
-}
+var _vi=_visIdxs(cd);
+if(_vi.length>=1)return "3px solid "+POL_COLS[_vi[0]%POL_COLS.length];
 return "1px solid #ddd";
 }
 function buildTable(tableType,rows,title,hColor,noSecond){
@@ -3490,12 +3489,13 @@ ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="
 ta.addEventListener("input",function(){cd.text=this.value;saveState();});
 // Policy color dots
 var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:1px;padding:1px 2px;";
-(cd.polIdxs||[]).forEach(function(pi){
+(cd.polIdxs||[]).forEach(function(pid){
+var pi=_pid2idx(pid);if(pi<0)return;
 var dot=el("span");dot.style.cssText="display:inline-block;width:10px;height:10px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;";
 dot.title=polLabel(policies[pi]||{company:"証券"+(pi+1)});
 dot.addEventListener("click",function(e){
 e.stopPropagation();
-var idx=cd.polIdxs.indexOf(pi);
+var idx=cd.polIdxs.indexOf(pid);
 if(idx>=0)cd.polIdxs.splice(idx,1);
 saveState();rebuild();
 });
@@ -3517,7 +3517,7 @@ pop.style.top=Math.min(e.clientY+4,window.innerHeight-200)+"px";
 var pt=el("div");pt.style.cssText="font-size:11px;font-weight:700;margin-bottom:4px;color:#1a2744;border-bottom:1px solid #eee;padding-bottom:3px;";
 pt.textContent="証券を割り当て";pop.appendChild(pt);
 policies.forEach(function(p,pi){
-var isOn=(cd.polIdxs||[]).indexOf(pi)>=0;
+var isOn=(cd.polIdxs||[]).indexOf(p.id)>=0;
 var pr=el("div");pr.style.cssText="display:flex;align-items:center;gap:5px;padding:3px 0;cursor:pointer;";
 var dot2=el("span");dot2.style.cssText="width:12px;height:12px;border-radius:2px;background:"+POL_COLS[pi%POL_COLS.length]+";flex-shrink:0;";
 var lbl2=el("span");lbl2.style.cssText="font-size:11px;flex:1;";lbl2.textContent=(pi+1)+"."+polLabel(p);
@@ -3525,8 +3525,8 @@ var chk2=el("span");chk2.style.cssText="color:"+(isOn?POL_COLS[pi%POL_COLS.lengt
 pr.appendChild(dot2);pr.appendChild(lbl2);pr.appendChild(chk2);
 pr.addEventListener("click",function(){
 if(!cd.polIdxs)cd.polIdxs=[];
-var idx=cd.polIdxs.indexOf(pi);
-if(idx>=0)cd.polIdxs.splice(idx,1);else cd.polIdxs.push(pi);
+var idx=cd.polIdxs.indexOf(p.id);
+if(idx>=0)cd.polIdxs.splice(idx,1);else cd.polIdxs.push(p.id);
 saveState();pop.remove();rebuild();
 });
 pop.appendChild(pr);
@@ -3557,24 +3557,25 @@ function condCol(c){var m={A:"a",W:"g",H:"b",T:"c",B:"d",E:"e",C:"f",D:"e"};retu
 var K=state.bigMatrixData.kyufu,M=state.bigMatrixData.menjo;
 Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
 Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
-policies.forEach(function(p,pi){
-if(p.cancerOn||(+p.c1st>0)){var cCol=(p.cCond==="B")?"c":"b";if(+p.c1st>0)setDot(K,"kyufu","cancer",cCol,pi);if(+p.cancerHosp>0)setDot(K,"kyufu","cancer","f",pi);if(+p.cancerOut2>0)setDot(K,"kyufu","cancer","g",pi);}
-if(p.bigOn&&+p.h1st>0)setDot(K,"kyufu","heart",condCol(p.hCond),pi);
-if(p.bigOn&&+p.b1st>0)setDot(K,"kyufu","brain",condCol(p.bCond),pi);
-if(p.disType&&p.disType!=="none"){var ds=p.disScope||"5big";var dcol=(ds==="7big")?"b":(ds==="all"||ds==="grade2")?"c":"a";setDot(K,"kyufu","dis",dcol,pi);}
-if(p.careType&&p.careType!=="none"){var cl=p.careLevel||"";var ccol=(cl.indexOf("1以上")>=0)?"d":(cl.indexOf("3以上")>=0)?"b":(cl.indexOf("所定")>=0)?"a":"c";setDot(K,"kyufu","care",ccol,pi);}
-if(p.cancer2ndCond&&p.cancer2ndCond!==""){var s2c=({none:"s1","2y":"s2","1y":"s3",out:"s4"})[p.cancer2ndCond];if(s2c)setDot(K,"kyufu","cancer",s2c,pi);}
-if(+p.big8Amount>0){var b8c=({days60:"a",days20:"c",days10:"d",hospital1:"f",surgery:"e",any:"f"})[p.big8Cond]||"a";["diabetes","hypertension","liver","kidney","pancreas"].forEach(function(rid){setDot(K,"kyufu",rid,b8c,pi);});}
-if(+p.disPensionAmt>0&&p.disPensionGrade){var gco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.disPensionGrade];if(gco)setDot(K,"kyufu","dis_grade",gco,pi);}
-if(+p.welfareAmt>0&&p.welfareGrade){var wco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.welfareGrade];if(wco)setDot(K,"kyufu","welfare",wco,pi);}
+var _allP=(typeof aPs==="function")?aPs().map(function(x){return x.policy;}):policies;
+_allP.forEach(function(p){
+if(p.cancerOn||(+p.c1st>0)){var cCol=(p.cCond==="B")?"c":"b";if(+p.c1st>0)setDot(K,"kyufu","cancer",cCol,p.id);if(+p.cancerHosp>0)setDot(K,"kyufu","cancer","f",p.id);if(+p.cancerOut2>0)setDot(K,"kyufu","cancer","g",p.id);}
+if(p.bigOn&&+p.h1st>0)setDot(K,"kyufu","heart",condCol(p.hCond),p.id);
+if(p.bigOn&&+p.b1st>0)setDot(K,"kyufu","brain",condCol(p.bCond),p.id);
+if(p.disType&&p.disType!=="none"){var ds=p.disScope||"5big";var dcol=(ds==="7big")?"b":(ds==="all"||ds==="grade2")?"c":"a";setDot(K,"kyufu","dis",dcol,p.id);}
+if(p.careType&&p.careType!=="none"){var cl=p.careLevel||"";var ccol=(cl.indexOf("1以上")>=0)?"d":(cl.indexOf("3以上")>=0)?"b":(cl.indexOf("所定")>=0)?"a":"c";setDot(K,"kyufu","care",ccol,p.id);}
+if(p.cancer2ndCond&&p.cancer2ndCond!==""){var s2c=({none:"s1","2y":"s2","1y":"s3",out:"s4"})[p.cancer2ndCond];if(s2c)setDot(K,"kyufu","cancer",s2c,p.id);}
+if(+p.big8Amount>0){var b8c=({days60:"a",days20:"c",days10:"d",hospital1:"f",surgery:"e",any:"f"})[p.big8Cond]||"a";["diabetes","hypertension","liver","kidney","pancreas"].forEach(function(rid){setDot(K,"kyufu",rid,b8c,p.id);});}
+if(+p.disPensionAmt>0&&p.disPensionGrade){var gco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.disPensionGrade];if(gco)setDot(K,"kyufu","dis_grade",gco,p.id);}
+if(+p.welfareAmt>0&&p.welfareGrade){var wco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.welfareGrade];if(wco)setDot(K,"kyufu","welfare",wco,p.id);}
 var et=p.premExemptType;
 if(et&&et!=="none"&&et!==""){var det=p.premExemptDetail||"";
 function mjCol(){if(det.indexOf("60日")>=0)return "a";if(det.indexOf("20日")>=0)return "c";if(det.indexOf("10日")>=0)return "d";if(det.indexOf("手術")>=0)return "e";return "f";}
 var cCol2=(det.indexOf("上皮内")>=0||p.cCond==="B")?"c":"b";
-if(et==="cancer")setDot(M,"menjo","m_cancer","b",pi);
-else if(et==="cancer_jhi")setDot(M,"menjo","m_cancer","c",pi);
-else if(et==="3big"||et==="5big"||et==="8big"||et==="multi"){setDot(M,"menjo","m_cancer",cCol2,pi);setDot(M,"menjo","m_heart",mjCol(),pi);setDot(M,"menjo","m_brain",mjCol(),pi);}
-else if(et==="care")setDot(M,"menjo","m_care","c",pi);}
+if(et==="cancer")setDot(M,"menjo","m_cancer","b",p.id);
+else if(et==="cancer_jhi")setDot(M,"menjo","m_cancer","c",p.id);
+else if(et==="3big"||et==="5big"||et==="8big"||et==="multi"){setDot(M,"menjo","m_cancer",cCol2,p.id);setDot(M,"menjo","m_heart",mjCol(),p.id);setDot(M,"menjo","m_brain",mjCol(),p.id);}
+else if(et==="care")setDot(M,"menjo","m_care","c",p.id);}
 });
 saveState();
 }
@@ -3594,7 +3595,11 @@ wrap.appendChild(leg);
 wrap.appendChild(buildTable("kyufu",ROWS_KYUFU,"給付条件","#1a2744",false));
 wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
-try{autoAssign();}catch(e){}
+try{
+if(!state.bigMatrixData.idBased){["kyufu","menjo"].forEach(function(tt){var d=state.bigMatrixData[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck])d[ck].polIdxs=[];});});state.bigMatrixData.idBased=true;saveState();}
+var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=state.bigMatrixData[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
+if(!_anyDot)autoAssign();
+}catch(e){}
 rebuild();
 return wrap;
 }

@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3420-保険料免除行を実質免除のみ判定(不慮の事故除外)/加入一覧・比較表の印刷も被保険者で絞り込み。版";
+var APP_VERSION="v2-0619-3425-給付条件比較:表示の度に全ドットをクリアして再割当(免除も他人の古いドットが残らない)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3555,8 +3555,8 @@ function autoAssign(){
 function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];cd.na=false;if(cd.polIdxs.indexOf(pi)<0)cd.polIdxs.push(pi);}
 function condCol(c){var m={A:"a",W:"g",H:"b",T:"c",B:"d",E:"e",C:"f",D:"e"};return m[c]||"a";}
 var K=state.bigMatrixData.kyufu,M=state.bigMatrixData.menjo;
-["cancer","heart","brain","dis","care","dis_grade","welfare","diabetes","hypertension","liver","kidney","pancreas"].forEach(function(rid){Object.keys(K).forEach(function(ck){if(ck.split("|")[1]===rid)K[ck].polIdxs=[];});});
-["m_cancer","m_heart","m_brain","m_care"].forEach(function(rid){Object.keys(M).forEach(function(ck){if(ck.split("|")[1]===rid)M[ck].polIdxs=[];});});
+Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
+Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
 policies.forEach(function(p,pi){
 if(p.cancerOn||(+p.c1st>0)){var cCol=(p.cCond==="B")?"c":"b";if(+p.c1st>0)setDot(K,"kyufu","cancer",cCol,pi);if(+p.cancerHosp>0)setDot(K,"kyufu","cancer","f",pi);if(+p.cancerOut2>0)setDot(K,"kyufu","cancer","g",pi);}
 if(p.bigOn&&+p.h1st>0)setDot(K,"kyufu","heart",condCol(p.hCond),pi);

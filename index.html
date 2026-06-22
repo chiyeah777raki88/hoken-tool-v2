@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3340-保障グラフに被保険者の表示対象セレクタを追加しタイムライン・グラフ・お金マークを連動。版";
+var APP_VERSION="v2-0619-3350-貯蓄性判定を医療等は掛け捨て扱いに修正/給付条件比較を表示の度に各証券データから自動割当し被保険者ズレを解消。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1756,7 +1756,7 @@ if(bigPols.length>0)cont.appendChild(sec("3大疾病・がん条件比較表",nu
 return cont;
 }
 function isPracticalExempt(p){var t=p.premExemptType;return !!(t&&t!=="none"&&t!==""&&t!=="death"&&t!=="accident");}
-function isSavings(p){return (+p.refundVal>0)||(+p.annualPension>0)||(+p.celebAmount>0)||(+p.currentVal>0)||/(変額|個人年金|終身保険|養老|貯蓄|ドル|外貨|積立|アニュ|リターンズ)/.test((p.insType||"")+(p.notes||""));}
+function isSavings(p){var it=(p.insType||"")+(p.notes||"");var hasCash=(+p.refundVal>0)||(+p.annualPension>0)||(+p.celebAmount>0)||(+p.currentVal>0)||(p.futureVals&&p.futureVals.some&&p.futureVals.some(function(r){return (+r.v3||+r.v1||+r.v5||+r.v6)>0;}));if(hasCash)return true;if(/医療|がん|ガン|就業不能|介護|定期保険|収入保障|逓減/.test(it))return false;return /(終身保険|養老|個人年金|変額終身|変額養老|変額年金|外貨建て|ドル建て|学資|貯蓄|積立|アニュ|リターンズ)/.test(it);}
 function barFill(c,p){return isSavings(p)?("repeating-linear-gradient(45deg,"+c+","+c+" 6px,rgba(255,255,255,.5) 6px,rgba(255,255,255,.5) 11px)"):c;}
 function hatchPattern(color){try{var cv=document.createElement("canvas");cv.width=8;cv.height=8;var x=cv.getContext("2d");x.fillStyle=color;x.fillRect(0,0,8,8);x.strokeStyle="rgba(255,255,255,.6)";x.lineWidth=2;x.beginPath();x.moveTo(0,8);x.lineTo(8,0);x.moveTo(-2,2);x.lineTo(2,-2);x.moveTo(6,10);x.lineTo(10,6);x.stroke();return x.createPattern(cv,"repeat");}catch(e){return color;}}
 function buildTimeline(){
@@ -3585,6 +3585,7 @@ wrap.appendChild(leg);
 wrap.appendChild(buildTable("kyufu",ROWS_KYUFU,"給付条件","#1a2744",false));
 wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
+try{autoAssign();}catch(e){}
 rebuild();
 return wrap;
 }

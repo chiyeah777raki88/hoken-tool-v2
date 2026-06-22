@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3330-加入一覧ヘッダ:被保険者(母)表示をやめ法人/個人を表示(合算時のみ被保険者も併記)。版";
+var APP_VERSION="v2-0619-3340-保障グラフに被保険者の表示対象セレクタを追加しタイムライン・グラフ・お金マークを連動。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1764,7 +1764,7 @@ var wrap=el("div");wrap.style.cssText="background:#fff;border:1px solid #ddd8cc;
 var fam=state.family;
 var mm=fam.find(function(m){return m.relation==="本人";})||fam[0];
 var baseAge=getAge(mm&&mm.dob?mm.dob:null)||49;
-var pairs=aPs();
+var pairs=aPs();if(summaryMember!=="all")pairs=pairs.filter(function(x){return x.member&&x.member.id===summaryMember;});
 if(!pairs.length){var nn=el("div");nn.style.cssText="font-size:12px;color:#888;";nn.textContent="証券が未登録です。「入力・編集」で証券を追加してください。";wrap.appendChild(nn);return wrap;}
 function aNow(m){return getAge(m.dob)||baseAge;}
 function toAxis(insAge,m){return baseAge+(insAge-aNow(m));}
@@ -1879,10 +1879,20 @@ return wrap;
 
 function buildGraphTab(){
 var cont=el("div","content");
+if(summaryMember!=="all"&&!state.family.some(function(fm){return fm.id===summaryMember;}))summaryMember="all";
+if(state.family.length>=2){
+var memDivG=el("div");memDivG.className="no-print";memDivG.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
+var mLblG=el("span");mLblG.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";mLblG.textContent="表示対象：";memDivG.appendChild(mLblG);
+[["all","合算（全員）"]].concat(state.family.map(function(fm){return[fm.id,fm.name||fm.relation];})).forEach(function(x){
+var bG=el("button","btn");bG.style.cssText="padding:4px 12px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;background:"+(summaryMember===x[0]?"#1a2744":"white")+";color:"+(summaryMember===x[0]?"white":"#1a2744")+";";
+bG.textContent=x[1];bG.addEventListener("click",function(){summaryMember=x[0];render();});memDivG.appendChild(bG);
+});
+cont.appendChild(memDivG);
+}
 cont.appendChild(sec("保障期間・受取のタイムライン",null,buildTimeline()));
 var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var baseAge=getAge(mm&&mm.dob?mm.dob:null)||49;
-var ap=aPs();
+var ap=aPs();if(summaryMember!=="all")ap=ap.filter(function(x){return x.member&&x.member.id===summaryMember;});
 var dp=ap.filter(function(x){var p=x.policy;return p.deathType!=="none"||(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0)||(p.deathType==="annuity"&&p.daAmount>0);});
 var ages=[];for(var a=baseAge;a<=100;a++)ages.push(a);
 var dSets=[];

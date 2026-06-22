@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3315-がん保険対応:がん入院/がん手術/化学療法/放射線/上皮内診断額の項目を追加(明細表+読取)。版";
+var APP_VERSION="v2-0619-3320-修正:タイムラインのpol参照ミス(pol→p)で保障グラフが開けない不具合を解消。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1843,7 +1843,7 @@ if(ce!=null&&endAxis<maxAge){var term=el("div");term.style.cssText="position:abs
 // 特約ごとの満了（明細表の満了列）：主契約より早く切れるものに⚠マーカー
 var _ITLBL={death:"死亡",dann:"死亡年金",hosp:"入院",hospin:"入院一時金",hospout:"退院一時金",surgin:"手術",surgout:"外来手術",out:"通院",adv:"先進医療",advLump:"先進医療一時金",injury:"ケガ",cancer:"がん診断",chosp:"がん入院",cout:"がん通院",cTreat:"がん治療",heart:"心疾患",brain:"脳血管",big8:"特定/8大疾病",dislump:"就業不能一時金",dis:"就業不能",dpen:"障害年金",welf:"障害福祉",carelump:"介護一時金",caremon:"介護",dementia:"認知症",fhosp:"女性入院",fsurg:"女性手術",flump:"女性一時金",disDeath:"災害死亡",injHosp:"災害入院"};
 var _polEndAx=(ce==null)?maxAge:endAxis;
-var _ie=pol.itemEnd||{};var _emk=0;
+var _ie=p.itemEnd||{};var _emk=0;
 Object.keys(_ie).forEach(function(k){var ea=+_ie[k];if(!ea||ea<=0)return;var eaAx=toAxis(ea,m);if(eaAx<_polEndAx-0.4&&eaAx<=maxAge&&eaAx>=minAge){var mk=el("div");mk.style.cssText="position:absolute;left:"+pct(eaAx)+"%;top:"+( _emk%2===0?-2:9)+"px;transform:translateX(-2px);font-size:10px;color:#b9770e;font-weight:700;white-space:nowrap;z-index:4;";mk.innerHTML="<span style='border-left:2px solid #e0a52e;padding-left:2px;background:#fff;'>⚠"+(_ITLBL[k]||k)+ea+"歳で終了</span>";row.appendChild(mk);termNotes.push(shortN(p)+"の"+(_ITLBL[k]||k)+"は"+ea+"歳で終了");_emk++;}});
 barsWrap.appendChild(row);});
 plot.appendChild(barsWrap);

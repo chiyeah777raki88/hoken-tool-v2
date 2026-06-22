@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3230-証券読取:画像のドラッグ&ドロップ対応(ファイル選択の並び順問題を回避)。版";
+var APP_VERSION="v2-0619-3240-手術(外来)行を常時表示にして入院/外来の倍率・給付額を別々に手修正可能に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1205,7 +1205,7 @@ var dtw=el("div","tw");var dtbl=el("table");dtbl.className="kanyu cmpct";
 var dcg=el("colgroup");["150px","126px","52px","78px","240px"].forEach(function(w){var c=document.createElement("col");c.style.width=w;dcg.appendChild(c);});dtbl.appendChild(dcg);
 var dthead=el("thead"),dh=el("tr");["保障項目","給付額","満了","保険料","給付条件"].forEach(function(h){dh.appendChild(el("th",null,h));});dthead.appendChild(dh);dtbl.appendChild(dthead);
 var dtb=el("tbody");var dlg="";
-var DMINOR={hospout:1,surgout:1,fhosp:1,fsurg:1,flump:1,chosp:1,cout:1,big8:1,dislump:1,dpen:1,welf:1,carelump:1,injury:1,disDeath:1,injHosp:1,dementia:1,cTreat:1,advLump:1};
+var DMINOR={hospout:1,fhosp:1,fsurg:1,flump:1,chosp:1,cout:1,big8:1,dislump:1,dpen:1,welf:1,carelump:1,injury:1,disDeath:1,injHosp:1,dementia:1,cTreat:1,advLump:1};
 DET.forEach(function(r){
 if(DMINOR[r.k]&&!detShowAll&&!((+pol[r.f])>0))return;
 if(r.grp!==dlg){dlg=r.grp;var gr=el("tr");var gtd=el("td",null,r.grp==="保障"?"■ 保障性":"■ 貯蓄性");gtd.colSpan=5;gtd.style.cssText="background:"+(r.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(r.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:12px;text-align:left;padding:3px 6px;";gr.appendChild(gtd);dtb.appendChild(gr);}

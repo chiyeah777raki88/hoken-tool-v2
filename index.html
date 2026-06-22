@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3145-読取:法人/団体契約を判定(契約者の法人名・団体名・受取人法人・団体払込)isCorp/corpName/払込経路を反映。版";
+var APP_VERSION="v2-0619-3200-読取取込:false(個人/特約なし等)を入力済み扱いしないよう修正→再読込で法人/特約も正しく反映。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -874,7 +874,7 @@ CAM_FIELDS.forEach(function(f){
   if(keepMode.on){
     // 追記モード：既存に値が入っている項目は上書きしない（空の項目だけ埋める）
     var cur=pol[f];
-    var curHasVal=(cur!==null&&cur!==undefined&&cur!==""&&cur!==0&&!(Array.isArray(cur)&&cur.length===0));
+    var curHasVal=(cur!==null&&cur!==undefined&&cur!==""&&cur!==0&&cur!==false&&!(Array.isArray(cur)&&cur.length===0));
     if(curHasVal)return; // 既存があるので守る
   }
   merged[f]=dv;

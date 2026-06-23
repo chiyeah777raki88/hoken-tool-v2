@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3800-給付条件比較:2行の文字を15pxに拡大/改行前の「で」を小さく(病名を目立たせ)。版";
+var APP_VERSION="v2-0619-3810-給付条件比較:病名はまとめず維持/病名ラベルを15px・折返し無しで読みやすく。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3441,7 +3441,7 @@ var tbl=document.createElement("table");
 tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
 // Row 1: header
 var hr1=el("tr");
-var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:14px;min-width:82px;text-align:center;vertical-align:middle;font-weight:700;";th0.textContent="病名";hr1.appendChild(th0);
+var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:15px;min-width:88px;text-align:center;vertical-align:middle;font-weight:700;";th0.textContent="病名";hr1.appendChild(th0);
 var th1st=el("th");th1st.colSpan=6;th1st.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:14px;font-weight:700;color:#1e40af;";th1st.innerHTML="<span style=\"float:left;font-size:14px;font-weight:800;color:#b91c1c;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u2190 \u53b3\u3057\u3044</span>1\u56de\u76ee<span style=\"float:right;font-size:14px;font-weight:800;color:#166534;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u7de9\u3044 \u2192</span>";hr1.appendChild(th1st);
 if(!noSecond){var th2nd=el("th");th2nd.colSpan=4;th2nd.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:3px;text-align:center;font-size:15px;font-weight:700;color:#166534;";th2nd.textContent="2回目以降";hr1.appendChild(th2nd);}
 tbl.appendChild(hr1);
@@ -3455,7 +3455,7 @@ var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;pa
 tbl.appendChild(hr2);
 rows.forEach(function(row,ri){
 var tr2=el("tr");
-var nameTd=el("td");nameTd.style.cssText="padding:3px 6px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:14px;text-align:center;vertical-align:middle;min-width:82px;";
+var nameTd=el("td");nameTd.style.cssText="padding:3px 6px;border:1px solid #ccc;background:#f0f0f0;font-weight:700;font-size:15px;text-align:center;vertical-align:middle;min-width:88px;white-space:nowrap;";
 if(row.editable){
 var ni=document.createElement("input");ni.type="text";
 ni.value=(state.bigMatrixRowLabels&&state.bigMatrixRowLabels[row.id])||"";

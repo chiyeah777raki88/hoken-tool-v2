@@ -299,7 +299,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3510-加入一覧:がん手術/化学療法/放射線/上皮内を連動追加/該当なしの空行は表示・印刷で非表示(トグルで全表示)。版";
+var APP_VERSION="v2-0619-3515-入力:がん診断要件に「60日就業不能」を追加(心臓・脳と同様)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1184,7 +1184,7 @@ var DET=[
 {k:"dementia",l:"認知症一時金",f:"dementiaLump",grp:"保障"},
 {k:"cTreat",l:"がん治療(月額)",f:"cancerMonthly",grp:"保障",conds:[{f:"cancerMonthlyTarget",o:[{v:"all",l:"全治療"},{v:"hosp",l:"入院中"},{v:"chemo",l:"抗がん剤/放射線"}]}]},
 {k:"advLump",l:"先進医療一時金",f:"advancedMedicalLump",grp:"保障"},
-{k:"cancer",l:"がん診断一時金",f:"c1st",grp:"保障",conds:[{f:"cCond",o:[{v:"A",l:"1回目:悪性のみ"},{v:"B",l:"1回目:上皮内含む"}]},{f:"cancer2ndCond",o:[{v:"",l:"2回目—"},{v:"none",l:"2回目なし"},{v:"2y",l:"2回目:2年後"},{v:"1y",l:"2回目:1年後"},{v:"out",l:"2回目:外来OK"}]},{f:"cancerInterval",o:INTV}]},
+{k:"cancer",l:"がん診断一時金",f:"c1st",grp:"保障",conds:[{f:"cCond",o:[{v:"A",l:"1回目:悪性のみ"},{v:"B",l:"1回目:上皮内含む"},{v:"W",l:"1回目:60日就業不能"}]},{f:"cancer2ndCond",o:[{v:"",l:"2回目—"},{v:"none",l:"2回目なし"},{v:"2y",l:"2回目:2年後"},{v:"1y",l:"2回目:1年後"},{v:"out",l:"2回目:外来OK"}]},{f:"cancerInterval",o:INTV}]},
 {k:"cinsitu",l:"がん診断(上皮内)",f:"cInSitu",grp:"保障"},
 {k:"chosp",l:"がん入院(日額)",f:"cancerHosp",grp:"保障",cu:"円"},
 {k:"cout",l:"がん通院/治療",f:"cancerOut2",grp:"保障",cu:"円",conds:[{f:"cancerOutReq",o:["","入院前後","がん治療通院","退院後のみ","上限日数あり"]}]},
@@ -1268,7 +1268,7 @@ var cCont=[rg("cn"+pol.id,pol.cancerOn?"1":"0",[{v:"0",l:"なし"},{v:"1",l:"あ
 if(pol.cancerOn)cCont.push(grd("g3",[
 lbl("がん診断1回目（万円）",inp("number",pol.c1st,function(v){upd("c1st",+v);})),
 lbl("2回目以降（万円）",inp("number",pol.c2nd,function(v){upd("c2nd",+v);})),
-lbl("対象要件",sel([{v:"A",l:"悪性新生物のみ"},{v:"B",l:"上皮内新生物も含む"}],pol.cCond,function(v){upd("cCond",v);})),
+lbl("対象要件",sel([{v:"A",l:"悪性新生物のみ"},{v:"B",l:"上皮内新生物も含む"},{v:"W",l:"60日の就業不能"}],pol.cCond,function(v){upd("cCond",v);})),
 lbl("がん入院日額（円）",inp("number",pol.cancerHosp||"",function(v){upd("cancerHosp",+v);})),
 lbl("がん通院/治療（円・万）",inp("number",pol.cancerOut2||"",function(v){upd("cancerOut2",+v);}))
 ]));

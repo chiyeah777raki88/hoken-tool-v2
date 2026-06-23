@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3760-加入一覧も自動ズームで1枚化/⑥等1行を17pxに拡大/「1回目」「2回目以降」見出しを拡大/心臓脳2行を再反映。版";
+var APP_VERSION="v2-0619-3770-給付条件比較:改行を<br>変換で心臓脳を確実に2行表示/厳しい・緩いの文字も拡大。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3366,7 +3366,7 @@ function _visIdxs(cd){return ((cd&&cd.polIdxs)||[]).map(_pid2idx).filter(functio
 var _defCols=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];
 var POL_COLS=policies.map(function(p,i){return p.chartColor&&p.chartColor!==""?p.chartColor:_defCols[i%_defCols.length];});
 var POL_LIGHT=POL_COLS.map(function(col){return col+"22";});
-function fmtCond(txt){if(!txt)return "";var out=txt.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});["悪性新生物","急性心筋梗塞","脳卒中","上皮内","労働制限","診断","入院","手術","通院","所定","一時金","要介護","60日","20日","10日","1泊"].forEach(function(k){out=out.split(k).join("<strong>"+k+"</strong>");});return out;}
+function fmtCond(txt){if(!txt)return "";var out=txt.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});["悪性新生物","急性心筋梗塞","脳卒中","上皮内","労働制限","診断","入院","手術","通院","所定","一時金","要介護","60日","20日","10日","1泊"].forEach(function(k){out=out.split(k).join("<strong>"+k+"</strong>");});out=out.split("\n").join("<br>");return out;}
 if(!state.bigMatrixData)state.bigMatrixData={kyufu:{},menjo:{}};
 if(!state.bigMatrixData.kyufu)state.bigMatrixData.kyufu={};
 if(!state.bigMatrixData.menjo)state.bigMatrixData.menjo={};
@@ -3442,7 +3442,7 @@ tbl.style.cssText="border-collapse:collapse;font-size:11px;white-space:nowrap;";
 // Row 1: header
 var hr1=el("tr");
 var th0=el("th");th0.rowSpan=2;th0.style.cssText="background:#e0e0e0;border:1px solid #bbb;padding:4px 6px;font-size:14px;min-width:82px;text-align:center;vertical-align:middle;font-weight:700;";th0.textContent="病名";hr1.appendChild(th0);
-var th1st=el("th");th1st.colSpan=6;th1st.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:14px;font-weight:700;color:#1e40af;";th1st.innerHTML="<span style=\"float:left;font-size:12px;font-weight:800;color:#b91c1c;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u2190 \u53b3\u3057\u3044</span>1\u56de\u76ee<span style=\"float:right;font-size:12px;font-weight:800;color:#166534;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u7de9\u3044 \u2192</span>";hr1.appendChild(th1st);
+var th1st=el("th");th1st.colSpan=6;th1st.style.cssText="background:#dbeafe;border:1px solid #93c5fd;padding:3px;text-align:center;font-size:14px;font-weight:700;color:#1e40af;";th1st.innerHTML="<span style=\"float:left;font-size:14px;font-weight:800;color:#b91c1c;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u2190 \u53b3\u3057\u3044</span>1\u56de\u76ee<span style=\"float:right;font-size:14px;font-weight:800;color:#166534;background:rgba(255,255,255,.85);padding:0 5px;border-radius:3px;\">\u7de9\u3044 \u2192</span>";hr1.appendChild(th1st);
 if(!noSecond){var th2nd=el("th");th2nd.colSpan=4;th2nd.style.cssText="background:#dcfce7;border:1px solid #86efac;padding:3px;text-align:center;font-size:15px;font-weight:700;color:#166534;";th2nd.textContent="2回目以降";hr1.appendChild(th2nd);}
 tbl.appendChild(hr1);
 var hr2=el("tr");

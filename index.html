@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3650-加入一覧:がん通院/治療を月額・日額のセル別単位表示(混在は合計せず)/がん治療月額行を統合。版";
+var APP_VERSION="v2-0619-3660-給付条件比較:列幅を詰め(＋証券→＋)文字を13pxに拡大/折返しでムダな横幅を削減。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3438,7 +3438,7 @@ if(!noSecond){var th2nd=el("th");th2nd.colSpan=4;th2nd.style.cssText="background
 tbl.appendChild(hr1);
 var hr2=el("tr");
 ["①","②","③","④","⑤","⑥"].forEach(function(lbl){
-var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 4px;text-align:center;font-size:12px;min-width:72px;color:#1e40af;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
+var th=el("th");th.style.cssText="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 4px;text-align:center;font-size:13px;min-width:66px;color:#1e40af;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
 });
 if(!noSecond)["無し","2年後","1年後","外来"].forEach(function(lbl){
 var th=el("th");th.style.cssText="background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 4px;text-align:center;font-size:12px;min-width:55px;color:#166534;font-weight:600;";th.textContent=lbl;hr2.appendChild(th);
@@ -3459,7 +3459,7 @@ visCOLS.forEach(function(col){
 var ck=tableType+"|"+row.id+"|"+col.id;
 var defText=(row.def&&row.def[col.id])||"";
 var cd=ensureCell(data,ck,defText);
-var w=col.g==="second"?"55px":"72px";
+var w=col.g==="second"?"48px":"66px";
 var td=el("td");
 td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+cellBorder(cd)+";vertical-align:top;min-width:"+w+";position:relative;";
 if(cd.na){
@@ -3484,9 +3484,9 @@ td.appendChild(naWrap);
 // Multiple policy colors: show as thin top border strips
 td.style.background="white";
 var ta=document.createElement("textarea");ta.value=cd.text||"";
-ta.style.cssText="width:100%;border:none;background:transparent;font-size:12px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
+ta.style.cssText="width:100%;border:none;background:transparent;font-size:13px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
 ta.rows=2;ta.placeholder="入力...";
-var disp=el("div");disp.style.cssText="font-size:12px;color:#1a2744;padding:3px;min-height:30px;box-sizing:border-box;white-space:pre-wrap;word-break:break-word;cursor:text;line-height:1.4;";
+var disp=el("div");disp.style.cssText="font-size:13px;color:#1a2744;padding:3px 4px;min-height:28px;box-sizing:border-box;white-space:pre-wrap;word-break:break-word;cursor:text;line-height:1.35;";
 disp.innerHTML=cd.text?fmtCond(cd.text):"<span style='color:#bbb;'>入力...</span>";
 disp.addEventListener("click",function(){disp.style.display="none";ta.style.display="block";td.style.outline="2px solid #2980b9";ta.focus();});
 ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="none";disp.innerHTML=ta.value?fmtCond(ta.value):"<span style='color:#bbb;'>入力...</span>";disp.style.display="block";});
@@ -3510,7 +3510,7 @@ var tbr=el("div");tbr.style.cssText="display:flex;justify-content:space-between;
 tbr.appendChild(dotRow);
 var btnWrap=el("div");btnWrap.style.cssText="display:flex;gap:1px;";
 var addPolBtn=el("button");addPolBtn.style.cssText="font-size:8px;padding:0 3px;line-height:14px;border:1px solid #ddd;border-radius:2px;background:#f0f0f0;cursor:pointer;color:#555;";
-addPolBtn.textContent="＋証券";addPolBtn.title="証券を追加";
+addPolBtn.textContent="＋";addPolBtn.title="証券を割り当て";
 addPolBtn.addEventListener("click",function(e){
 e.stopPropagation();
 var ex=document.getElementById("pol-pop");if(ex)ex.remove();

@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3820-給付条件比較:で/とを全て少し小さく/免除心臓脳を2行化/5疾病を3行ラベル1行に統合。版";
+var APP_VERSION="v2-0619-3830-給付条件比較:5疾病ラベルを/区切りに/証券色分け凡例を拡大(14px)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3384,7 +3384,7 @@ var ROWS_KYUFU=[
 {id:"cancer",label:"がん",def:{a:"悪性新生物で\n60日の就業不能",b:"悪性新生物と診断",c:"悪性新生物で入院",d:"上皮内癌で入院",e:"上皮内癌と診断",f:"上皮内癌で通院",s1:"無し",s2:"入院",s3:"入院",s4:"外来OK"}},
 {id:"heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n60日の就業不能",c:"急性心筋梗塞で\n入院or手術",d:"心疾患で\n20日入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
 {id:"brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n60日の就業不能",c:"脳卒中で\n入院or手術",d:"脳血管疾患で\n20日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
-{id:"metabo",label:"糖尿病\n高血圧・肝硬変\n腎不全・膵疾患",def:{a:"60日の所定の状態",b:"60日の就業不能",c:"20日入院",d:"10日入院",e:"手術",f:"入院"}},
+{id:"metabo",label:"糖尿病\n高血圧/肝硬変\n腎不全/膵疾患",def:{a:"60日の所定の状態",b:"60日の就業不能",c:"20日入院",d:"10日入院",e:"手術",f:"入院"}},
 {id:"dis",label:"介護・就業不能",def:{a:"5疾病",b:"7疾病",c:"全疾病"}},
 {id:"dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
@@ -3590,10 +3590,10 @@ saveState();
 }
 function rebuild(){
 wrap.innerHTML="";
-var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:11px;padding:5px 10px;background:#f8f7f4;border-radius:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;";
+var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:14px;padding:7px 12px;background:#f8f7f4;border-radius:4px;display:flex;gap:7px;flex-wrap:wrap;align-items:center;";
 var lt=el("strong");lt.textContent="証券：";leg.appendChild(lt);
 policies.forEach(function(p,pi){
-var s=el("span");s.style.cssText="padding:2px 6px;border-radius:10px;background:"+POL_LIGHT[pi%POL_LIGHT.length]+";font-size:11px;font-weight:700;color:"+POL_COLS[pi%POL_COLS.length]+";";
+var s=el("span");s.style.cssText="padding:3px 10px;border-radius:10px;background:"+POL_LIGHT[pi%POL_LIGHT.length]+";font-size:14px;font-weight:700;color:"+POL_COLS[pi%POL_COLS.length]+";";
 s.textContent=(pi+1)+"."+polLabel(p);leg.appendChild(s);
 });
 var autoBtn=el("button");autoBtn.style.cssText="font-size:11px;font-weight:700;padding:3px 10px;border:1px solid #1a2744;border-radius:4px;background:#1a2744;color:white;cursor:pointer;margin-right:6px;";autoBtn.textContent="\ud83d\udd04 入力から自動割当";autoBtn.title="各証券の入力内容から給付条件・免除条件の色を自動で割り当てます";
@@ -3605,7 +3605,7 @@ wrap.appendChild(buildTable("kyufu",ROWS_KYUFU,"給付条件","#1a2744",false));
 wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
-if(state.bigMatrixData.layoutVer!==12){state.bigMatrixData.kyufu={};state.bigMatrixData.menjo={};state.bigMatrixData.layoutVer=12;state.bigMatrixData.idBased=true;saveState();}
+if(state.bigMatrixData.layoutVer!==13){state.bigMatrixData.kyufu={};state.bigMatrixData.menjo={};state.bigMatrixData.layoutVer=13;state.bigMatrixData.idBased=true;saveState();}
 var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=state.bigMatrixData[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
 if(!_anyDot)autoAssign();
 }catch(e){}

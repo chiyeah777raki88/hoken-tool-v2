@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3860-給付条件比較:5疾病行の高さと行間を拡大。版";
+var APP_VERSION="v2-0619-3880-設定タブ:名称変更+使い方メモ追加/5疾病セル上下中央。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2034,6 +2034,34 @@ var rl=el("div");
 rl.appendChild(lbl("老後の安心ライン（評価年齢時点の目標総資産・万円）",inp("number",al.retire||"",function(v){if(!state.ansinLine)state.ansinLine={};state.ansinLine.retire=+v;saveState();render();})));
 rl.appendChild(lbl("評価年齢（資産を確認する年齢）",inp("number",evalAge||"",function(v){evalAge=+v;saveState();render();})));
 cont.appendChild(sec("老後の安心ライン・評価年齢",null,rl,true));
+// 使い方メモ
+var um=el("div");
+var guide=el("div");guide.style.cssText="font-size:12px;color:#3a3a3a;line-height:1.7;background:#fbf9f3;border:1px solid #e7e0cf;border-radius:6px;padding:12px 14px;margin-bottom:12px;";
+guide.innerHTML="<b style=\"color:#1a2744;\">■ 上部ボタンの役割</b><br>"+
+"・<b>☁同期/同期済</b>…PCのデータをiPhone等と共有。1台だけなら不要。<br>"+
+"・<b>↓書き出し</b>…データをファイルにバックアップ保存。時々押すと安心。<br>"+
+"・<b>↑データ読込</b>…書き出したファイルや別端末のデータを取り込む。<br>"+
+"・<b>🔍復元チェック</b>…消えた時にバックアップの中身を確認する診断用。<br>"+
+"・<b>👥4名復元/🔧草刈復元</b>…サンプル/特定データを呼び戻す。普段は触らない。<br>"+
+"<span style=\"color:#8a8a8a;\">→ 普段の入力・印刷だけなら全部スルーでOK。データは自動保存されます。</span><br><br>"+
+"<b style=\"color:#1a2744;\">■ 更新の仕方</b><br>"+
+"・新しい版が反映されない時は <b>Ctrl+R</b>（強制は <b>Ctrl+Shift+R</b>）。右上の金色の版番号で確認。<br><br>"+
+"<b style=\"color:#1a2744;\">■ 給付条件比較の表</b><br>"+
+"・ポッチ（色付き丸）は入力データから<b>自動</b>で付きます。<br>"+
+"・<b>条件の文章・病名のセルは直接クリックして手入力で修正</b>できます（自動保存）。<br>"+
+"・手で直した内容は版が変わっても残ります。<br><br>"+
+"<b style=\"color:#1a2744;\">■ カメラ読み取り</b><br>"+
+"・証券/設計書の写真から自動で項目を抽出。倍率タイプ（5/10/20倍等）や法人契約も判定。<br>"+
+"・スマホで撮影→PCに画像を送る→PCで読み取りが楽。";
+um.appendChild(guide);
+var memoTtl=el("p");memoTtl.style.cssText="font-size:12px;font-weight:700;color:#1a2744;margin:0 0 4px;";memoTtl.textContent="自由メモ（自分用の覚え書き）";um.appendChild(memoTtl);
+var memoTa=document.createElement("textarea");
+memoTa.value=state.usageMemo||"";
+memoTa.placeholder="例：印刷前に被保険者を絞り込む／○○さんは法人契約 など、自由にメモできます。";
+memoTa.style.cssText="width:100%;min-height:120px;font-size:13px;line-height:1.6;padding:10px;border:1px solid #d8d2c4;border-radius:6px;box-sizing:border-box;resize:vertical;font-family:inherit;";
+memoTa.addEventListener("input",function(){state.usageMemo=memoTa.value;saveState();});
+um.appendChild(memoTa);
+cont.appendChild(sec("使い方メモ",null,um,true));
 return cont;
 }
 
@@ -3464,7 +3492,7 @@ var defText=(row.def&&row.def[col.id])||"";
 var cd=ensureCell(data,ck,defText);
 var w=col.g==="second"?"54px":"56px";
 var td=el("td");
-td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+cellBorder(cd)+";vertical-align:top;min-width:"+w+";position:relative;";
+td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+cellBorder(cd)+";vertical-align:"+(row.id==="metabo"?"middle":"top")+";min-width:"+w+";position:relative;";
 if(cd.na){
 // ✕: show text + diagonal lines overlay (like Excel)
 td.style.position="relative";
@@ -3489,7 +3517,7 @@ td.style.background="white";
 var ta=document.createElement("textarea");ta.value=cd.text||"";
 ta.style.cssText="width:100%;border:none;background:transparent;font-size:13px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
 ta.rows=2;ta.placeholder="入力...";
-var _oneLine=(cd.text&&String(cd.text).indexOf("\n")<0);var disp=el("div");disp.style.cssText="font-size:"+((col&&col.g==="second")?"17px":(_oneLine?"17px":"15px"))+";font-weight:700;color:#1a2744;padding:4px 4px;min-height:34px;box-sizing:border-box;white-space:pre-wrap;word-break:keep-all;overflow-wrap:normal;cursor:text;line-height:1.35;text-align:center;display:block;";
+var _oneLine=(cd.text&&String(cd.text).indexOf("\n")<0);var disp=el("div");disp.style.cssText="font-size:"+((col&&col.g==="second")?"17px":(_oneLine?"17px":"15px"))+";font-weight:700;color:#1a2744;padding:4px 4px;min-height:34px;box-sizing:border-box;white-space:pre-wrap;word-break:keep-all;overflow-wrap:normal;cursor:text;line-height:1.35;text-align:center;display:block;";if(row.id==="metabo"){disp.style.display="flex";disp.style.alignItems="center";disp.style.justifyContent="center";disp.style.minHeight="42px";}
 disp.innerHTML=cd.text?fmtCond(cd.text):"<span style='color:#bbb;'>入力...</span>";
 disp.addEventListener("click",function(){disp.style.display="none";ta.style.display="block";td.style.outline="2px solid #2980b9";ta.focus();});
 ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="none";disp.innerHTML=ta.value?fmtCond(ta.value):"<span style='color:#bbb;'>入力...</span>";disp.style.display="block";});
@@ -4064,7 +4092,7 @@ window.location.href=window.location.href;
 /*削除:草刈復元*/
 hdr.appendChild(ioWrap);hdr.appendChild(custWrap);app.appendChild(hdr);
 var tabs=el("div","tabs");
-[["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["settings","基準設定"],["print","印刷"]].forEach(function(t){
+[["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案内容"],["compare","比較"],["assets","資産・老後"],["family","家族設定"],["settings","設定"],["print","印刷"]].forEach(function(t){
 var b=el("button","tab-btn"+(currentTab===t[0]?" active":""),t[1]);
 b.addEventListener("click",function(){currentTab=t[0];render();});tabs.appendChild(b);
 });

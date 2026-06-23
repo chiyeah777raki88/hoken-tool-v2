@@ -305,7 +305,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3550-給付条件比較:がん列を正しく再配置(①悪性60日労働制限/②60日就業不能/③悪性診断/④悪性入院/⑤上皮内診断/⑥上皮内通院)。版";
+var APP_VERSION="v2-0619-3555-給付条件比較:レイアウト変更時に古いセル文字をリセット(新しい列定義を反映)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3592,7 +3592,7 @@ wrap.appendChild(buildTable("kyufu",ROWS_KYUFU,"給付条件","#1a2744",false));
 wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
-if(!state.bigMatrixData.idBased){["kyufu","menjo"].forEach(function(tt){var d=state.bigMatrixData[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck])d[ck].polIdxs=[];});});state.bigMatrixData.idBased=true;saveState();}
+if(state.bigMatrixData.layoutVer!==3){state.bigMatrixData.kyufu={};state.bigMatrixData.menjo={};state.bigMatrixData.layoutVer=3;state.bigMatrixData.idBased=true;saveState();}
 var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=state.bigMatrixData[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
 if(!_anyDot)autoAssign();
 }catch(e){}

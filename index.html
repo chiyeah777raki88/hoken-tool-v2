@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3790-給付条件比較:糖尿病〜膵疾患の③を20日入院・④を10日入院に変更。版";
+var APP_VERSION="v2-0619-3800-給付条件比較:2行の文字を15pxに拡大/改行前の「で」を小さく(病名を目立たせ)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3366,7 +3366,7 @@ function _visIdxs(cd){return ((cd&&cd.polIdxs)||[]).map(_pid2idx).filter(functio
 var _defCols=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];
 var POL_COLS=policies.map(function(p,i){return p.chartColor&&p.chartColor!==""?p.chartColor:_defCols[i%_defCols.length];});
 var POL_LIGHT=POL_COLS.map(function(col){return col+"22";});
-function fmtCond(txt){if(!txt)return "";var out=txt.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});["悪性新生物","急性心筋梗塞","脳卒中","上皮内","労働制限","診断","入院","手術","通院","所定","一時金","要介護","60日","20日","10日","1泊"].forEach(function(k){out=out.split(k).join("<strong>"+k+"</strong>");});out=out.split("\n").join("<br>");return out;}
+function fmtCond(txt){if(!txt)return "";var out=txt.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});["悪性新生物","急性心筋梗塞","脳卒中","上皮内","労働制限","診断","入院","手術","通院","所定","一時金","要介護","60日","20日","10日","1泊"].forEach(function(k){out=out.split(k).join("<strong>"+k+"</strong>");});out=out.split("で\n").join("<span style=\"font-size:.72em;font-weight:600;\">で</span>\n");out=out.split("\n").join("<br>");return out;}
 if(!state.bigMatrixData)state.bigMatrixData={kyufu:{},menjo:{}};
 if(!state.bigMatrixData.kyufu)state.bigMatrixData.kyufu={};
 if(!state.bigMatrixData.menjo)state.bigMatrixData.menjo={};
@@ -3495,7 +3495,7 @@ td.style.background="white";
 var ta=document.createElement("textarea");ta.value=cd.text||"";
 ta.style.cssText="width:100%;border:none;background:transparent;font-size:13px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
 ta.rows=2;ta.placeholder="入力...";
-var _oneLine=(cd.text&&String(cd.text).indexOf("\n")<0);var disp=el("div");disp.style.cssText="font-size:"+((col&&col.g==="second")?"17px":(_oneLine?"17px":"13px"))+";font-weight:700;color:#1a2744;padding:4px 4px;min-height:34px;box-sizing:border-box;white-space:pre-wrap;word-break:keep-all;overflow-wrap:normal;cursor:text;line-height:1.35;text-align:center;display:block;";
+var _oneLine=(cd.text&&String(cd.text).indexOf("\n")<0);var disp=el("div");disp.style.cssText="font-size:"+((col&&col.g==="second")?"17px":(_oneLine?"17px":"15px"))+";font-weight:700;color:#1a2744;padding:4px 4px;min-height:34px;box-sizing:border-box;white-space:pre-wrap;word-break:keep-all;overflow-wrap:normal;cursor:text;line-height:1.35;text-align:center;display:block;";
 disp.innerHTML=cd.text?fmtCond(cd.text):"<span style='color:#bbb;'>入力...</span>";
 disp.addEventListener("click",function(){disp.style.display="none";ta.style.display="block";td.style.outline="2px solid #2980b9";ta.focus();});
 ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="none";disp.innerHTML=ta.value?fmtCond(ta.value):"<span style='color:#bbb;'>入力...</span>";disp.style.display="block";});

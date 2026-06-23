@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3640-加入一覧:がん診断一時金→がん一時金に統一(年額継続も合算)/がん通院は日額(円)のみ表示で単位明確化。版";
+var APP_VERSION="v2-0619-3650-加入一覧:がん通院/治療を月額・日額のセル別単位表示(混在は合計せず)/がん治療月額行を統合。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2819,7 +2819,7 @@ var ROWS=[
 {k:"cancer",l:"がん一時金",u:"万",grp:"保障",detail:true,g:function(p){return (p.cancerOn?(+p.c1st||0):0)+((p.cancerContinue&&p.cancerContinueType==="annual")?(+p.cancerContinueAmount||0):0);}},
 {k:"cinsitu",l:"がん診断(上皮内)",u:"万",grp:"保障",g:function(p){return +p.cInSitu||0;}},
 {k:"chosp",l:"がん入院",u:"円",grp:"保障",g:function(p){return +p.cancerHosp||0;}},
-{k:"cout",l:"がん通院(日額)",u:"円",grp:"保障",detail:true,g:function(p){return +p.cancerOut2||0;}},
+{k:"cout",l:"がん通院/治療",u:"",grp:"保障",detail:true,noSum:true,g:function(p){return (+p.cancerMonthly||0)||(+p.cancerOut2||0);},disp:function(p){if(+p.cancerMonthly>0)return (+p.cancerMonthly).toLocaleString()+"万/月";if(+p.cancerOut2>0)return (+p.cancerOut2).toLocaleString()+"円/日";return "";}},
 {k:"csurg",l:"がん手術",u:"万",grp:"保障",g:function(p){return +p.cancerSurg||0;}},
 {k:"cchemo",l:"がん化学療法",u:"万",grp:"保障",g:function(p){return +p.cancerChemo||0;}},
 {k:"crad",l:"がん放射線",u:"万",grp:"保障",g:function(p){return +p.cancerRadiation||0;}},
@@ -2834,7 +2834,7 @@ var ROWS=[
 {k:"disDeath",l:"災害死亡",u:"万",grp:"保障",g:function(p){return +p.disasterDeath||0;}},
 {k:"injHosp",l:"災害入院",u:"円",grp:"保障",g:function(p){return +p.injuryHospDaily||0;}},
 {k:"dementia",l:"認知症一時金",u:"万",grp:"保障",g:function(p){return +p.dementiaLump||0;}},
-{k:"cTreat",l:"がん治療(月額)",u:"万/月",grp:"保障",g:function(p){return +p.cancerMonthly||0;}},
+
 {k:"advLump",l:"先進医療一時金",u:"万",grp:"保障",g:function(p){return +p.advancedMedicalLump||0;}},
 {k:"exempt",l:"保険料免除",u:"",grp:"保障",detail:true,g:function(p){return isPracticalExempt(p)?1:0;},isFlag:true},
 {k:"pension",l:"個人年金(年額)",u:"",grp:"貯蓄",g:function(p){return +p.annualPension||0;}},
@@ -2922,12 +2922,12 @@ var _re=+((p.itemEnd||{})[row.k])||0;
 var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));
 td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;"+(_endsEarly?"background:#fdecea;":"");
 if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
-else if(v>0){sum+=v;td.textContent=v.toLocaleString()+row.u;td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
+else if(v>0){sum+=v;td.textContent=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
 else{td.textContent="—";td.style.color="#ccc";}
 tr.appendChild(td);
 });
 if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);tb.appendChild(tr);return;}
-var tdSum=el("td",null,sum>0?sum.toLocaleString()+row.u:"—");tdSum.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tr.appendChild(tdSum);
+var tdSum=el("td",null,row.noSum?"—":(sum>0?sum.toLocaleString()+row.u:"—"));tdSum.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tr.appendChild(tdSum);
 tb.appendChild(tr);
 });
 tbl.appendChild(tb);tw.appendChild(tbl);

@@ -68,6 +68,7 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .hi input{border-color:#f39c12 !important;background:#fffde7 !important;}
 .cnote{padding:6px 12px;background:#fffde7;border-top:1px solid #ddd8cc;font-size:12px;color:#856404;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.kanyu:not(.cmpct) td, .kanyu:not(.cmpct) th, .kanyu:not(.cmpct) td span, .kanyu:not(.cmpct) th span, .kanyu:not(.cmpct) td b { font-size: 13px !important; }
 @media print {
 .hdr, .tabs, .ptabs, .poltabs, .no-print { display: none !important; }
 #app button { display: none !important; }
@@ -118,8 +119,8 @@ body.p_assets #app .ni-row > * { flex: 1 1 0 !important; min-width: 0 !important
 body.pmatrix #print-area table { font-size: 8.5px !important; }
 body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.15 !important; }
 /* 加入一覧印刷: 文字を大きめに（行は空行非表示で減っているので収まる） */
-body.pkanyu #print-area .kanyu td, body.pkanyu #print-area .kanyu th { font-size: 12.5px !important; padding: 2px 5px !important; line-height: 1.3 !important; }
-body.pkanyu #print-area .kanyu td span, body.pkanyu #print-area .kanyu th span, body.pkanyu #print-area .kanyu td b { font-size: 12.5px !important; }
+body.pkanyu #print-area .kanyu td, body.pkanyu #print-area .kanyu th { font-size: 13.5px !important; padding: 2px 5px !important; line-height: 1.3 !important; }
+body.pkanyu #print-area .kanyu td span, body.pkanyu #print-area .kanyu th span, body.pkanyu #print-area .kanyu td b { font-size: 13.5px !important; }
 body.pkanyu #print-area .kanyu th span[style*="15px"], body.pkanyu #print-area .kanyu th span[style*="font-size:12px"] { font-size: 12.5px !important; }
 body.pkanyu #print-area .kanyu { width: 100% !important; }
 @page { size: A4 landscape; margin: 8mm; }
@@ -304,7 +305,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3530-給付条件比較:⑦列削除しがん・心・脳を再配置/手入力行を削除。版";
+var APP_VERSION="v2-0619-3540-加入一覧:安心ライン・過不足の列を削除し文字を拡大(表示13px/印刷13.5px)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2866,8 +2867,6 @@ th.innerHTML=String.fromCharCode(65+pi)+"<br><span style='font-weight:700;font-s
 hr.appendChild(th);
 });
 hr.appendChild(el("th",null,"合計"));
-hr.appendChild(el("th",null,"安心ライン"));
-hr.appendChild(el("th",null,"過不足"));
 thead.appendChild(hr);tbl.appendChild(thead);
 var tb=el("tbody");
 function infoRow(label,color,bg,valFn,sumText,bold){
@@ -2876,7 +2875,7 @@ var im=el("td");im.style.cssText="border:none;background:transparent;";tr.append
 var t0=el("td",null,label);t0.style.cssText="font-weight:700;color:"+color+";font-size:12px;padding:4px 4px;";tr.appendChild(t0);
 curPols.forEach(function(p){var td=el("td");var val=valFn(p);var isYr=(val==="年払"||val==="半年払");td.style.cssText="font-size:"+(bold?"12px":"11px")+";color:"+(isYr?"#c0392b":color)+";"+((bold||isYr)?"font-weight:700;":"");td.textContent=val;tr.appendChild(td);});
 var ts=el("td",null,sumText||"");ts.style.cssText="font-weight:700;background:#fdf8ec;font-size:12px;color:"+color+";";tr.appendChild(ts);
-tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);
+tb.appendChild(tr);
 }
 (function(){var tr=el("tr");var im=el("td");im.style.cssText="border:none;background:transparent;";tr.appendChild(im);var t0=el("td",null,"保険期間");t0.style.cssText="font-weight:700;color:#1a2744;font-size:12px;padding:4px 4px;";tr.appendChild(t0);
 curPols.forEach(function(p){var td=el("td");var val=periodTxt(p);var isWhole=(val==="終身");var isRenew=((p.dlPayType||"").indexOf("更新")>=0)||((p.dlPeriodType||"").indexOf("更新")>=0);var earliest=0;var ie=p.itemEnd||{};Object.keys(ie).forEach(function(k){var ea=+ie[k];if(ea>0&&(isWhole?true:(!(+p.dlPeriodEnd)||ea<+p.dlPeriodEnd))){if(!earliest||ea<earliest)earliest=ea;}});
@@ -2884,7 +2883,7 @@ var html=isWhole?"<span style=\'color:#1a7a3a;font-weight:700;\'>終身</span>":
 if(isRenew)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";
 if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>⚠特約"+earliest+"歳まで</span>";
 td.style.cssText="font-size:11px;text-align:center;padding:3px 4px;"+((!isWhole||earliest)?"background:#fdecea;":"");td.innerHTML=html;tr.appendChild(td);});
-var ts=el("td",null,"");ts.style.cssText="background:#fdf8ec;";tr.appendChild(ts);tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);})();
+var ts=el("td",null,"");ts.style.cssText="background:#fdf8ec;";tr.appendChild(ts);tb.appendChild(tr);})();
 infoRow("払込期間","#1a2744",null,payTermTxt,"",false);
 infoRow("払込方法","#1a2744",null,payMethod,"",false);
 infoRow("払込経路","#1a2744",null,payRouteTxt,"",false);
@@ -2895,7 +2894,7 @@ ROWS.forEach(function(row){
 if(!kanyuShowAll&&!row.isFlag){var _av=curPols.some(function(p){return (row.g&&(row.g(p)||0)>0)||(row.isPair&&row.g2&&(row.g2(p)||0)>0);});if(!_av)return;}
 if(row.grp!==lastGrp){lastGrp=row.grp;
 var gr=el("tr");var gm=el("td");gm.style.cssText="border:none;background:transparent;";gr.appendChild(gm);var gtd=el("td",null,row.grp==="保障"?"■ 保障性（万一・病気・介護などの保障）":"■ 貯蓄性（将来お金になる部分）");
-gtd.colSpan=curPols.length+4;gtd.style.cssText="background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:12px;padding:6px 8px;text-align:left;";
+gtd.colSpan=curPols.length+2;gtd.style.cssText="background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:12px;padding:6px 8px;text-align:left;";
 gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
@@ -2907,7 +2906,7 @@ td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b3
 if(row.isPair){var sA=0,sB=0;
 curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
 var tdSum=el("td");tdSum.style.cssText="font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tdSum.innerHTML=(sA||sB)?("<span style='color:#1f7d56;'>"+sA+"</span>/<span style='color:#2980b9;'>"+sB+"</span>"+row.u):"—";tr.appendChild(tdSum);
-tr.appendChild(el("td",null,""));tr.appendChild(el("td",null,""));tb.appendChild(tr);return;}
+tb.appendChild(tr);return;}
 var sum=0;
 curPols.forEach(function(p){
 var v=row.g(p)||0;
@@ -2921,18 +2920,8 @@ else if(v>0){sum+=v;td.textContent=v.toLocaleString()+row.u;td.style.color=_ends
 else{td.textContent="—";td.style.color="#ccc";}
 tr.appendChild(td);
 });
-if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);var tdA0=el("td",null,"");tdA0.style.background="#fafafa";tr.appendChild(tdA0);var tdG0=el("td",null,"");tdG0.style.background="#fafafa";tr.appendChild(tdG0);tb.appendChild(tr);return;}
+if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);tb.appendChild(tr);return;}
 var tdSum=el("td",null,sum>0?sum.toLocaleString()+row.u:"—");tdSum.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tr.appendChild(tdSum);
-var tdA=el("td");tdA.style.cssText="text-align:center;white-space:nowrap;";
-var li=inp("number",(state.ansinCov[row.k]!=null?state.ansinCov[row.k]:""),function(val){state.ansinCov[row.k]=val;saveState();});
-li.style.cssText="width:70px;text-align:right;font-size:12px;padding:3px;border:1px solid #ddd8cc;border-radius:4px;";
-li.addEventListener("change",function(){render();});
-tdA.appendChild(li);tr.appendChild(tdA);
-var tdG=el("td");tdG.style.cssText="text-align:center;font-weight:700;white-space:nowrap;font-size:12px;";
-var line=(state.ansinCov[row.k]!=null&&state.ansinCov[row.k]!=="")?+state.ansinCov[row.k]:0;
-if(line>0){var gap=sum-line;if(gap<0){tdG.textContent="▲"+Math.abs(gap).toLocaleString();tdG.style.color="#c0392b";}else{tdG.textContent="+"+gap.toLocaleString();tdG.style.color="#166534";}}
-else{tdG.textContent="—";tdG.style.color="#ccc";}
-tr.appendChild(tdG);
 tb.appendChild(tr);
 });
 tbl.appendChild(tb);tw.appendChild(tbl);

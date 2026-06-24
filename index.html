@@ -67,10 +67,12 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .hi label{color:#856404 !important;font-weight:700 !important;}
 .hi input{border-color:#f39c12 !important;background:#fffde7 !important;}
 .cnote{padding:6px 12px;background:#fffde7;border-top:1px solid #ddd8cc;font-size:12px;color:#856404;}
+.only-print{display:none;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .kanyu:not(.cmpct) td, .kanyu:not(.cmpct) th, .kanyu:not(.cmpct) td span, .kanyu:not(.cmpct) th span, .kanyu:not(.cmpct) td b { font-size: 13px !important; }
 @media print {
 .hdr, .tabs, .ptabs, .poltabs, .no-print { display: none !important; }
+.only-print{ display:block !important; }
 #app button { display: none !important; }
 #app input, #app select, #app textarea { border: none !important; background: transparent !important; -webkit-appearance: none; appearance: none; padding: 0 2px !important; color: #000 !important; }
 .tw { overflow: visible !important; }
@@ -307,7 +309,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3920-死亡グラフ:死亡保険金があれば型未設定でも必ず連動。版";
+var APP_VERSION="v2-0619-3940-加入一覧に備考欄追加/該当ポッチを拡大。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1761,6 +1763,17 @@ var mnote=el("p");mnote.style.cssText="font-size:12px;color:#8a8a8a;padding:6px 
 cont.appendChild(sec("保障マトリクス",null,[mtw,mnote],true));
 var bigPols=aPs().map(function(x){return x.policy;}).filter(function(p){return p.bigOn||p.cancerOn||p.premExempt;});
 if(bigPols.length>0)cont.appendChild(sec("3大疾病・がん条件比較表",null,buildBigDiseaseMatrix(bigPols),true));
+// 備考欄（資産の前提・予測注記など。印刷にも出る）
+var memoWrap=el("div");
+var memoTa2=document.createElement("textarea");
+memoTa2.value=state.summaryMemo||"";
+memoTa2.placeholder="例：解約返戻金・積立金・年金額はあくまでも予測です（運用実績・為替・解約時期により変動します）。資産前提：想定利率○％、評価年齢○歳 など";
+memoTa2.className="no-print";memoTa2.style.cssText="width:100%;min-height:80px;font-size:13px;line-height:1.6;padding:10px;border:1px solid #d8d2c4;border-radius:6px;box-sizing:border-box;resize:vertical;font-family:inherit;";
+memoTa2.addEventListener("input",function(){state.summaryMemo=memoTa2.value;saveState();});
+memoWrap.appendChild(memoTa2);
+var memoPrint=el("div");memoPrint.className="only-print";memoPrint.style.cssText="font-size:12px;line-height:1.6;white-space:pre-wrap;color:#333;padding:4px 2px;";memoPrint.textContent=state.summaryMemo||"";
+memoWrap.appendChild(memoPrint);
+cont.appendChild(sec("備考（資産の前提・注記）",null,memoWrap,true));
 return cont;
 }
 function isPracticalExempt(p){var t=p.premExemptType;return !!(t&&t!=="none"&&t!==""&&t!=="death"&&t!=="accident");}
@@ -3523,10 +3536,10 @@ disp.addEventListener("click",function(){disp.style.display="none";ta.style.disp
 ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="none";disp.innerHTML=ta.value?fmtCond(ta.value):"<span style='color:#bbb;'>入力...</span>";disp.style.display="block";});
 ta.addEventListener("input",function(){cd.text=this.value;saveState();});
 // Policy color dots
-var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:1px;padding:1px 2px;";
+var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:3px;padding:2px;justify-content:center;";
 (cd.polIdxs||[]).forEach(function(pid){
 var pi=_pid2idx(pid);if(pi<0)return;
-var dot=el("span");dot.style.cssText="display:inline-block;width:10px;height:10px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;";
+var dot=el("span");dot.style.cssText="display:inline-block;width:16px;height:16px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);";
 dot.title=polLabel(policies[pi]||{company:"証券"+(pi+1)});
 dot.addEventListener("click",function(e){
 e.stopPropagation();

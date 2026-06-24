@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3990-加入一覧:備考を貯蓄性の下に行として組込(エクセル方式)。版";
+var APP_VERSION="v2-0619-4000-加入一覧:貯蓄性の金額セルを手編集可(※印追記)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2966,6 +2966,7 @@ td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;"+(_endsEa
 if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
 else if(v>0){sum+=v;td.textContent=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
 else{td.textContent="—";td.style.color="#ccc";}
+if(row.grp==="貯蓄"&&!row.isFlag){var _sk=row.k+"|"+p.id;if(state.savNotes&&state.savNotes[_sk]!==undefined&&state.savNotes[_sk]!==""){td.textContent=state.savNotes[_sk];td.style.color="#1f7d56";td.style.fontWeight="700";}td.contentEditable="true";td.style.cursor="text";td.style.outline="none";td.title="クリックで編集（例: 800万 ※1）";td.addEventListener("blur",function(){if(!state.savNotes)state.savNotes={};state.savNotes[_sk]=(td.innerText||"").replace(/\u00a0/g," ").trim();saveState();});}
 tr.appendChild(td);
 });
 if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);tb.appendChild(tr);return;}

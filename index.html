@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3950-給付条件比較:印刷時はポッチを縮小し1枚に。版";
+var APP_VERSION="v2-0619-3960-給付条件比較:該当セルを証券色で塗る(複数は分割)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3526,8 +3526,12 @@ naWrap.style.cursor="pointer";naWrap.title="クリックで入力モードに戻
 naWrap.addEventListener("click",function(){cd.na=false;saveState();rebuild();});
 td.appendChild(naWrap);
 } else {
-// Multiple policy colors: show as thin top border strips
+// Multiple policy colors: tint the whole cell with matched policy colors (prints clearly)
 td.style.background="white";
+var _cols=(cd.polIdxs||[]).map(function(pid){var pi=_pid2idx(pid);return pi<0?null:POL_COLS[pi%POL_COLS.length];}).filter(Boolean);
+function _hexA(h,a){h=String(h).replace("#","");if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);return "rgba("+r+","+g+","+b+","+a+")";}
+if(_cols.length===1){td.style.background=_hexA(_cols[0],0.30);}
+else if(_cols.length>1){var _seg=100/_cols.length;var _stops=_cols.map(function(c,ci){return _hexA(c,0.32)+" "+(_seg*ci).toFixed(2)+"% "+(_seg*(ci+1)).toFixed(2)+"%";});td.style.background="linear-gradient(90deg,"+_stops.join(",")+")";}
 var ta=document.createElement("textarea");ta.value=cd.text||"";
 ta.style.cssText="width:100%;border:none;background:transparent;font-size:13px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
 ta.rows=2;ta.placeholder="入力...";
@@ -3540,7 +3544,7 @@ ta.addEventListener("input",function(){cd.text=this.value;saveState();});
 var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:3px;padding:2px;justify-content:center;";
 (cd.polIdxs||[]).forEach(function(pid){
 var pi=_pid2idx(pid);if(pi<0)return;
-var dot=el("span");dot.className="mxdot";dot.style.cssText="display:inline-block;width:16px;height:16px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);";
+var dot=el("span");dot.className="mxdot";dot.style.cssText="display:inline-block;width:12px;height:12px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;border:1px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);";
 dot.title=polLabel(policies[pi]||{company:"証券"+(pi+1)});
 dot.addEventListener("click",function(e){
 e.stopPropagation();

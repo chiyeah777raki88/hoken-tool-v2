@@ -120,6 +120,7 @@ body.p_assets #app .ni-row > * { flex: 1 1 0 !important; min-width: 0 !important
 /* 給付条件比較表を1枚に収める: 文字と余白を縮小 */
 body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.2 !important; }
 body.pmatrix #print-area td div { min-height: 0 !important; padding: 2px 3px !important; }
+body.pmatrix #print-area .mxdot { width: 9px !important; height: 9px !important; border: none !important; box-shadow: none !important; }
 /* 加入一覧印刷: 文字を大きめに（行は空行非表示で減っているので収まる） */
 body.pkanyu #print-area .kanyu td, body.pkanyu #print-area .kanyu th { font-size: 17px !important; padding: 5px 8px !important; line-height: 1.45 !important; }
 body.pkanyu #print-area .kanyu td span, body.pkanyu #print-area .kanyu th span, body.pkanyu #print-area .kanyu td b { font-size: 17px !important; }
@@ -309,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3940-加入一覧に備考欄追加/該当ポッチを拡大。版";
+var APP_VERSION="v2-0619-3950-給付条件比較:印刷時はポッチを縮小し1枚に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3539,7 +3540,7 @@ ta.addEventListener("input",function(){cd.text=this.value;saveState();});
 var dotRow=el("div");dotRow.style.cssText="display:flex;flex-wrap:wrap;gap:3px;padding:2px;justify-content:center;";
 (cd.polIdxs||[]).forEach(function(pid){
 var pi=_pid2idx(pid);if(pi<0)return;
-var dot=el("span");dot.style.cssText="display:inline-block;width:16px;height:16px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);";
+var dot=el("span");dot.className="mxdot";dot.style.cssText="display:inline-block;width:16px;height:16px;border-radius:50%;background:"+POL_COLS[pi%POL_COLS.length]+";cursor:pointer;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);";
 dot.title=polLabel(policies[pi]||{company:"証券"+(pi+1)});
 dot.addEventListener("click",function(e){
 e.stopPropagation();

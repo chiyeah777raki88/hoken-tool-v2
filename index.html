@@ -307,7 +307,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-3910-顧客削除に確認ダイアログを追加。版";
+var APP_VERSION="v2-0619-3920-死亡グラフ:死亡保険金があれば型未設定でも必ず連動。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1901,7 +1901,7 @@ cont.appendChild(sec("保障期間・受取のタイムライン",null,buildTime
 var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var baseAge=getAge(mm&&mm.dob?mm.dob:null)||49;
 var ap=aPs();if(summaryMember!=="all")ap=ap.filter(function(x){return x.member&&x.member.id===summaryMember;});
-var dp=ap.filter(function(x){var p=x.policy;return p.deathType!=="none"||(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0)||(p.deathType==="annuity"&&p.daAmount>0);});
+var dp=ap.filter(function(x){var p=x.policy;return (+p.dlAmount>0)||(+p.dlReducedAmount>0)||(p.deathType==="annuity"&&+p.daAmount>0)||(p.deathType==="both")||(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0);});
 var ages=[];for(var a=baseAge;a<=100;a++)ages.push(a);
 var dSets=[];
 dp.forEach(function(x,ci){
@@ -1912,7 +1912,7 @@ var careCI=dSets.filter(function(d){return d.isCarePol;}).length;
 var col=hC?CARE_COLS[careCI%CARE_COLS.length]:(p.chartColor&&p.chartColor!==""?p.chartColor:GCOLS[ci%GCOLS.length]);
 var data=ages.map(function(a2){
 var ma=a2-(baseAge-mAge),v=0;
-if((p.deathType==="lump"||p.deathType==="both")&&p.daAmount===0){var en=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||100);var dlAmt=(p.dlAmount||0)>10000?Math.round((p.dlAmount||0)/10000):(p.dlAmount||0);var redAmt=(+p.dlReducedAmount>0)?((+p.dlReducedAmount>10000)?Math.round(+p.dlReducedAmount/10000):+p.dlReducedAmount):0;if(ma>0&&ma<=en){v+=(redAmt>0&&+p.dlPayEnd>0&&ma>+p.dlPayEnd)?redAmt:dlAmt;}}
+if((+p.dlAmount>0||+p.dlReducedAmount>0)&&!(+p.daAmount>0)){var en=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||100);var dlAmt=(p.dlAmount||0)>10000?Math.round((p.dlAmount||0)/10000):(p.dlAmount||0);var redAmt=(+p.dlReducedAmount>0)?((+p.dlReducedAmount>10000)?Math.round(+p.dlReducedAmount/10000):+p.dlReducedAmount):0;if(ma>0&&ma<=en){v+=(redAmt>0&&+p.dlPayEnd>0&&ma>+p.dlPayEnd)?redAmt:dlAmt;}}
 if(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0){var en3=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||90);if(ma>0&&ma<=en3)v+=Math.max(p.h1st||0,p.b1st||0,p.c1st||0);}
 if((p.deathType==="annuity"||p.deathType==="both")&&p.daAmount>0){
 var endAge3=p.daPeriodEnd||65;var minG=p.daMinGuarantee||0;

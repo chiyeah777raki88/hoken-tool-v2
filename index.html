@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4000-加入一覧:貯蓄性の金額セルを手編集可(※印追記)。版";
+var APP_VERSION="v2-0619-4010-入力:心臓・脳に給付回数(2回目なし)選択を追加。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1313,10 +1313,12 @@ if(pol.bigOn)bCont.push(grd("g4",[
 lbl("心疾患名称",sel([{v:"heart",l:"心疾患（広義）"},{v:"ami",l:"急性心筋梗塞"}],pol.heartType||"heart",function(v){upd("heartType",v);})),
 lbl("心疾患給付金（万円）",inp("number",pol.h1st,function(v){upd("h1st",+v);})),
 lbl("心疾患要件",sel([{v:"A",l:"60日所定状態"},{v:"B",l:"入院10日以上"},{v:"C",l:"一泊入院"},{v:"D",l:"手術または60日"}],pol.hCond,function(v){upd("hCond",v);})),
+lbl("心疾患給付回数",sel([{v:"1",l:"1回のみ（2回目なし）"},{v:"annual",l:"年1回"},{v:"unlimited",l:"複数回あり"}],pol.heartTimes||"1",function(v){upd("heartTimes",v);})),
 lbl("心疾患メモ",inp("text",pol.heartMemo||"",function(v){upd("heartMemo",v);})),
 lbl("脳血管疾患名称",sel([{v:"brain",l:"脳血管疾患（広義）"},{v:"stroke",l:"脳卒中"}],pol.brainType||"brain",function(v){upd("brainType",v);})),
 lbl("脳血管給付金（万円）",inp("number",pol.b1st,function(v){upd("b1st",+v);})),
 lbl("脳血管要件",sel([{v:"A",l:"60日所定状態"},{v:"B",l:"入院10日以上"},{v:"C",l:"一泊入院"},{v:"D",l:"手術または60日"}],pol.bCond,function(v){upd("bCond",v);})),
+lbl("脳血管給付回数",sel([{v:"1",l:"1回のみ（2回目なし）"},{v:"annual",l:"年1回"},{v:"unlimited",l:"複数回あり"}],pol.brainTimes||"1",function(v){upd("brainTimes",v);})),
 lbl("脳血管メモ",inp("text",pol.brainMemo||"",function(v){upd("brainMemo",v);}))
 ]));
 detailBox.appendChild(sec("大病特約",null,bCont));

@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4400-比較一覧:列幅を内容に詰め/合計を中央両隣に並び替え。版";
+var APP_VERSION="v2-0619-4410-比較一覧:拡大上限を上げ横幅いっぱいまで拡大。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3251,7 +3251,7 @@ pw.appendChild(_cmpHeader("現在 ↔ 提案　加入内容一覧"));
 var cm=cur.map(function(x){return x.member;}),pm=prop.map(function(x){return x.member;});
 var tbl=buildCmpKanyu(cur.map(function(x){return x.policy;}),cm,prop.map(function(x){return x.policy;}),pm);
 pw.appendChild(tbl);
-_measZoom(pw,tbl,1078,752,2.2);
+_measZoom(pw,tbl,1110,775,3.5);
 var page=el("div");page.style.cssText="page-break-after:always;break-after:page;";page.appendChild(pw);pa.appendChild(page);
 })();
 // 2枚目：給付条件・免除（左右に並べ）

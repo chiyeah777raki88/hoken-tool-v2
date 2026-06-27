@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4320-並べ印刷:中身の実幅で縮尺し一覧拡大/条件表の見切れ解消。版";
+var APP_VERSION="v2-0619-4330-並べ/連続印刷:測定時だけ印刷エリアを実体化し正しく縮尺。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3168,6 +3168,8 @@ function _cmpPairs(isProp){var p=isProp?propPairs():aPs();if(summaryMember!=="al
 function _cmpKanyuNode(pairs,showAll,visPols){var pols=pairs.map(function(x){return x.policy;});var mem=pairs.map(function(x){return x.member;});var _k=kanyuShowAll;kanyuShowAll=!!showAll;var n=buildKanyuTable(pols,mem,visPols);kanyuShowAll=_k;return n;}
 function _cmpMatrixNode(pairs,isProp){var pols=pairs.map(function(x){return x.policy;});var o=isProp?{store:"bigMatrixDataProp",pols:propPairs().map(function(x){return x.policy;})}:{};return buildBigDiseaseMatrix(pols,o);}
 function _cmpHeader(title){var selM=(summaryMember!=="all")&&state.family.filter(function(fm){return fm.id===summaryMember;})[0];var mm=selM||state.family.find(function(m){return m.relation==="本人";})||state.family[0];var who=(mm&&(mm.name||mm.relation))||"";var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=title;var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent="被保険者："+who+" 様　"+ymd;hd.appendChild(h1);hd.appendChild(h2);return hd;}
+function _fitPw(pw,maxW,maxH,cap){try{pw.style.zoom="1";var r=pw.getBoundingClientRect();var cw=r.width,ch=r.height;if(!cw||!ch)return;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,cap||2.4);pw.style.zoom=sc;}catch(e){}}
+function _clearOv(pw){try{pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
 function printComparePages(){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
 var cur=_cmpPairs(false),prop=_cmpPairs(true);
@@ -3176,15 +3178,18 @@ var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】�
 var pws=[];
 defs.forEach(function(d,i){
 var page=el("div");page.style.cssText="page-break-after:"+(i<defs.length-1?"always":"auto")+";break-after:"+(i<defs.length-1?"page":"auto")+";";
-var pw=el("div");pw.style.transformOrigin="top left";pw.appendChild(_cmpHeader(d[0]));pw.appendChild(d[1]);
+var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";pw.appendChild(_cmpHeader(d[0]));pw.appendChild(d[1]);
 page.appendChild(pw);pa.appendChild(page);pws.push(pw);
 });
-document.body.classList.add("psplit","pkanyu","pmatrix");setPageOrient("landscape",3);
+// 画面外に出して実寸を測れるようにする
+pa.style.display="block";pa.style.position="fixed";pa.style.left="-10000px";pa.style.top="0";
+document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_連続");
 setTimeout(function(){
-pws.forEach(function(pw){try{pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});pw.style.zoom="1";var _r=pw.getBoundingClientRect();var cw=_r.width||pw.scrollWidth,ch=_r.height||pw.scrollHeight;var sc=Math.min(1068/cw,748/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,2.0);pw.style.zoom=sc;}catch(e){}});
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pkanyu");document.body.classList.remove("pmatrix");pws.forEach(function(pw){pw.style.zoom="1";});pa.innerHTML="";document.title=_ot;},400);},250);
-},450);
+pws.forEach(function(pw){_clearOv(pw);_fitPw(pw,1075,752,1.6);});
+pa.style.position="";pa.style.left="";pa.style.top="";pa.style.display="";
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pws.forEach(function(pw){pw.style.zoom="1";});pa.innerHTML="";document.title=_ot;},400);},300);
+},350);
 }
 function printCompareSide(){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
@@ -3198,7 +3203,7 @@ var pages=[
 var pws=[];
 pages.forEach(function(pg,pi){
 var page=el("div");page.style.cssText="page-break-after:"+(pi<pages.length-1?"always":"auto")+";break-after:"+(pi<pages.length-1?"page":"auto")+";";
-var pw=el("div");pw.style.transformOrigin="top left";pw.style.display="inline-block";
+var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";
 pw.appendChild(_cmpHeader("現在 ↔ 提案　"+pg.t));
 var wrap=el("div");wrap.className="cmpwrap";wrap.style.cssText="display:inline-flex;gap:8px;align-items:flex-start;";
 [["現在の保険",cur,false,"#1a2744"],["提案の保険",prop,true,"#27ae60"]].forEach(function(c){
@@ -3209,15 +3214,14 @@ wrap.appendChild(col);
 });
 pw.appendChild(wrap);page.appendChild(pw);pa.appendChild(page);pws.push(pw);
 });
-document.body.classList.add("psplit","pkanyu","pmatrix");setPageOrient("landscape",3);
+pa.style.display="block";pa.style.position="fixed";pa.style.left="-10000px";pa.style.top="0";
+document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_並べ");
 setTimeout(function(){
-pws.forEach(function(pw){try{
-pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});
-pw.style.zoom="1";var _wr=pw.querySelector(".cmpwrap");var cw=_wr?_wr.getBoundingClientRect().width:(pw.scrollWidth||pw.offsetWidth);var ch=pw.getBoundingClientRect().height||pw.scrollHeight;var sc=Math.min(1068/cw,748/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,2.4);pw.style.zoom=sc;
-}catch(e){}});
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pkanyu");document.body.classList.remove("pmatrix");pws.forEach(function(pw){pw.style.zoom="1";});pa.innerHTML="";document.title=_ot;},400);},300);
-},500);
+pws.forEach(function(pw){_clearOv(pw);_fitPw(pw,1075,752,2.4);});
+pa.style.position="";pa.style.left="";pa.style.top="";pa.style.display="";
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pws.forEach(function(pw){pw.style.zoom="1";});pa.innerHTML="";document.title=_ot;},400);},300);
+},350);
 }
 
 function buildPrintTab(){

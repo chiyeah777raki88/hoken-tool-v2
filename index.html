@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4080-提案を詳細入力(既契約と同じ)+家族切替/比較を対象者別に集計。版";
+var APP_VERSION="v2-0619-4090-カメラ読取をSonnetに変更(費用を大幅軽減)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -991,7 +991,7 @@ var content=imgs.map(function(im){return{type:"image",source:{type:"base64",medi
 content.push({type:"text",text:CPROMPT});
 var apiUrl="https://api.anthropic.com/v1/messages";
 if(!AI_API_KEY){msgEl.textContent="読み取りには鍵(APIキー)の登録が必要です。上の「🔑鍵」ボタンから登録してください。";msgEl.style.color="#c0392b";lbl2.textContent="画像を選択（複数可）";return Promise.reject(new Error("no key"));}
-return fetch(apiUrl,{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-opus-4-8",max_tokens:8000,messages:[{role:"user",content:content}]})});
+return fetch(apiUrl,{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:8000,messages:[{role:"user",content:content}]})});
 }).then(function(r){return r.json();})
 .then(function(data){
 lbl2.textContent="画像を選択（複数可）";fi.disabled=false;

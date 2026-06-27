@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4200-提案一覧タブ追加(既契約と同形式)+提案印刷/現在↔提案の連続・並べ印刷。版";
+var APP_VERSION="v2-0619-4210-加入一覧:付帯特約を自動表示/術式別手術を実額(1.5〜12万)表記。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2955,7 +2955,7 @@ tb.appendChild(tr);})();
 var lastGrp="";
 var _MN={hospout:1,fhosp:1,fsurg:1,flump:1,chosp:1,cout:1,cinsitu:1,csurg:1,cchemo:1,crad:1,dislump:1,carelump:1,injury:1,disDeath:1,injHosp:1,dementia:1,cTreat:1,advLump:1};
 ROWS.forEach(function(row){
-if(!kanyuShowAll&&!row.isFlag){var _av=curPols.some(function(p){return (row.g&&(row.g(p)||0)>0)||(row.isPair&&row.g2&&(row.g2(p)||0)>0);});if(!_av)return;}
+if(!kanyuShowAll&&!row.isFlag){var _av=curPols.some(function(p){return (row.g&&(row.g(p)||0)>0)||(row.isPair&&row.g2&&(row.g2(p)||0)>0)||(row.k==="surg"&&(p.surgInMode==="tier"||p.surgOutMode==="tier"))||(row.k==="adv"&&p.advancedMedical);});if(!_av)return;}
 if(row.grp!==lastGrp){lastGrp=row.grp;
 var gr=el("tr");var gm=el("td");gm.style.cssText="border:none;background:transparent;";gr.appendChild(gm);var gtd=el("td",null,row.grp==="保障"?"■ 保障性（万一・病気・介護などの保障）":"■ 貯蓄性（将来お金になる部分）");
 gtd.colSpan=curPols.length+2;gtd.style.cssText="background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";font-weight:700;font-size:12px;padding:6px 8px;text-align:left;";
@@ -2968,8 +2968,8 @@ tr.appendChild(tdM);
 var td0=el("td");td0.textContent=row.l;
 td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:12px;padding:4px 4px;";tr.appendChild(td0);
 if(row.isPair){var sA=0,sB=0;
-function _sideStr(val,tier,color){if(tier)return "<span style='color:"+color+";font-weight:700;'>5〜40倍</span>";if(val>0)return "<span style='color:"+color+";font-weight:700;'>"+val+"万</span>";return "<span style='color:#ccc;'>—</span>";}
-curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var aT=(row.k==="surg"&&p.surgInMode==="tier");var bT=(row.k==="surg"&&p.surgOutMode==="tier");var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(aT||bT){td.innerHTML=_sideStr(a,aT,"#1f7d56")+"<span style='color:#bbb;'>/</span>"+_sideStr(b,bT,"#2980b9");sA+=a;sB+=b;}else if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
+function _sideStr(val,tier,color,p){if(tier){var hd=+(p&&p.hospDaily)||0;if(hd>0){var lo=Math.round(hd*5/10000*10)/10,hi=Math.round(hd*40/10000*10)/10;return "<span style='color:"+color+";font-weight:700;'>"+lo+"〜"+hi+"万</span>";}return "<span style='color:"+color+";font-weight:700;'>5〜40倍</span>";}if(val>0)return "<span style='color:"+color+";font-weight:700;'>"+val+"万</span>";return "<span style='color:#ccc;'>—</span>";}
+curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var aT=(row.k==="surg"&&p.surgInMode==="tier");var bT=(row.k==="surg"&&p.surgOutMode==="tier");var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(aT||bT){td.innerHTML=_sideStr(a,aT,"#1f7d56",p)+"<span style='color:#bbb;'>/</span>"+_sideStr(b,bT,"#2980b9",p);sA+=a;sB+=b;}else if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
 var tdSum=el("td");tdSum.style.cssText="font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tdSum.innerHTML=(sA||sB)?("<span style='color:#1f7d56;'>"+sA+"</span>/<span style='color:#2980b9;'>"+sB+"</span>"+row.u):"—";tr.appendChild(tdSum);
 tb.appendChild(tr);return;}
 var sum=0;

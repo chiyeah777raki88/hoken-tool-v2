@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4250-並べ印刷:横スクロール枠を解除し条件比較の見切れを解消。版";
+var APP_VERSION="v2-0619-4260-加入一覧:表マーク廃止し保障項目セルを条件表見出し色(濃色+白字)に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2964,10 +2964,11 @@ gr.appendChild(gtd);tb.appendChild(gr);
 }
 var tr=el("tr");
 var tdM=el("td");tdM.style.cssText="border:none;background:transparent;padding:0 3px 0 0;text-align:right;white-space:nowrap;";
-if(row.detail){var bd=el("span");bd.textContent="表";bd.title="下に給付条件の比較表あり";bd.style.cssText="display:inline-block;border:1px solid #e67e22;color:#e67e22;font-size:11px;font-weight:700;padding:0 2px;border-radius:2px;vertical-align:middle;";tdM.appendChild(bd);}
 tr.appendChild(tdM);
 var td0=el("td");td0.textContent=row.l;
-td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:12px;padding:4px 4px;";tr.appendChild(td0);
+td0.style.cssText="font-weight:700;color:"+(row.grp==="保障"?"#1a2744":"#2f6b35")+";background:"+(row.grp==="保障"?"#eef3fb":"#f0f7ee")+";white-space:nowrap;font-size:12px;padding:4px 4px;";
+if(row.detail){var _dhc=(row.k==="exempt")?"#6b21a8":"#1a2744";td0.style.background=_dhc;td0.style.color="#fff";td0.title="下に給付条件・免除の比較表あり";}
+tr.appendChild(td0);
 if(row.isPair){var sA=0,sB=0;
 function _sideStr(val,tier,color,p){if(tier){var hd=+(p&&p.hospDaily)||0;if(hd>0){var lo=Math.round(hd*5/10000*10)/10,hi=Math.round(hd*40/10000*10)/10;return "<span style='color:"+color+";font-weight:700;'>"+lo+"〜"+hi+"万</span>";}return "<span style='color:"+color+";font-weight:700;'>5〜40倍</span>";}if(val>0)return "<span style='color:"+color+";font-weight:700;'>"+val+"万</span>";return "<span style='color:#ccc;'>—</span>";}
 curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var aT=(row.k==="surg"&&p.surgInMode==="tier");var bT=(row.k==="surg"&&p.surgOutMode==="tier");var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(aT||bT){td.innerHTML=_sideStr(a,aT,"#1f7d56",p)+"<span style='color:#bbb;'>/</span>"+_sideStr(b,bT,"#2980b9",p);sA+=a;sB+=b;}else if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});

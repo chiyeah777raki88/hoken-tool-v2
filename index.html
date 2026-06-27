@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4380-比較一覧:保障項目を中央に置き左=現在/右=提案の1枚表に。版";
+var APP_VERSION="v2-0619-4390-比較一覧:提案側の記号を丸囲みカタカナ(㋐㋑)に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2919,7 +2919,7 @@ var hr1=el("tr");
 curPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#9fb0d6;\'>"+String.fromCharCode(65+i)+"</span> "+_kShort(p);th.style.cssText="background:#26344f;color:#fff;font-size:12px;padding:3px 2px;text-align:center;white-space:nowrap;";hr1.appendChild(th);});
 var thcs=el("th");thcs.textContent="合計";thcs.style.cssText="background:#26344f;color:#fff;font-size:12px;padding:3px;";hr1.appendChild(thcs);
 var thLbl=el("th");thLbl.textContent="";thLbl.style.cssText="background:#f0ece6;";hr1.appendChild(thLbl);
-propPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#bfe6c9;\'>"+String.fromCharCode(65+i)+"</span> "+_kShort(p);th.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px 2px;text-align:center;white-space:nowrap;";hr1.appendChild(th);});
+propPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#bfe6c9;\'>"+String.fromCharCode(0x32D0+i)+"</span> "+_kShort(p);th.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px 2px;text-align:center;white-space:nowrap;";hr1.appendChild(th);});
 var thps=el("th");thps.textContent="合計";thps.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px;";hr1.appendChild(thps);
 thead.appendChild(hr1);tbl.appendChild(thead);
 var tb=el("tbody");

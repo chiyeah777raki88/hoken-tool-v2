@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4300-印刷:右上を被保険者名に/余白を詰め見切れ低減。版";
+var APP_VERSION="v2-0619-4310-左右並べ:一覧の拡大上限を上げ/条件表の右端余裕で2回目見切れ解消。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3214,7 +3214,7 @@ var _ot=document.title;document.title=printName("現在と提案_並べ");
 setTimeout(function(){
 pws.forEach(function(pw){try{
 pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});
-pw.style.zoom="1";var cw=pw.scrollWidth||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var sc=Math.min(1095/cw,755/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.2);pw.style.zoom=sc;
+pw.style.zoom="1";var cw=pw.scrollWidth||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var sc=Math.min(1068/cw,748/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,2.4);pw.style.zoom=sc;
 }catch(e){}});
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pkanyu");document.body.classList.remove("pmatrix");pws.forEach(function(pw){pw.style.zoom="1";});pa.innerHTML="";document.title=_ot;},400);},300);
 },500);

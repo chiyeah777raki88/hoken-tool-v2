@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4440-手術:倍率選択の文言を明確化し最少/最大入力欄を拡大。版";
+var APP_VERSION="v2-0619-4450-手術:術式別は入院/外来を1つにまとめて表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2900,7 +2900,7 @@ function _kShort(p){var n=cN(p)||"";var m={"SOMPOひまわり生命":"ひまわ�
 function _kPeriod(p){if((p.dlPeriodType||"").indexOf("終身")>=0)return "終身";if(p.dlPeriodEnd)return p.dlPeriodEnd+(p.dlPeriodType==="年満了"?"年":"歳")+"満了";return p.dlPeriodType||"—";}
 function _kPayTerm(p){if((p.dlPayType||"").indexOf("一時")>=0)return "一時払";if(p.dlPayType&&p.dlPayType!=="")return p.dlPayType;if(p.dlPayEnd)return p.dlPayEnd+"歳払済";return "—";}
 function _kValCell(row,p){var td=el("td");td.style.cssText="text-align:center;font-size:13px;white-space:nowrap;padding:2px 4px;";if(row.isFlag){var fv=row.g(p)||0;td.textContent=fv?"○":"—";td.style.color=fv?"#1f7d56":"#ccc";td.style.fontWeight="700";return td;}
-if(row.isPair){var a=row.g(p)||0,b=row.g2(p)||0;var aT=p.surgInMode==="tier",bT=p.surgOutMode==="tier";function side(val,tier,col){if(tier){return "<span style=\'color:"+col+";font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}if(val>0)return "<span style=\'color:"+col+";font-weight:700;\'>"+val+"万</span>";return "<span style=\'color:#ccc;\'>—</span>";}if(a||b||aT||bT){td.innerHTML=side(a,aT,"#1f7d56")+"<span style=\'color:#bbb;\'>/</span>"+side(b,bT,"#2980b9");}else{td.textContent="—";td.style.color="#ccc";}return td;}
+if(row.isPair){var a=row.g(p)||0,b=row.g2(p)||0;var aT=p.surgInMode==="tier",bT=p.surgOutMode==="tier";function side(val,tier,col){if(tier){return "<span style=\'color:"+col+";font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}if(val>0)return "<span style=\'color:"+col+";font-weight:700;\'>"+val+"万</span>";return "<span style=\'color:#ccc;\'>—</span>";}if(aT&&bT){td.innerHTML="<span style=\'color:#1f7d56;font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}else if(a||b||aT||bT){td.innerHTML=side(a,aT,"#1f7d56")+"<span style=\'color:#bbb;\'>/</span>"+side(b,bT,"#2980b9");}else{td.textContent="—";td.style.color="#ccc";}return td;}
 var v=row.g(p)||0;if(row.grp==="貯蓄"){var sk=row.k+"|"+p.id;if(state.savNotes&&state.savNotes[sk]!==undefined&&state.savNotes[sk]!==""){td.textContent=state.savNotes[sk];td.style.color="#1f7d56";td.style.fontWeight="700";return td;}}
 var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;var _re=+((p.itemEnd||{})[row.k])||0;var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));if(_endsEarly)td.style.background="#fdecea";
 if(v>0){td.textContent=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}else{td.textContent="—";td.style.color="#ccc";}return td;}
@@ -3030,7 +3030,7 @@ if(row.detail){var _dhc=(row.k==="exempt")?"#6b21a8":"#8a5320";td0.style.backgro
 tr.appendChild(td0);
 if(row.isPair){var sA=0,sB=0;
 function _sideStr(val,tier,color,p){if(tier){return "<span style='color:"+color+";font-weight:700;'>"+_surgTierTxt(p)+"</span>";}if(val>0)return "<span style='color:"+color+";font-weight:700;'>"+val+"万</span>";return "<span style='color:#ccc;'>—</span>";}
-curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var aT=(row.k==="surg"&&p.surgInMode==="tier");var bT=(row.k==="surg"&&p.surgOutMode==="tier");var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(aT||bT){td.innerHTML=_sideStr(a,aT,"#1f7d56",p)+"<span style='color:#bbb;'>/</span>"+_sideStr(b,bT,"#2980b9",p);sA+=a;sB+=b;}else if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
+curPols.forEach(function(p){var a=row.g(p)||0,b=row.g2(p)||0;var aT=(row.k==="surg"&&p.surgInMode==="tier");var bT=(row.k==="surg"&&p.surgOutMode==="tier");var td=el("td");td.style.cssText="font-size:12px;white-space:nowrap;";if(aT&&bT){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+_surgTierTxt(p)+"</span>";sA+=a;sB+=b;}else if(aT||bT){td.innerHTML=_sideStr(a,aT,"#1f7d56",p)+"<span style='color:#bbb;'>/</span>"+_sideStr(b,bT,"#2980b9",p);sA+=a;sB+=b;}else if(a||b){td.innerHTML="<span style='color:#1f7d56;font-weight:700;'>"+(a||0)+"</span><span style='color:#bbb;'>/</span><span style='color:#2980b9;font-weight:700;'>"+(b||0)+"</span>"+row.u;sA+=a;sB+=b;}else{td.textContent="—";td.style.color="#ccc";}tr.appendChild(td);});
 var _ta2=(row.k==="surg"&&_surgHasTier(curPols))?"<span style='color:#b9770e;'>＋α</span>":"";var tdSum=el("td");tdSum.style.cssText="font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";tdSum.innerHTML=(sA||sB)?("<span style='color:#1f7d56;'>"+sA+"</span>/<span style='color:#2980b9;'>"+sB+"</span>"+row.u+_ta2):(_ta2||"—");tr.appendChild(tdSum);
 tb.appendChild(tr);return;}
 var sum=0;

@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4040-保障明細で心疾患/脳血管の額を入れたら大病特約を自動ON(一覧/条件に連動)。版";
+var APP_VERSION="v2-0619-4050-加入一覧:入院日額に何日型(支払限度/手入力)も表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2852,7 +2852,7 @@ var ROWS=[
 {k:"dann",l:"死亡(月額)",u:"万/月",grp:"保障",g:function(p){return (p.deathType==="annuity"||p.deathType==="both")?(+p.daAmount||0):0;}},
 {k:"hospin",l:"入院一時金",u:"万",grp:"保障",g:function(p){return +p.hospLumpIn||0;}},
 {k:"hospout",l:"退院一時金",u:"万",grp:"保障",g:function(p){return +p.hospLumpOut||0;}},
-{k:"hosp",l:"入院(日額)",u:"円",grp:"保障",g:function(p){return +p.hospDaily||0;}},
+{k:"hosp",l:"入院(日額)",u:"円",grp:"保障",g:function(p){return +p.hospDaily||0;},disp:function(p){if(!(+p.hospDaily>0))return "";var amt=(+p.hospDaily).toLocaleString()+"円";var manual=(p.itemCond&&p.itemCond.hosp)?String(p.itemCond.hosp).trim():"";var lim=p.hospLimit?String(p.hospLimit).trim():"";var tail=manual||(lim?(lim+(/日$/.test(lim)?"型":"")):"");return tail?(amt+" /"+tail):amt;}},
 {k:"surg",l:"手術(入院/外来)",u:"万",grp:"保障",isPair:true,g:function(p){return +p.surgInp||0;},g2:function(p){return +p.surgOut||0;}},
 {k:"fhosp",l:"女性疾病入院",u:"円",grp:"保障",g:function(p){return +p.femaleHospDaily||0;}},
 {k:"fsurg",l:"女性手術",u:"万",grp:"保障",g:function(p){return +p.femaleSurg||0;}},

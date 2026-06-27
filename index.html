@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4090-カメラ読取をSonnetに変更(費用を大幅軽減)。版";
+var APP_VERSION="v2-0619-4100-比較:提案/現在の保障額を常に最新データから自動集計。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2769,9 +2769,12 @@ var curPols=_polsFor(state.policies);
 var propPols=state.proposalPolicies?_polsFor(state.proposalPolicies):[];
 if(!state.comparisonRows||Array.isArray(state.comparisonRows))state.comparisonRows={};
 var crKey=summaryMember;
-if(!state.comparisonRows[crKey])state.comparisonRows[crKey]=defaultCompareRows(curPols,propPols);
+var _prevRows=Array.isArray(state.comparisonRows[crKey])?state.comparisonRows[crKey]:[];
+var _customRows=_prevRows.filter(function(r){return String(r.key).indexOf("custom_")===0;});
+// 標準項目は毎回データから自動集計（提案を増やせば即反映）。追加した独自項目だけ保持。
+var rows=defaultCompareRows(curPols,propPols).concat(_customRows);
+state.comparisonRows[crKey]=rows;
 if(!state.comparisonMemos)state.comparisonMemos={};
-var rows=state.comparisonRows[crKey];
 var curPrem=curPols.reduce(function(s,p){return s+toM(p);},0);
 var propPrem=propPols.reduce(function(s,p){return s+toM(p);},0);
 var diff=propPrem-curPrem;

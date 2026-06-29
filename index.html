@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4540-条件表:行の高さを60pxに/行間も拡大。版";
+var APP_VERSION="v2-0619-4550-比較一覧:○日型は数字も小さく表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2906,7 +2906,7 @@ var v=row.g(p)||0;if(row.grp==="貯蓄"){var sk=row.k+"|"+p.id;if(state.savNotes
 var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;var _re=+((p.itemEnd||{})[row.k])||0;var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));if(_endsEarly)td.style.background="#fdecea";
 if(v>0){td.innerHTML=_shrU(row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u));td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}else{td.textContent="—";td.style.color="#ccc";}return td;}
 function _kSumCell(row,pols){var td=el("td");td.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:13px;padding:2px 4px;border-left:2.5px solid #444;border-right:2.5px solid #444;";if(row.isFlag){td.style.background="#fafafa";return td;}if(row.isPair){var sA=0,sB=0;pols.forEach(function(p){sA+=row.g(p)||0;sB+=row.g2(p)||0;});var _ta=(row.k==="surg"&&_surgHasTier(pols))?"<span style=\'color:#b9770e;\'>＋α</span>":"";td.innerHTML=(sA||sB)?("<span style=\'color:#1f7d56;\'>"+sA+"</span>/<span style=\'color:#2980b9;\'>"+sB+"</span>"+row.u+_ta):(_ta||"—");return td;}if(row.noSum){td.textContent="—";return td;}var s=0;pols.forEach(function(p){s+=row.g(p)||0;});td.innerHTML=s>0?_shrU(s.toLocaleString()+row.u):"—";return td;}
-function _shrU(t){if(t==null)return "";t=String(t);var o="";for(var i=0;i<t.length;i++){var c=t.charAt(i);if(/[0-9.,\/〜]/.test(c)){o+=c;}else{var e=(c==="&")?"&amp;":(c==="<")?"&lt;":(c===">")?"&gt;":c;o+="<span style=\"font-size:.78em !important;\">"+e+"</span>";}}return o;}
+function _shrU(t){t=String(t==null?"":t);var out="";var i=0;while(i<t.length){var rest=t.slice(i);var m=rest.match(/^[0-9]+日型?/);if(m){out+="<span style=\"font-size:.72em !important;\">"+m[0]+"</span>";i+=m[0].length;continue;}var c=t.charAt(i);var e=(c==="&")?"&amp;":(c==="<")?"&lt;":(c===">")?"&gt;":c;if(/[0-9.,\/〜]/.test(c)){out+=e;}else{out+="<span style=\"font-size:.78em !important;\">"+e+"</span>";}i++;}return out;}
 function buildCmpKanyu(curPols,curMem,propPols,propMem){
 var box=el("div");var allP=curPols.concat(propPols);
 var rows=kanyuRowDefs().filter(function(row){if(row.isFlag)return true;return allP.some(function(p){return _kRowActive(row,p);});});

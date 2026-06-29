@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4530-比較一覧:単位文字の縮小を!importantで確実化。版";
+var APP_VERSION="v2-0619-4540-条件表:行の高さを60pxに/行間も拡大。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3713,7 +3713,7 @@ else if(_cols.length>1){var _seg=100/_cols.length;var _stops=_cols.map(function(
 var ta=document.createElement("textarea");ta.value=cd.text||"";
 ta.style.cssText="width:100%;border:none;background:transparent;font-size:13px;color:#1a2744;resize:none;padding:3px;min-height:30px;box-sizing:border-box;outline:none;font-family:inherit;display:none;";
 ta.rows=2;ta.placeholder="入力...";
-var _oneLine=(cd.text&&String(cd.text).indexOf("\n")<0);var disp=el("div");disp.style.cssText="font-size:"+((col&&col.g==="second")?"18px":(_oneLine?"17px":"15px"))+";font-weight:700;color:#1a2744;padding:7px 4px;min-height:44px;box-sizing:border-box;white-space:pre-wrap;word-break:keep-all;overflow-wrap:normal;cursor:text;line-height:1.4;text-align:center;display:block;";if(row.id==="metabo"){disp.style.display="flex";disp.style.alignItems="center";disp.style.justifyContent="center";disp.style.minHeight="50px";}
+var _oneLine=(cd.text&&String(cd.text).indexOf("\n")<0);var disp=el("div");disp.style.cssText="font-size:"+((col&&col.g==="second")?"18px":(_oneLine?"17px":"15px"))+";font-weight:700;color:#1a2744;padding:11px 4px;min-height:60px;box-sizing:border-box;white-space:pre-wrap;word-break:keep-all;overflow-wrap:normal;cursor:text;line-height:1.55;text-align:center;display:block;";if(row.id==="metabo"){disp.style.display="flex";disp.style.alignItems="center";disp.style.justifyContent="center";disp.style.minHeight="64px";}
 disp.innerHTML=cd.text?fmtCond(cd.text):"<span style='color:#bbb;'>入力...</span>";
 disp.addEventListener("click",function(){disp.style.display="none";ta.style.display="block";td.style.outline="2px solid #2980b9";ta.focus();});
 ta.addEventListener("blur",function(){td.style.outline="none";ta.style.display="none";disp.innerHTML=ta.value?fmtCond(ta.value):"<span style='color:#bbb;'>入力...</span>";disp.style.display="block";});

@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4670-カメラ:死亡保険金と解約返戻金の取り違え防止を指示文に明記。版";
+var APP_VERSION="v2-0619-4680-将来予測表にまとめて貼り付け/全消去ボタンを追加。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1445,12 +1445,29 @@ tbody.appendChild(tr);
 });
 tbl.appendChild(tbody);
 vpTableWrap.appendChild(tbl);
-vpTableWrap.appendChild(btn("＋ 年齢を追加","bg",function(){
+var vpBtns=el("div");vpBtns.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center;";
+vpBtns.appendChild(btn("＋ 年齢を追加","bg",function(){
 if(!pol.futureVals)pol.futureVals=[];
 var lastAge=pol.futureVals.length>0?pol.futureVals[pol.futureVals.length-1].age||60:60;
 pol.futureVals.push({age:lastAge+5,paid:0,v1:0,v3:0,v5:0,v6:0});
 upd("futureVals",pol.futureVals);renderVpTable();
 }));
+vpBtns.appendChild(btn("📋 まとめて貼り付け","bn",function(){
+var ov=el("div");ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;";
+var box=el("div");box.style.cssText="background:#fff;border-radius:8px;padding:16px;width:92%;max-width:540px;box-sizing:border-box;";
+var h=el("div");h.style.cssText="font-weight:700;font-size:14px;margin-bottom:6px;color:#1a2744;";h.textContent="将来予測テーブルをまとめて貼り付け";
+var note=el("p");note.style.cssText="font-size:12px;color:#555;margin:0 0 8px;";note.innerHTML="1行に「年齢 1% 3% 5% 6%」を区切って貼り付け（複数行）。<br>5%が無い時は「年齢 1% 3% 6%」の4列でもOK（5%は自動計算）。区切りはスペース・カンマ・タブどれでも可。";
+var ta2=document.createElement("textarea");ta2.style.cssText="width:100%;height:170px;font-size:13px;font-family:monospace;box-sizing:border-box;padding:6px;";
+var brow=el("div");brow.style.cssText="display:flex;gap:8px;margin-top:10px;";
+brow.appendChild(btn("取り込む","bv",function(){
+var rows=[];(ta2.value||"").split(/\r?\n/).forEach(function(ln){var nums=ln.split(/[\s,、\t]+/).map(function(x){return parseFloat(String(x).replace(/[,，]/g,""));}).filter(function(n){return !isNaN(n);});if(nums.length<2)return;var age=nums[0],v1=0,v3=0,v5=0,v6=0;if(nums.length>=5){v1=nums[1];v3=nums[2];v5=nums[3];v6=nums[4];}else if(nums.length===4){v1=nums[1];v3=nums[2];v6=nums[3];v5=Math.round((v3+2*v6)/3*10)/10;}else if(nums.length===3){v3=nums[1];v6=nums[2];v1=v3;v5=Math.round((v3+2*v6)/3*10)/10;}else{v3=nums[1];v1=v3;v5=v3;v6=v3;}rows.push({age:age,paid:0,v1:v1,v3:v3,v5:v5,v6:v6});});
+if(rows.length){pol.futureVals=rows;upd("futureVals",pol.futureVals);ov.remove();renderVpTable();alert(rows.length+"行を取り込みました。");}else{alert("数値が読み取れませんでした。");}
+}));
+brow.appendChild(btn("キャンセル","br",function(){ov.remove();}));
+box.appendChild(h);box.appendChild(note);box.appendChild(ta2);box.appendChild(brow);ov.appendChild(box);document.body.appendChild(ov);ta2.focus();
+}));
+vpBtns.appendChild(btn("🗑 全消去","br",function(){if(confirm("将来予測テーブルを全て消去しますか？")){pol.futureVals=[];upd("futureVals",pol.futureVals);renderVpTable();}}));
+vpTableWrap.appendChild(vpBtns);
 };
 renderVpTable();
 var currDiv=el("div");currDiv.style.cssText="display:flex;gap:10px;align-items:center;margin-bottom:10px;padding:8px 12px;background:#fff9e6;border-radius:6px;border:1px solid #f0d060;flex-wrap:wrap;";

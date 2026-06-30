@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4620-比較一覧:法人/個人ラベルをヘッダーに正しく追加。版";
+var APP_VERSION="v2-0619-4630-資産タブに現在/提案の証券切替を追加(提案後の資産)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -574,6 +574,8 @@ var assetsData={savings:0,realestate:0,stocks:0,other:0,mortgage:0,mortgageYrs:0
 var nisaAccounts=[],idecoAccounts=[],extraRows=[],drawEvents=[];
 var scenRate="3",evalAge=65,drawRate=2;
 var assetMember="all"; // 資産シミュレーションの表示対象: all=合算 / 本人 / 配偶者ID
+var assetSource="current"; // 保険積立の対象: current=現在の証券 / proposal=提案の証券
+function assetPairs(){return (assetSource==="proposal"&&state.proposalPolicies)?propPairs():aPs();}
 var summaryMember="all"; // 加入一覧の表示対象
 var tlPremSel={}; // タイムライン:保険料合計に含める証券
 var tlFamShow=false; // タイムライン:家族の年齢表示(トグル)
@@ -2135,6 +2137,18 @@ b.textContent=x[1];b.style.background=scenRate===x[0]?"#1a2744":"white";b.style.
 b.addEventListener("click",function(){scenRate=x[0];saveState();render();});scBtns.appendChild(b);
 });
 scenDiv.appendChild(scBtns);scenDiv.className="no-print";cont.appendChild(scenDiv);
+// 保険積立の対象切替（現在/提案）
+if(state.proposalPolicies){
+var srcDiv=el("div");srcDiv.className="no-print";srcDiv.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
+var srcLbl=el("span");srcLbl.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";srcLbl.textContent="保険積立の対象：";srcDiv.appendChild(srcLbl);
+[["current","現在の証券","#1a2744"],["proposal","提案の証券","#1a7a3a"]].forEach(function(x){
+var b=el("button","btn");b.style.cssText="padding:5px 14px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700;background:"+(assetSource===x[0]?x[2]:"#fff")+";color:"+(assetSource===x[0]?"#fff":"#1a2744")+";";
+b.textContent=x[1];b.addEventListener("click",function(){assetSource=x[0];render();});srcDiv.appendChild(b);
+});
+var sn=el("span");sn.style.cssText="font-size:11px;color:#8a8a8a;";sn.textContent="※「提案の証券」にすると、提案後の保険積立で資産を試算します（NISA・iDeCo・預貯金等は共通）。";srcDiv.appendChild(sn);
+cont.appendChild(srcDiv);
+if(assetSource==="proposal"){var pb=el("div");pb.style.cssText="background:#f0fff4;border:1px solid #27ae60;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;font-weight:700;color:#1a7a3a;";pb.textContent="📈 提案後の資産（提案の証券で試算）";cont.appendChild(pb);}
+}
 // 表示対象（合算／本人／配偶者）の切替（家族が2人以上のときだけ表示）
 if(state.family.length>=2){
   var memDiv=el("div");memDiv.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;";
@@ -2154,7 +2168,7 @@ if(state.family.length>=2){
 // 保険種類別 想定利率の設定（折りたたみ）
 (function(){
   // この顧客が実際に持っている保険種類だけ表示（無駄を省く）
-  var typesUsed={};aPs().forEach(function(x){if(x.policy.insType)typesUsed[x.policy.insType]=true;});
+  var typesUsed={};assetPairs().forEach(function(x){if(x.policy.insType)typesUsed[x.policy.insType]=true;});
   var typeList=Object.keys(typesUsed);
   if(typeList.length===0)return;
   var wrap=el("div");wrap.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;overflow:hidden;";
@@ -2187,7 +2201,7 @@ if(state.family.length>=2){
   head.addEventListener("click",function(){open=!open;body.style.display=open?"block":"none";head.querySelector("span:last-child").textContent=open?"▲ 閉じる":"▼ 開く";});
   wrap.appendChild(head);wrap.appendChild(body);wrap.className="no-print";cont.appendChild(wrap);
 })();
-var pProjs=aPs().filter(function(x){
+var pProjs=assetPairs().filter(function(x){
   // 表示対象フィルタ（合算以外なら、その家族メンバーの証券だけ）
   if(assetMember!=="all"&&x.member.id!==assetMember)return false;
   return true;

@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4610-比較一覧:法人/個人をチップで明確表示。版";
+var APP_VERSION="v2-0619-4620-比較一覧:法人/個人ラベルをヘッダーに正しく追加。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2923,11 +2923,11 @@ var thP=el("th");thP.colSpan=np+1;thP.textContent="提案の保険";thP.style.cs
 thead.appendChild(hr0);
 // 会社名： 現在証券… | 現在合計 | (空) | 提案合計 | 提案証券…
 var hr1=el("tr");
-curPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#9fb0d6;\'>"+String.fromCharCode(65+i)+"</span> "+_kShort(p);th.style.cssText="background:#26344f;color:#fff;font-size:12px;padding:3px 5px;text-align:center;white-space:nowrap;";hr1.appendChild(th);});
+curPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#9fb0d6;\'>"+String.fromCharCode(65+i)+"</span> "+_kShort(p)+_khBadge(p);th.style.cssText="background:#26344f;color:#fff;font-size:12px;padding:3px 5px;text-align:center;white-space:nowrap;vertical-align:top;";hr1.appendChild(th);});
 var thcs=el("th");thcs.textContent="合計";thcs.style.cssText="background:#26344f;color:#fff;font-size:12px;padding:3px 5px;white-space:nowrap;border-left:2.5px solid #888;border-right:2.5px solid #888;";hr1.appendChild(thcs);
 var thLbl=el("th");thLbl.textContent="";thLbl.style.cssText="background:#f0ece6;";hr1.appendChild(thLbl);
 var thps=el("th");thps.textContent="合計";thps.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px 5px;white-space:nowrap;border-left:2.5px solid #888;border-right:2.5px solid #888;";hr1.appendChild(thps);
-propPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#bfe6c9;\'>"+String.fromCharCode(0x32D0+i)+"</span> "+_kShort(p);th.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px 5px;text-align:center;white-space:nowrap;";hr1.appendChild(th);});
+propPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#bfe6c9;\'>"+String.fromCharCode(0x32D0+i)+"</span> "+_kShort(p)+_khBadge(p);th.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px 5px;text-align:center;white-space:nowrap;vertical-align:top;";hr1.appendChild(th);});
 thead.appendChild(hr1);tbl.appendChild(thead);
 var tb=el("tbody");
 function _lblCell(label,detail){var lb=el("td");lb.textContent=label;lb.style.cssText="text-align:center;font-weight:700;font-size:13px;white-space:nowrap;padding:3px 6px;background:#f0ece6;color:#5b4636;";if(detail){var dc=(detail==="exempt")?"#6b21a8":"#8a5320";lb.style.background=dc;lb.style.color="#fff";}return lb;}

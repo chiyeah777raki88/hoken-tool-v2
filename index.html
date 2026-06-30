@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4570-提案/加入一覧の印刷を1枚最大化+個人法人の表示ON/OFF。版";
+var APP_VERSION="v2-0619-4580-連続印刷:短い表も大きく1枚に拡大。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3241,7 +3241,7 @@ if(!cur.length&&!prop.length){alert("証券がありません");return;}
 var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】給付条件・免除条件",_cmpMatrixNode(cur,false)],["【提案】加入内容一覧",_cmpKanyuNode(prop)],["【提案】給付条件・免除条件",_cmpMatrixNode(prop,true)]];
 defs.forEach(function(d,i){
 var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";var content=el("div");content.appendChild(d[1]);pw.appendChild(_cmpHeader(d[0]));pw.appendChild(content);
-_measZoom(pw,content,1078,756,1.7);
+_measZoom(pw,content,1078,760,2.8);
 var page=el("div");page.style.cssText="page-break-after:"+(i<defs.length-1?"always":"auto")+";break-after:"+(i<defs.length-1?"page":"auto")+";";page.appendChild(pw);pa.appendChild(page);
 });
 document.body.classList.add("psplit");setPageOrient("landscape",3);

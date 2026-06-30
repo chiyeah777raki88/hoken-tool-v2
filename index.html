@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4680-将来予測表にまとめて貼り付け/全消去ボタンを追加。版";
+var APP_VERSION="v2-0619-4690-資産:将来予測の節目間を線形補間しなめらかに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2115,10 +2115,12 @@ function polIsLump(p){return (p.payFreq==="一時"||(p.premUnit&&p.premUnit.inde
 function polCurVal(p,atAge){
 var aRef=(atAge==null||isNaN(atAge))?curAge:atAge;
 var gy=aRef-curAge;
-// 将来予測テーブル（解約返戻金/積立金の推移）があれば最優先で使う
+// 将来予測テーブル（解約返戻金/積立金の推移）があれば最優先で使う（節目間は線形補間でなめらかに）
 if(p.futureVals&&p.futureVals.length>0&&p.futureVals.some(function(r){return (+r.v3||+r.v1||+r.v5||+r.v6)>0;})){
-var _fv=sV(p,scenRate,aRef);
-if(_fv>0)return {val:Math.round(_fv),method:"将来予測表("+scenRate+"%)より "+aRef+"歳時点"};
+function _fvVal(row){var rr=scenRate==="1"?row.v1:scenRate==="5"?row.v5:scenRate==="6"?row.v6:row.v3;if(!(rr>0))rr=row.v3||row.v1||row.v5||row.v6||0;return +rr||0;}
+var _sorted=p.futureVals.slice().filter(function(r){return +r.age>0;}).sort(function(a,b){return a.age-b.age;});
+if(_sorted.length){var _raw;if(aRef<=_sorted[0].age)_raw=_fvVal(_sorted[0]);else if(aRef>=_sorted[_sorted.length-1].age)_raw=_fvVal(_sorted[_sorted.length-1]);else{_raw=_fvVal(_sorted[_sorted.length-1]);for(var _i=0;_i<_sorted.length-1;_i++){var _a0=_sorted[_i],_a1=_sorted[_i+1];if(aRef>=_a0.age&&aRef<=_a1.age){var _t=(aRef-_a0.age)/(_a1.age-_a0.age||1);_raw=_fvVal(_a0)+(_fvVal(_a1)-_fvVal(_a0))*_t;break;}}}
+if(_raw>0){if(p.currency&&p.currency!=="JPY")_raw=_raw*(p.exchangeRate||150)/10000;return {val:Math.round(_raw),method:"将来予測表("+scenRate+"%)補間 "+aRef+"歳"};}}
 }
 var rVal=+(p.refundVal||0),rAge=+(p.refundAge||0);
 var _cYr=p.contractDate?new Date(p.contractDate).getFullYear():0;if(isNaN(_cYr))_cYr=0;var cy=_cYr?Math.max(0,(nowYr2+gy)-_cYr):0;

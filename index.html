@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4690-資産:将来予測の節目間を線形補間しなめらかに。版";
+var APP_VERSION="v2-0619-4700-資産グラフ:変額も全年齢で将来予測を補間(階段解消)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2528,7 +2528,7 @@ oR+=annualPayout;
 insV[p.id]=0;
 }
 }
-} else if(p.futureVals&&p.futureVals.length>0&&(ag<=payEnd||(p.insType&&p.insType.indexOf("変額")<0))){
+} else if(p.futureVals&&p.futureVals.length>0){
 var sorted=p.futureVals.slice().sort(function(aa,bb){return aa.age-bb.age;});
 var prev={age:curAge,v1:p.currentVal||0,v3:p.currentVal||0,v5:p.currentVal||0,v6:p.currentVal||0};
 var next=null;

@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4640-資産タブ:表示対象に選んだ人の年齢でタイムライン。版";
+var APP_VERSION="v2-0619-4650-資産:現在/提案トグルを色分け+詳細設定見出しを強調。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1596,10 +1596,10 @@ lbl("終了年齢",inp("number",pol.celebEndAge||"",function(v){upd("celebEndAge
 ]));
 detailBox.appendChild(sec("祝金（〇年毎の生存給付金）",null,celebDiv));
 var detWrap=el("div");detWrap.style.cssText="margin:8px 0;";
-var detHdr=el("button","btn");detHdr.style.cssText="width:100%;text-align:left;padding:8px 12px;background:#eef0f4;border:1px solid #ddd8cc;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;color:#1a2744;";
-detHdr.textContent="\u25b8 詳細設定（細目・年金受取期間/祝金間隔/変額予測表など。通常は開かなくてOK）";
+var detHdr=el("button","btn");detHdr.style.cssText="width:100%;text-align:left;padding:11px 14px;background:#fff4d6;border:2px solid #e0a83a;border-radius:6px;cursor:pointer;font-size:14px;font-weight:800;color:#8a5a0a;";
+detHdr.textContent="\u25b8 ⚙ 詳細設定（変額の将来予測表・年金受取期間・祝金間隔など）— ここを開く";
 detailBox.style.display="none";
-detHdr.addEventListener("click",function(){var op=(detailBox.style.display==="none");detailBox.style.display=op?"block":"none";detHdr.textContent=(op?"\u25be":"\u25b8")+" 詳細設定（細目・年金受取期間/祝金間隔/変額予測表など。通常は開かなくてOK）";});
+detHdr.addEventListener("click",function(){var op=(detailBox.style.display==="none");detailBox.style.display=op?"block":"none";detHdr.textContent=(op?"\u25be ⚙ 詳細設定（開いています）":"\u25b8 ⚙ 詳細設定（変額の将来予測表・年金受取期間・祝金間隔など）— ここを開く");detHdr.style.background=op?"#fde9bf":"#fff4d6";});
 detWrap.appendChild(detHdr);detWrap.appendChild(detailBox);cont.appendChild(detWrap);
 var ta=document.createElement("textarea");ta.value=pol.notes||"";ta.placeholder="担当者・告知内容・メモ等（自由記述）";ta.style.width="100%";
 ta.addEventListener("input",function(){upd("notes",this.value);});
@@ -2141,9 +2141,10 @@ scenDiv.appendChild(scBtns);scenDiv.className="no-print";cont.appendChild(scenDi
 if(state.proposalPolicies){
 var srcDiv=el("div");srcDiv.className="no-print";srcDiv.style.cssText="background:white;border-radius:8px;border:1px solid #ddd8cc;margin-bottom:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
 var srcLbl=el("span");srcLbl.style.cssText="font-size:12px;font-weight:700;color:#1a2744;";srcLbl.textContent="保険積立の対象：";srcDiv.appendChild(srcLbl);
-[["current","現在の証券","#1a2744"],["proposal","提案の証券","#1a7a3a"]].forEach(function(x){
-var b=el("button","btn");b.style.cssText="padding:5px 14px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700;background:"+(assetSource===x[0]?x[2]:"#fff")+";color:"+(assetSource===x[0]?"#fff":"#1a2744")+";";
-b.textContent=x[1];b.addEventListener("click",function(){assetSource=x[0];render();});srcDiv.appendChild(b);
+[["current","現在の証券","#1f3a6e","#e8eefb"],["proposal","提案の証券","#1a7a3a","#e3f7ea"]].forEach(function(x){
+var on=(assetSource===x[0]);
+var b=el("button","btn");b.style.cssText="padding:7px 16px;border:2px solid "+x[2]+";border-radius:6px;cursor:pointer;font-size:13px;font-weight:800;background:"+(on?x[2]:x[3])+";color:"+(on?"#fff":x[2])+";box-shadow:"+(on?"0 2px 6px rgba(0,0,0,.25)":"none")+";";
+b.textContent=(on?"✓ ":"")+x[1];b.addEventListener("click",function(){assetSource=x[0];render();});srcDiv.appendChild(b);
 });
 var sn=el("span");sn.style.cssText="font-size:11px;color:#8a8a8a;";sn.textContent="※「提案の証券」にすると、提案後の保険積立で資産を試算します（NISA・iDeCo・預貯金等は共通）。";srcDiv.appendChild(sn);
 cont.appendChild(srcDiv);

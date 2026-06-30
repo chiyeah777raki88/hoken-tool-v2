@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4630-資産タブに現在/提案の証券切替を追加(提案後の資産)。版";
+var APP_VERSION="v2-0619-4640-資産タブ:表示対象に選んだ人の年齢でタイムライン。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2089,7 +2089,7 @@ function buildAssetsTab(){
 var cont=el("div","content");
 var al=state.ansinLine||{};
 function uAl(f,v){state.ansinLine[f]=+v;saveState();}
-var mm7=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
+var mm7=(assetMember!=="all"&&state.family.filter(function(m){return m.id===assetMember;})[0])||state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var myAge7=getAge(mm7&&mm7.dob?mm7.dob:null)||49;
 var curAge=myAge7;
 var scenR=(scenRate==="1"?0.01:scenRate==="5"?0.05:scenRate==="6"?0.06:0.03);

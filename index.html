@@ -316,7 +316,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709j-屋号自動入力/保険種類の組合せ/提案比較の合計列削除・入力を折りたたみで軽量化/印刷調整。版";
+var APP_VERSION="v2-0709k-提案比較の印刷機能を追加(グループごと横1枚・決定に★)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2814,7 +2814,10 @@ if(!state.compareGroups)state.compareGroups=[];
 var note=el("div");note.style.cssText="background:#f0f4ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.8;";
 note.innerHTML="<b>提案比較：</b>「この部分はA商品かB商品か」を候補で比べる場所です。<br>①「＋比較グループを追加」→②「＋候補を追加」で候補証券を2つ以上入れる（入力は既契約と同じ詳細・カメラ読取も可）→③下の比較表で見比べ→④「決定」を押すと<b>提案内容</b>タブに反映されます。";
 cont.appendChild(note);
-cont.appendChild(btn("＋ 比較グループを追加","bg",function(){state.compareGroups.push({id:Date.now(),name:"比較"+(state.compareGroups.length+1),memberId:(state.family[0]||{}).id,candidates:[],selId:null,_edit:0});saveState();render();}));
+var _pcBtnRow=el("div");_pcBtnRow.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px;";
+_pcBtnRow.appendChild(btn("＋ 比較グループを追加","bg",function(){state.compareGroups.push({id:Date.now(),name:"比較"+(state.compareGroups.length+1),memberId:(state.family[0]||{}).id,candidates:[],selId:null,_edit:0});saveState();render();}));
+_pcBtnRow.appendChild(btn("🖨 提案比較を印刷（横1枚/グループ）","bn",function(){printProposalCompare();}));
+cont.appendChild(_pcBtnRow);
 if(!state.compareGroups.length){var e=el("p");e.style.cssText="font-size:12px;color:#888;margin-top:10px;";e.textContent="まだ比較グループがありません。上のボタンで作成してください。";cont.appendChild(e);}
 state.compareGroups.forEach(function(g,gi){cont.appendChild(buildCmpGroup(g,gi));});
 return cont;
@@ -3381,6 +3384,35 @@ _measZoom(pw,_t,1135,792,4.2);
 pa.appendChild(pw);
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"加入一覧");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},250);
+}
+function printProposalCompare(){
+var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
+var groups=(state.compareGroups||[]).filter(function(g){return (g.candidates||[]).length>0;});
+if(!groups.length){alert("候補が入った比較グループがありません。『提案比較』タブで候補を入れてください。");return;}
+var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
+var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";
+groups.forEach(function(g,gi){
+var mem=state.family.filter(function(m){return m.id===g.memberId;})[0]||state.family[0];
+var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";
+var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
+var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent="提案比較： "+(g.name||("比較"+(gi+1)))+"（被保険者:"+((mem&&(mem.name||mem.relation))||"")+"）";
+var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=((mm&&mm.name)||"")+" 様　"+ymd;
+hd.appendChild(h1);hd.appendChild(h2);pw.appendChild(hd);
+var selc=(g.candidates||[]).filter(function(c){return c.id===g.selId;})[0];
+if(selc){var sd=el("div");sd.style.cssText="font-size:13px;font-weight:700;color:#1a7a3a;margin-bottom:6px;";sd.textContent="★ 決定: "+(polLabel(selc)||"候補");pw.appendChild(sd);}
+var memOf=g.candidates.map(function(){return mem;});
+var _ksa=kanyuShowAll;kanyuShowAll=false;var box=buildKanyuTable(g.candidates,memOf);kanyuShowAll=_ksa;
+_removeLastCol(box);
+try{box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});}catch(e){}
+pw.appendChild(box);
+_tallenKanyu(pw,24);
+var _t=pw.querySelector(".kanyu")||box;
+_measZoom(pw,_t,1135,760,4.2);
+var page=el("div");page.style.cssText="page-break-after:"+(gi<groups.length-1?"always":"auto")+";break-after:"+(gi<groups.length-1?"page":"auto")+";";
+page.appendChild(pw);pa.appendChild(page);
+});
+document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName("提案比較");
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},300);
 }
 function printMatrix(isProp){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";

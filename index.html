@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709d-法人保険料に色付け・合計を個人/法人で内訳表示。版";
+var APP_VERSION="v2-0709e-左右比較に回数/1回目/2回目条件を表示・条件が変わる行に印。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2944,7 +2944,7 @@ function _kValCell(row,p){var td=el("td");td.style.cssText="text-align:center;fo
 if(row.isPair){var a=row.g(p)||0,b=row.g2(p)||0;var aT=p.surgInMode==="tier",bT=p.surgOutMode==="tier";function side(val,tier,col){if(tier){return "<span style=\'color:"+col+";font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}if(val>0)return "<span style=\'color:"+col+";font-weight:700;\'>"+val+"万</span>";return "<span style=\'color:#ccc;\'>—</span>";}if(aT&&bT){td.innerHTML="<span style=\'color:#1f7d56;font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}else if(a||b||aT||bT){td.innerHTML=side(a,aT,"#1f7d56")+"<span style=\'color:#bbb;\'>/</span>"+side(b,bT,"#2980b9");}else{td.textContent="—";td.style.color="#ccc";}return td;}
 var v=row.g(p)||0;if(row.grp==="貯蓄"){var sk=row.k+"|"+p.id;if(state.savNotes&&state.savNotes[sk]!==undefined&&state.savNotes[sk]!==""){td.innerHTML=_shrU(state.savNotes[sk]);td.style.color="#1f7d56";td.style.fontWeight="700";return td;}}
 var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;var _re=+((p.itemEnd||{})[row.k])||0;var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));if(_endsEarly)td.style.background="#fdecea";
-if(v>0){td.innerHTML=_shrU(row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u));td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}else{td.textContent="—";td.style.color="#ccc";}return td;}
+if(v>0){var _isCHB=(row.k==="cancer"||row.k==="heart"||row.k==="brain");if(_isCHB){var _cw=_cntWordTxt(row.k,p);var _fc=_firstCondTxt(row.k,p);var _sc=_secondDetailTxt(row.k,p);var _hh=_shrU(v.toLocaleString()+row.u)+(_cw?" <span style='font-size:10px;color:#7a5a9a;font-weight:700;'>"+_cw+"</span>":"");if(_fc)_hh+="<div style='font-size:10px;color:#555;font-weight:600;'>1回目:"+_fc+"</div>";if(_sc)_hh+="<div style='font-size:10px;color:#555;font-weight:600;'>2回目:"+_sc+"</div>";td.innerHTML=_hh;td.style.whiteSpace="normal";}else{td.innerHTML=_shrU(row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u));}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}else{td.textContent="—";td.style.color="#ccc";}return td;}
 function _kSumCell(row,pols){var td=el("td");td.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:13px;padding:2px 4px;border-left:2.5px solid #444;border-right:2.5px solid #444;";if(row.isFlag){td.style.background="#fafafa";return td;}if(row.isPair){var sA=0,sB=0;pols.forEach(function(p){sA+=row.g(p)||0;sB+=row.g2(p)||0;});var _ta=(row.k==="surg"&&_surgHasTier(pols))?"<span style=\'color:#b9770e;\'>＋α</span>":"";td.innerHTML=(sA||sB)?("<span style=\'color:#1f7d56;\'>"+sA+"</span>/<span style=\'color:#2980b9;\'>"+sB+"</span>"+row.u+_ta):(_ta||"—");return td;}if(row.noSum){td.textContent="—";return td;}var s=0;pols.forEach(function(p){s+=row.g(p)||0;});td.innerHTML=s>0?_shrU(s.toLocaleString()+row.u):"—";return td;}
 function _shrU(t){t=String(t==null?"":t);var out="";var i=0;while(i<t.length){var rest=t.slice(i);var m=rest.match(/^[0-9]+日型?/);if(m){out+="<span style=\"font-size:.72em !important;\">"+m[0]+"</span>";i+=m[0].length;continue;}var c=t.charAt(i);var e=(c==="&")?"&amp;":(c==="<")?"&lt;":(c===">")?"&gt;":c;if(/[0-9.,\/〜]/.test(c)){out+=e;}else{out+="<span style=\"font-size:.78em !important;\">"+e+"</span>";}i++;}return out;}
 function _khBadge(p){if(state.showKH===false)return "";return p.isCorp?"<div style=\"margin-top:2px;\"><span style=\"background:#ffd24d;color:#1a2744;font-weight:700;font-size:11px;padding:0 6px;border-radius:3px;\">法人</span></div>":"<div style=\"margin-top:2px;\"><span style=\"background:#dfe6f0;color:#33415c;font-weight:700;font-size:11px;padding:0 6px;border-radius:3px;\">個人</span></div>";}
@@ -2984,7 +2984,7 @@ if(row.grp!==lastGrp){lastGrp=row.grp;var gr=el("tr");var gtd=el("td");gtd.colSp
 var tr=el("tr");
 curPols.forEach(function(p){tr.appendChild(_kValCell(row,p));});
 tr.appendChild(_kSumCell(row,curPols));
-tr.appendChild(_lblCell(row.l,row.detail?row.k:null));
+var _lc=_lblCell(row.l,row.detail?row.k:null);if(row.k==="cancer"||row.k==="heart"||row.k==="brain"){var _cs=_sideSig(row.k,curPols),_ps=_sideSig(row.k,propPols);if(_cs&&_ps&&_cs!==_ps){_lc.innerHTML=row.l+"<div style='font-size:9px;color:#ffe08a;font-weight:700;margin-top:1px;'>▲条件が変わる</div>";}}tr.appendChild(_lc);
 tr.appendChild(_kSumCell(row,propPols));
 propPols.forEach(function(p){tr.appendChild(_kValCell(row,p));});
 tb.appendChild(tr);
@@ -3019,6 +3019,7 @@ return "";
 }
 function _secondDetailTxt(k,p){var b=_payTimesTxt(k,p);if(!b)return "";if(b==="×1回")return "なし";var m=b.match(/\(([^)]*)\)/);return m?m[1]:"あり";}
 function _cntWordTxt(k,p){var b=_payTimesTxt(k,p);return b?b.replace(/\(.*\)/,""):"";}
+function _sideSig(k,pols){var best=null,bv=-1;(pols||[]).forEach(function(p){var v=(k==="cancer")?((p.cancerOn||+p.c1st>0)?(+p.c1st||0):0):(k==="heart")?(p.bigOn?(+p.h1st||0):0):(k==="brain")?(p.bigOn?(+p.b1st||0):0):0;if(v>0&&v>bv){bv=v;best=p;}});if(!best)return null;return _cntWordTxt(k,best)+"|"+_firstCondTxt(k,best)+"|"+_secondDetailTxt(k,best);}
 function buildKanyuTable(curPols,memOf,visPols){
 if(!state.ansinCov)state.ansinCov={};
 var _visPols=(visPols&&visPols.length)?visPols:curPols;

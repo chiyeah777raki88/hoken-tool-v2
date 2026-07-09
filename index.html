@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0619-4710-入力欄は確定時(離脱/Enter)に反映しカーソル飛びを解消。版";
+var APP_VERSION="v2-0709-加入一覧にがん/心/脳の受取回数(×1回/×複数回)を表示・ファイル末尾を修復。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2991,6 +2991,14 @@ tb.appendChild(tr);
 tbl.appendChild(tb);box.appendChild(tbl);return box;
 }
 
+function _payTimesTxt(k,p){
+var multi=false,show=false;
+if(k==="cancer"){if(p.cancerOn||(+p.c1st>0)){show=true;multi=(p.cancer2ndCond==="2y"||p.cancer2ndCond==="1y"||p.cancer2ndCond==="out"||(+p.c2nd>0));}}
+else if(k==="heart"){if(p.bigOn&&(+p.h1st>0)){show=true;multi=(p.heartSecond==="2y"||p.heartSecond==="1y");}}
+else if(k==="brain"){if(p.bigOn&&(+p.b1st>0)){show=true;multi=(p.brainSecond==="2y"||p.brainSecond==="1y");}}
+if(!show)return "";
+return multi?"×複数回":"×1回";
+}
 function buildKanyuTable(curPols,memOf,visPols){
 if(!state.ansinCov)state.ansinCov={};
 var _visPols=(visPols&&visPols.length)?visPols:curPols;
@@ -3084,7 +3092,7 @@ var _re=+((p.itemEnd||{})[row.k])||0;
 var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));
 td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;"+(_endsEarly?"background:#fdecea;":"");
 if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
-else if(v>0){sum+=v;td.textContent=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
+else if(v>0){sum+=v;var _mainTxt=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);var _tt=(row.k==="cancer"||row.k==="heart"||row.k==="brain")?_payTimesTxt(row.k,p):"";if(_tt){td.innerHTML=_shrU(_mainTxt)+" <span style='font-size:10px;color:#7a5a9a;font-weight:700;white-space:nowrap;'>"+_tt+"</span>";}else{td.textContent=_mainTxt;}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
 else{td.textContent="—";td.style.color="#ccc";}
 if(row.grp==="貯蓄"&&!row.isFlag){var _sk=row.k+"|"+p.id;if(state.savNotes&&state.savNotes[_sk]!==undefined&&state.savNotes[_sk]!==""){td.textContent=state.savNotes[_sk];td.style.color="#1f7d56";td.style.fontWeight="700";}td.contentEditable="true";td.style.cursor="text";td.style.outline="none";td.title="クリックで編集（例: 800万 ※1）";td.addEventListener("blur",function(){if(!state.savNotes)state.savNotes={};state.savNotes[_sk]=(td.innerText||"").replace(/\u00a0/g," ").trim();saveState();});}
 tr.appendChild(td);

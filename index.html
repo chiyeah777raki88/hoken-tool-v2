@@ -310,7 +310,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709b-受取回数に受診要件(入院要/外来可)と間隔を追加。版";
+var APP_VERSION="v2-0709c-加入一覧を金額+回数/1回目条件/2回目条件の3行表示に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3012,6 +3012,13 @@ if(req==="in")parts.push("入院要");else if(req==="out")parts.push("外来可"
 if(intv)parts.push(intv);
 return "×複数回"+(parts.length?"("+parts.join("・")+")":"");
 }
+function _firstCondTxt(k,p){
+if(k==="cancer"){return ({A:"悪性のみ",B:"上皮内含む",W:"60日就業不能"})[p.cCond]||"";}
+if(k==="heart"||k==="brain"){var c=(k==="heart")?p.hCond:p.bCond;return ({A:"60日所定",W:"60日就業不能",H:"入院/手術",T:"20日以上入院",B:"入院10日以上",E:"手術",C:"1泊入院"})[c]||"";}
+return "";
+}
+function _secondDetailTxt(k,p){var b=_payTimesTxt(k,p);if(!b)return "";if(b==="×1回")return "なし";var m=b.match(/\(([^)]*)\)/);return m?m[1]:"あり";}
+function _cntWordTxt(k,p){var b=_payTimesTxt(k,p);return b?b.replace(/\(.*\)/,""):"";}
 function buildKanyuTable(curPols,memOf,visPols){
 if(!state.ansinCov)state.ansinCov={};
 var _visPols=(visPols&&visPols.length)?visPols:curPols;
@@ -3105,7 +3112,7 @@ var _re=+((p.itemEnd||{})[row.k])||0;
 var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));
 td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;"+(_endsEarly?"background:#fdecea;":"");
 if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
-else if(v>0){sum+=v;var _mainTxt=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);var _tt=(row.k==="cancer"||row.k==="heart"||row.k==="brain")?_payTimesTxt(row.k,p):"";if(_tt){td.innerHTML=_shrU(_mainTxt)+" <span style='font-size:10px;color:#7a5a9a;font-weight:700;white-space:nowrap;'>"+_tt+"</span>";}else{td.textContent=_mainTxt;}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
+else if(v>0){sum+=v;var _mainTxt=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);var _isCHB=(row.k==="cancer"||row.k==="heart"||row.k==="brain");if(_isCHB){var _cw=_cntWordTxt(row.k,p);var _fc=_firstCondTxt(row.k,p);var _sc=_secondDetailTxt(row.k,p);var _h=_shrU(_mainTxt)+(_cw?" <span style='font-size:10px;color:#7a5a9a;font-weight:700;'>"+_cw+"</span>":"");if(_fc)_h+="<div style='font-size:10px;color:#555;font-weight:600;white-space:nowrap;'>1回目:"+_fc+"</div>";if(_sc)_h+="<div style='font-size:10px;color:#555;font-weight:600;white-space:nowrap;'>2回目:"+_sc+"</div>";td.innerHTML=_h;}else{td.textContent=_mainTxt;}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
 else{td.textContent="—";td.style.color="#ccc";}
 if(row.grp==="貯蓄"&&!row.isFlag){var _sk=row.k+"|"+p.id;if(state.savNotes&&state.savNotes[_sk]!==undefined&&state.savNotes[_sk]!==""){td.textContent=state.savNotes[_sk];td.style.color="#1f7d56";td.style.fontWeight="700";}td.contentEditable="true";td.style.cursor="text";td.style.outline="none";td.title="クリックで編集（例: 800万 ※1）";td.addEventListener("blur",function(){if(!state.savNotes)state.savNotes={};state.savNotes[_sk]=(td.innerText||"").replace(/\u00a0/g," ").trim();saveState();});}
 tr.appendChild(td);

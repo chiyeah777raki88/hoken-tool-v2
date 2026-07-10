@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710j-加入一覧の印刷が1枚に収まるよう縮尺と余白を自動調整(行増でも溢れない)。版";
+var APP_VERSION="v2-0710k-提案比較から払込経路を削除＋備考を改行含め入力どおり完全保存。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3293,7 +3293,6 @@ if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:70
 td.style.cssText="font-size:11px;text-align:center;padding:3px 4px;"+((!isWhole||earliest)?"background:#fdecea;":"");td.innerHTML=html;tr.appendChild(td);});
 var ts=el("td",null,"");ts.style.cssText="background:#fdf8ec;";tr.appendChild(ts);tb.appendChild(tr);})();
 infoRow("払込期間","#1a2744",null,payTermTxt,"",false);
-infoRow("払込経路","#1a2744",null,payRouteTxt,"",false);
 (function(){var tr=el("tr");tr.style.background="#fffdf5";var im=el("td");im.style.cssText="border:none;background:transparent;";tr.appendChild(im);var t0=el("td",null,"保険料");t0.style.cssText="font-weight:700;color:#8a6d1a;font-size:12px;padding:4px 4px;";tr.appendChild(t0);
 var mSumP=0,ySumP=0,oSumP=0,mSumC=0,ySumC=0,oSumC=0;
 curPols.forEach(function(p){var raw=+(p.premAmount||0)||0;var u=(p.premUnit||"").trim();var ff=p.payFreq||"";var isOne=(ff==="一時"||u.indexOf("一時")>=0);var isYr=(!isOne)&&(u==="円/年"||u==="年払"||ff==="年");var td=el("td");td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;font-weight:700;color:"+(isYr?"#c0392b":(isOne?"#7b5e1a":"#8a6d1a"))+";"+(p.isCorp?"background:#fff3d6;":"");if(raw>0){td.textContent=isOne?("一時 ¥"+raw.toLocaleString()):("¥"+raw.toLocaleString()+(isYr?"/年":"/月"));var _bk=isOne?"o":(isYr?"y":"m");if(p.isCorp){if(_bk==="o")oSumC+=raw;else if(_bk==="y")ySumC+=raw;else mSumC+=raw;}else{if(_bk==="o")oSumP+=raw;else if(_bk==="y")ySumP+=raw;else mSumP+=raw;}}else td.textContent="—";tr.appendChild(td);});
@@ -3356,7 +3355,7 @@ td.contentEditable="true";td.style.cursor="text";td.style.outline="none";
 td.textContent=state.polTableMemo[p.id]||"";
 td.title="この保険種類の備考（クリックで記入）";
 td.addEventListener("input",function(){if(!state.polTableMemo)state.polTableMemo={};state.polTableMemo[p.id]=(td.innerText||"");saveState();});
-td.addEventListener("blur",function(){if(!state.polTableMemo)state.polTableMemo={};state.polTableMemo[p.id]=(td.innerText||"").replace(/ /g," ").replace(/\n{2,}/g,"\n").trim();saveState();});
+td.addEventListener("blur",function(){if(!state.polTableMemo)state.polTableMemo={};state.polTableMemo[p.id]=(td.innerText||"").replace(/ /g," ");saveState();});
 tr.appendChild(td);
 });
 var tds=el("td");tds.style.cssText="background:#f0f7ee;";tr.appendChild(tds);

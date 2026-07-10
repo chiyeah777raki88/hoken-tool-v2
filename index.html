@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709r-提案を現在に確定(取消可)/受取行を被保険者別/入院に支払限度(60日型等)選択を追加。版";
+var APP_VERSION="v2-0709s-提案比較をグループのタブ切替に(1グループずつ表示・縦スクロール解消)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2863,11 +2863,16 @@ var note=el("div");note.style.cssText="background:#f0f4ff;border-radius:8px;padd
 note.innerHTML="<b>提案比較：</b>「この部分はA商品かB商品か」を候補で比べる場所です。<br>①「＋比較グループを追加」→②「＋候補を追加」で候補証券を2つ以上入れる（入力は既契約と同じ詳細・カメラ読取も可）→③下の比較表で見比べ→④「決定」を押すと<b>提案内容</b>タブに反映されます。";
 cont.appendChild(note);
 var _pcBtnRow=el("div");_pcBtnRow.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px;";
-_pcBtnRow.appendChild(btn("＋ 比較グループを追加","bg",function(){state.compareGroups.push({id:Date.now(),name:"比較"+(state.compareGroups.length+1),memberId:(state.family[0]||{}).id,candidates:[],selId:null,_edit:0});saveState();render();}));
+_pcBtnRow.appendChild(btn("＋ 比較グループを追加","bg",function(){var _nid=Date.now();state.compareGroups.push({id:_nid,name:"比較"+(state.compareGroups.length+1),memberId:(state.family[0]||{}).id,candidates:[],selId:null,_edit:0});state._cmpActiveGroup=_nid;saveState();render();}));
 _pcBtnRow.appendChild(btn("🖨 提案比較を印刷（縦・上から順に）","bn",function(){printProposalCompare();}));
 cont.appendChild(_pcBtnRow);
 if(!state.compareGroups.length){var e=el("p");e.style.cssText="font-size:12px;color:#888;margin-top:10px;";e.textContent="まだ比較グループがありません。上のボタンで作成してください。";cont.appendChild(e);}
-state.compareGroups.forEach(function(g,gi){cont.appendChild(buildCmpGroup(g,gi));});
+var _actId=state._cmpActiveGroup;if(!_actId||!state.compareGroups.some(function(g){return g.id===_actId;}))_actId=state.compareGroups[0].id;state._cmpActiveGroup=_actId;
+var _gt=el("div","poltabs");
+state.compareGroups.forEach(function(g,gi){var b=el("button","poltab"+(g.id===_actId?" active":""));b.textContent=(gi+1)+". "+(g.name||"比較")+((g.candidates||[]).length?("（候補"+g.candidates.length+"）"):"");b.addEventListener("click",function(){state._cmpActiveGroup=g.id;saveState();render();});_gt.appendChild(b);});
+cont.appendChild(_gt);
+var _ag=state.compareGroups.filter(function(g){return g.id===_actId;})[0];
+if(_ag)cont.appendChild(buildCmpGroup(_ag,state.compareGroups.indexOf(_ag)));
 return cont;
 }
 function buildProposalTab(){

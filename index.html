@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709x-積立額の補間修正:表の最終年齢より先は横ばい延長せず—に(70歳開始年金で80歳が70歳と同額になる不具合を解消)。版";
+var APP_VERSION="v2-0709y-年金は原資＋受取総額で表示、開始後の積立額行は年金受取中に。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3064,6 +3064,9 @@ setTimeout(function(){if(typeof Chart!=="undefined"){try{new Chart(cc,{type:"lin
 return cont;
 }
 function _accumAtAge(p,age){var fv=p&&p.futureVals;if(!fv||!fv.length)return 0;function val(r){var rr=scenRate==="1"?r.v1:scenRate==="5"?r.v5:scenRate==="6"?r.v6:r.v3;if(!(rr>0))rr=r.v3||r.v1||r.v5||r.v6||0;return +rr||0;}var rows=fv.filter(function(r){return +r.age>0;}).slice().sort(function(a,b){return (+a.age)-(+b.age);});if(!rows.length)return 0;var first=+rows[0].age,last=+rows[rows.length-1].age;if(age<first||age>last)return 0;/*表の範囲外は横ばい延長しない（例:70歳開始の年金で積立表が70歳までなら80歳は—）*/if(age===last)return val(rows[rows.length-1]);for(var i=0;i<rows.length-1;i++){var a0=+rows[i].age,a1=+rows[i+1].age;if(age===a0)return val(rows[i]);if(age>a0&&age<a1){var v0=val(rows[i]),v1=val(rows[i+1]);var t=(age-a0)/(a1-a0);return Math.round((v0+(v1-v0)*t)*10)/10;}}return 0;}
+function _isAnnuity(p){var t=(p&&p.insType)||"";return t.indexOf("年金")>=0||(+((p&&p.pensionStartAge)||0)>0)||(+((p&&p.annualPension)||0)>0);}
+function _accAnn(p,age){if(_isAnnuity(p)&&(+p.pensionStartAge>0)&&age>(+p.pensionStartAge))return _accumAtAge(p,(+p.pensionStartAge))||0;return _accumAtAge(p,age);}
+function _accDisp(p,age){if(_isAnnuity(p)&&(+p.pensionStartAge>0)&&age>(+p.pensionStartAge))return "年金受取中";var v=_accumAtAge(p,age);return v>0?(v.toLocaleString()+"万"):"";}
 function kanyuRowDefs(){return [
 {k:"death",l:"死亡一時金",u:"万",grp:"保障",g:function(p){if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(a>10000)a=Math.round(a/10000);s+=a;});if(s>0)return s;}var v=+p.dlAmount||0;var mv=v>10000?Math.round(v/10000):v;return (p.deathType==="lump"||p.deathType==="both")?mv:0;}},
 {k:"dann",l:"死亡(月額)",u:"万/月",grp:"保障",g:function(p){return (p.deathType==="annuity"||p.deathType==="both")?(+p.daAmount||0):0;}},
@@ -3099,9 +3102,11 @@ function kanyuRowDefs(){return [
 {k:"pension",l:"個人年金(年額)",u:"",grp:"貯蓄",g:function(p){return +p.annualPension||0;}},
 {k:"celeb",l:"祝金・生存給付",u:"万",grp:"貯蓄",g:function(p){return +p.celebAmount||0;}},
 {k:"cash",l:"解約返戻金/積立",u:"万",grp:"貯蓄",g:function(p){return (+p.refundVal||0)||(+p.currentVal||0);}},
-{k:"acc65",l:"65歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return _accumAtAge(p,65);}},
-{k:"acc70",l:"70歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return _accumAtAge(p,70);}},
-{k:"acc80",l:"80歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return _accumAtAge(p,80);}}
+{k:"acc65",l:"65歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return _accAnn(p,65);},disp:function(p){return _accDisp(p,65);}},
+{k:"acc70",l:"70歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return _accAnn(p,70);},disp:function(p){return _accDisp(p,70);}},
+{k:"acc80",l:"80歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return _accAnn(p,80);},disp:function(p){return _accDisp(p,80);}},
+{k:"pgenshi",l:"年金原資(開始時積立)",u:"万",grp:"貯蓄",g:function(p){return _isAnnuity(p)?_accumAtAge(p,(+p.pensionStartAge||70)):0;}},
+{k:"pgtotal",l:"年金受取総額(見込)",u:"万",grp:"貯蓄",g:function(p){return _isAnnuity(p)?Math.round((+p.annualPension||0)*(+p.pensionYears||0)):0;}}
 ];}
 function _surgMin(p){return (+p.surgMultMin>0)?(+p.surgMultMin):5;}
 function _surgMax(p){return (+p.surgMultMax>0)?(+p.surgMultMax):40;}

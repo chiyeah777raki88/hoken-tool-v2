@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710g-保険会社の未選択を『―選択―』に(先頭会社が入力済みに見えて空だった不具合を解消)。版";
+var APP_VERSION="v2-0710h-重大修正:備考・貯蓄性手入力・積立年齢が保存されず消えていた不具合を解消(保存対象に追加)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -622,6 +622,10 @@ if(sv.corpMaster)base.corpMaster=Object.assign(base.corpMaster||{},sv.corpMaster
 if(sv.corpByMember)base.corpByMember=sv.corpByMember;
 if(sv.comparisonRows)base.comparisonRows=sv.comparisonRows;
 if(sv.comparisonMemos)base.comparisonMemos=sv.comparisonMemos;
+if(sv.polTableMemo)base.polTableMemo=sv.polTableMemo;
+if(sv.savNotes)base.savNotes=sv.savNotes;
+if(sv.accAges)base.accAges=sv.accAges;
+if(sv.summaryMemo)base.summaryMemo=sv.summaryMemo;
 if(sv.assets)Object.assign(assetsData,sv.assets);
 if(sv.nisaAccounts){nisaAccounts.splice(0,nisaAccounts.length);sv.nisaAccounts.forEach(function(a){nisaAccounts.push(a);});}
 if(sv.idecoAccounts){idecoAccounts.splice(0,idecoAccounts.length);sv.idecoAccounts.forEach(function(a){idecoAccounts.push(a);});}
@@ -661,7 +665,7 @@ function saveState(){
 try{var si=document.getElementById("save-ind");if(si){si.textContent="● 保存済";si.style.color="#27ae60";}}catch(e){} window._lastSaved=Date.now();
 try{
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{}}));
+storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,summaryMemo:state.summaryMemo||""}));
 }catch(e){}
 // Save customer list to localStorage first
 try{var cl2=listCustomers();if(cl2.length)saveCustomerList(cl2);}catch(e){}

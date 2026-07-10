@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709p-死亡保障の複数行入力を保障明細の表に統合(死亡一時金の直下)。版";
+var APP_VERSION="v2-0709q-追加した死亡保障の行に保険料の内訳欄を追加。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1262,7 +1262,7 @@ var dtr=el("tr");dtr.style.background="#fbfcff";
 var c0=el("td");c0.style.cssText="padding:2px 5px;white-space:nowrap;text-align:left;";var _pf=el("span");_pf.textContent="死亡▸";_pf.style.cssText="font-size:10px;color:#8a8a8a;margin-right:2px;";c0.appendChild(_pf);var _ni=inp("text",dl.label||"",function(v){pol.deathLines[di].label=v;saveState();});_ni.placeholder="養老/定期 等";_ni.style.cssText="width:84px;font-size:12px;padding:2px;";c0.appendChild(_ni);dtr.appendChild(c0);
 var c1d=el("td");var _ai=inp("number",dl.amount||"",function(v){pol.deathLines[di].amount=+v;saveState();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});_ai.style.cssText="width:56px;font-size:12px;padding:2px;text-align:right;";c1d.appendChild(_ai);dtr.appendChild(c1d);
 var c2d=el("td");var _ei=inp("number",dl.endAge||"",function(v){pol.deathLines[di].endAge=+v;saveState();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});_ei.placeholder="終身";_ei.title="満了年齢(空欄=終身)";_ei.style.cssText="width:48px;font-size:12px;padding:2px;text-align:right;";c2d.appendChild(_ei);dtr.appendChild(c2d);
-dtr.appendChild(el("td"));
+var c3d=el("td");var _pi=inp("number",dl.prem||"",function(v){pol.deathLines[di].prem=+v;saveState();});_pi.placeholder="円/月";_pi.style.cssText="width:74px;font-size:12px;padding:2px;text-align:right;";c3d.appendChild(_pi);dtr.appendChild(c3d);
 var c4d=el("td");c4d.style.padding="2px 4px";var _db=btn("×","br",function(){pol.deathLines.splice(di,1);saveState();render();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});_db.style.cssText="font-size:11px;padding:2px 8px;";c4d.appendChild(_db);dtr.appendChild(c4d);
 dtb.appendChild(dtr);
 });

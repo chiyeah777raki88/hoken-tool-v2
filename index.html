@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710f-備考欄を1文字ごと保存に(再描画で消えない)。版";
+var APP_VERSION="v2-0710g-保険会社の未選択を『―選択―』に(先頭会社が入力済みに見えて空だった不具合を解消)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1157,7 +1157,7 @@ resetDiv.appendChild(resetNote);resetDiv.appendChild(resetPolBtn);cont.appendChi
 cont.appendChild(sec("証券 "+(pidx2+1)+"/"+(srcArr||[]).length+"  "+cN(pol),
 btn("削除","br",function(){srcArr.splice(pidx2,1);currentPidx=Math.max(0,pidx2-1);saveState();render();}),
 [grd("g3",[
-lbl("保険会社",sel(COS.map(function(c){return{v:c,l:c};}),pol.company,function(v){upd("company",v);})),
+lbl("保険会社",sel([{v:"",l:"―保険会社を選択―"}].concat(COS.map(function(c){return{v:c,l:c};})),pol.company,function(v){upd("company",v);render();})),
 lbl("保険種類",sel(ITS.map(function(t){return{v:t,l:t};}),pol.insType,function(v){upd("insType",v);})),
 lbl("組み合わせ（任意）",sel([{v:"",l:"（組み合わせなし）"}].concat(ITS.map(function(t){return{v:t,l:t};})),pol.insType2||"",function(v){upd("insType2",v);})),
 lbl("証券番号",inp("text",pol.policyNo,function(v){upd("policyNo",v);})),

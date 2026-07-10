@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709l-印刷タブで被保険者選択・提案比較印刷を縦置き複数グループで読みやすく。版";
+var APP_VERSION="v2-0709m-顧客ごとの会社情報マスターを家族設定に追加(法人切替で自動反映)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -606,7 +606,7 @@ var cl=listCustomers();var cur=cl.find(function(c){return c.id===cid;})||{name:"
 var isKudo=cid==="kudo";
 var fam=isKudo?[{id:"m1",name:"工藤 千絵",relation:"本人",dob:"1976-06-11",gender:"女性"},{id:"m2",name:"子1",relation:"子",dob:"2000-01-01",gender:"男性"},{id:"m3",name:"子2",relation:"子",dob:"2003-01-01",gender:"男性"}]:[{id:"m1",name:cur.name||"（未設定）",relation:"本人",dob:cur.dob||"",gender:"女性"}];
 var pm={};fam.forEach(function(m){pm[m.id]=m.id==="m1"&&isKudo?IP:[];});
-return {family:fam,policies:pm,ansinLine:{death:0,hosp:0,cancer:0,cancerOut:0,big3:0,big8:0,dis:0,care:0},goals:[],proposalPolicies:null,comparisonRows:null,comparisonMemos:{},compareGroups:[]};
+return {family:fam,policies:pm,ansinLine:{death:0,hosp:0,cancer:0,cancerOut:0,big3:0,big8:0,dis:0,care:0},goals:[],proposalPolicies:null,comparisonRows:null,comparisonMemos:{},compareGroups:[],corpMaster:{corpName:"",corpType:"株式会社",corpTypePos:"前",corpPurpose:"",corpExit:"",corpAccounting:""}};
 }
 function loadState(){
 var base=JSON.parse(JSON.stringify(makeINIT(currentCustomerId)));
@@ -618,6 +618,7 @@ if(sv.ansinLine)base.ansinLine=sv.ansinLine;
 if(sv.goals)base.goals=sv.goals;
 if(sv.proposalPolicies)base.proposalPolicies=sv.proposalPolicies;
 if(sv.compareGroups)base.compareGroups=sv.compareGroups;
+if(sv.corpMaster)base.corpMaster=Object.assign(base.corpMaster||{},sv.corpMaster);
 if(sv.comparisonRows)base.comparisonRows=sv.comparisonRows;
 if(sv.comparisonMemos)base.comparisonMemos=sv.comparisonMemos;
 if(sv.assets)Object.assign(assetsData,sv.assets);
@@ -659,7 +660,7 @@ function saveState(){
 try{var si=document.getElementById("save-ind");if(si){si.textContent="● 保存済";si.style.color="#27ae60";}}catch(e){} window._lastSaved=Date.now();
 try{
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{}}));
+storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{}}));
 }catch(e){}
 // Save customer list to localStorage first
 try{var cl2=listCustomers();if(cl2.length)saveCustomerList(cl2);}catch(e){}
@@ -1100,7 +1101,7 @@ corpRow.appendChild(corpLbl);
 [["個人",false],["法人",true]].forEach(function(o){
 var b=el("button","btn");b.style.cssText="padding:4px 14px;font-size:12px;border-radius:5px;border:1px solid #fdba74;cursor:pointer;background:"+((!!pol.isCorp)===o[1]?"#9a3412":"white")+";color:"+((!!pol.isCorp)===o[1]?"white":"#9a3412")+";font-weight:700;";
 b.textContent=o[0];b.addEventListener("click",function(){upd("isCorp",o[1]);
-if(o[1]&&!(pol.corpName)){try{var _don=null;Object.keys(state.policies||{}).forEach(function(k){(state.policies[k]||[]).forEach(function(x){if(x&&x!==pol&&x.isCorp&&x.corpName&&!_don)_don=x;});});if(state.proposalPolicies){Object.keys(state.proposalPolicies).forEach(function(k){(state.proposalPolicies[k]||[]).forEach(function(x){if(x&&x!==pol&&x.isCorp&&x.corpName&&!_don)_don=x;});});}if(_don){["corpName","corpType","corpTypePos","corpPurpose","corpExit","corpAccounting"].forEach(function(f){if(!pol[f])pol[f]=_don[f];});saveState();}}catch(e){}}
+if(o[1]&&!(pol.corpName)){try{var _cm=state.corpMaster;var _flds=["corpName","corpType","corpTypePos","corpPurpose","corpExit","corpAccounting"];if(_cm&&_cm.corpName){_flds.forEach(function(f){if(!pol[f]&&_cm[f])pol[f]=_cm[f];});saveState();}else{var _don=null;Object.keys(state.policies||{}).forEach(function(k){(state.policies[k]||[]).forEach(function(x){if(x&&x!==pol&&x.isCorp&&x.corpName&&!_don)_don=x;});});if(state.proposalPolicies){Object.keys(state.proposalPolicies).forEach(function(k){(state.proposalPolicies[k]||[]).forEach(function(x){if(x&&x!==pol&&x.isCorp&&x.corpName&&!_don)_don=x;});});}if(_don){_flds.forEach(function(f){if(!pol[f])pol[f]=_don[f];});saveState();}}}catch(e){}}
 render();});
 corpRow.appendChild(b);
 });
@@ -2735,7 +2736,24 @@ row.appendChild(lbl("性別",sel([{v:"男性",l:"男性"},{v:"女性",l:"女性"
 var db=btn("削除","br",function(){if(state.family.length<=1)return;state.family=state.family.filter(function(f){return f.id!==m.id;});delete state.policies[m.id];saveState();render();});
 db.style.cssText="height:32px;margin-top:16px;";db.disabled=state.family.length<=1;row.appendChild(db);return row;
 });
-cont.appendChild(sec("家族メンバー",addBtn2,rows2));return cont;
+cont.appendChild(sec("家族メンバー",addBtn2,rows2));
+if(!state.corpMaster)state.corpMaster={corpName:"",corpType:"株式会社",corpTypePos:"前",corpPurpose:"",corpExit:"",corpAccounting:""};
+function ucm(f,v){state.corpMaster[f]=v;saveState();}
+var cmBox=el("div");
+var cmNote=el("p");cmNote.style.cssText="font-size:12px;color:#8a5320;margin-bottom:8px;line-height:1.6;";cmNote.textContent="この顧客の法人契約に共通で使う会社情報です。ここに1回入れておけば、証券を「法人」にしたとき法人格・屋号などが自動で入ります（各証券で個別に直すことも可能）。";
+cmBox.appendChild(cmNote);
+cmBox.appendChild(grd("g4",[
+lbl("法人格",sel([{v:"株式会社",l:"株式会社（㈱）"},{v:"有限会社",l:"有限会社（㈲）"},{v:"合同会社",l:"合同会社（同）"},{v:"医療法人",l:"医療法人"},{v:"一般社団法人",l:"一般社団法人"},{v:"その他",l:"その他"}],state.corpMaster.corpType||"株式会社",function(v){ucm("corpType",v);})),
+lbl("法人格の位置",sel([{v:"前",l:"前（㈱○○）"},{v:"後",l:"後（○○㈱）"}],state.corpMaster.corpTypePos||"前",function(v){ucm("corpTypePos",v);})),
+lbl("屋号（法人名）",inp("text",state.corpMaster.corpName||"",function(v){ucm("corpName",v);})),
+lbl("加入目的",inp("text",state.corpMaster.corpPurpose||"",function(v){ucm("corpPurpose",v);}))
+]));
+cmBox.appendChild(grd("g2",[
+lbl("出口（解約・退職金等のメモ）",inp("text",state.corpMaster.corpExit||"",function(v){ucm("corpExit",v);})),
+lbl("経理処理",inp("text",state.corpMaster.corpAccounting||"",function(v){ucm("corpAccounting",v);}))
+]));
+cont.appendChild(sec("会社情報（法人契約・この顧客共通）",null,cmBox));
+return cont;
 }
 function syncGroupToProposal(g){
 if(!state.proposalPolicies)state.proposalPolicies={};
@@ -4471,7 +4489,7 @@ try{if(window.localStorage){for(var k in window.localStorage){if(k.indexOf("ins_
 // 現在のstateも追加保存
 try{
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-var sv=JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,compareGroups:state.compareGroups||[],polSave:ps,famSave:state.family});
+var sv=JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},polSave:ps,famSave:state.family});
 d[getCustomerKey()]=sv;
 }catch(e){}
 var str=JSON.stringify(d);

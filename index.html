@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710c-年金年額をレンジ表示可＋積立額を見る年齢を選択可(既定65/70/80)。版";
+var APP_VERSION="v2-0710d-災害保障期間付の死亡一時金を『◯◯万(N+1年目〜)』と段階表示。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3084,7 +3084,7 @@ function _scenRateDec(){var m={"1":-0.03,"3":0,"5":0.03,"6":0.06};return (m[scen
 function _annPay(p){var pr=_accumAtAge(p,(+p.pensionStartAge||70));var n=+p.pensionYears||0;if(!(pr>0)||!(n>0))return 0;var r=_scenRateDec();var pay=(r===0)?(pr/n):(pr*r/(1-Math.pow(1+r,-n)));return Math.round(pay*10)/10;}
 function _getAccAges(){var a=state.accAges;if(a&&a.length===3&&a.every(function(x){return +x>0;}))return a.map(Number);return [65,70,80];}
 function kanyuRowDefs(){var _accAges=_getAccAges();return [
-{k:"death",l:"死亡一時金",u:"万",grp:"保障",g:function(p){if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(a>10000)a=Math.round(a/10000);s+=a;});if(s>0)return s;}var v=+p.dlAmount||0;var mv=v>10000?Math.round(v/10000):v;return (p.deathType==="lump"||p.deathType==="both")?mv:0;}},
+{k:"death",l:"死亡一時金",u:"万",grp:"保障",g:function(p){if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(a>10000)a=Math.round(a/10000);s+=a;});if(s>0)return s;}var v=+p.dlAmount||0;var mv=v>10000?Math.round(v/10000):v;return (p.deathType==="lump"||p.deathType==="both")?mv:0;},disp:function(p){var mv=0;if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(a>10000)a=Math.round(a/10000);s+=a;});mv=s;}if(!(mv>0)){var v=+p.dlAmount||0;mv=(v>10000?Math.round(v/10000):v);if(!(p.deathType==="lump"||p.deathType==="both"))mv=0;}if(!(mv>0))return "";if((p.insType||"").indexOf("災害")>=0&&+p.disasterPeriodYears>0){return mv.toLocaleString()+"万("+((+p.disasterPeriodYears)+1)+"年目〜)";}return mv.toLocaleString()+"万";}},
 {k:"dann",l:"死亡(月額)",u:"万/月",grp:"保障",g:function(p){return (p.deathType==="annuity"||p.deathType==="both")?(+p.daAmount||0):0;}},
 {k:"hospin",l:"入院一時金",u:"万",grp:"保障",g:function(p){return +p.hospLumpIn||0;}},
 {k:"hospout",l:"退院一時金",u:"万",grp:"保障",g:function(p){return +p.hospLumpOut||0;}},

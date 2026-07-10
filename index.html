@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710e-カメラ読取に年金累計等の新項目を反映＋年金は概算式をやめ読取値のみ使用。版";
+var APP_VERSION="v2-0710f-備考欄を1文字ごと保存に(再描画で消えない)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3333,6 +3333,7 @@ var td=el("td");td.style.cssText="background:#f0f7ee;padding:3px 5px;vertical-al
 td.contentEditable="true";td.style.cursor="text";td.style.outline="none";
 td.textContent=state.polTableMemo[p.id]||"";
 td.title="この保険種類の備考（クリックで記入）";
+td.addEventListener("input",function(){if(!state.polTableMemo)state.polTableMemo={};state.polTableMemo[p.id]=(td.innerText||"");saveState();});
 td.addEventListener("blur",function(){if(!state.polTableMemo)state.polTableMemo={};state.polTableMemo[p.id]=(td.innerText||"").replace(/ /g," ").replace(/\n{2,}/g,"\n").trim();saveState();});
 tr.appendChild(td);
 });

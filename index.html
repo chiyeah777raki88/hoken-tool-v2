@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709s-提案比較をグループのタブ切替に(1グループずつ表示・縦スクロール解消)。版";
+var APP_VERSION="v2-0709t-比較グループに定型名セレクト＋左右比較の中央列を「項目」に(契約条件と保障を区分)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2809,6 +2809,12 @@ var hl=el("div");hl.style.cssText="display:flex;align-items:center;gap:6px;flex-
 var ni=document.createElement("input");ni.type="text";ni.value=g.name||"";ni.placeholder="比較名(例:医療はどっち)";ni.style.cssText="font-size:13px;padding:3px 8px;border-radius:4px;border:1px solid #ccc;width:170px;";
 ni.addEventListener("input",function(){g.name=this.value;saveState();});
 hl.appendChild(ni);
+var _presets=["医療","積立","大病(3大疾病)","がん","死亡","就業不能","介護","年金"];
+var ps=document.createElement("select");ps.style.cssText="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid #ccc;";
+var _o0=document.createElement("option");_o0.value="";_o0.textContent="定型名から選ぶ▾";ps.appendChild(_o0);
+_presets.forEach(function(nm){var o=document.createElement("option");o.value=nm;o.textContent=nm;if((g.name||"")===nm)o.selected=true;ps.appendChild(o);});
+ps.addEventListener("change",function(){if(this.value){g.name=this.value;ni.value=this.value;saveState();render();}});
+hl.appendChild(ps);
 var msL=el("span");msL.style.cssText="font-size:12px;color:#fff;";msL.textContent="被保険者:";hl.appendChild(msL);
 var ms=sel(state.family.map(function(m){return{v:m.id,l:m.name||m.relation};}),g.memberId,function(v){g.memberId=v;saveState();render();});ms.style.cssText="font-size:12px;max-width:130px;";hl.appendChild(ms);
 hd.appendChild(hl);
@@ -3118,7 +3124,7 @@ var thead=el("thead");
 // 上段：現在 / 保障項目 / 提案 の帯
 var hr0=el("tr");
 var thC=el("th");thC.colSpan=nc+1;thC.textContent="現在の保険";thC.style.cssText="background:#1a2744;color:#fff;font-size:13px;padding:4px;text-align:center;";hr0.appendChild(thC);
-var thL0=el("th");thL0.textContent="保障項目";thL0.style.cssText="background:#5b4636;color:#fff;font-size:13px;padding:4px 6px;text-align:center;white-space:nowrap;";hr0.appendChild(thL0);
+var thL0=el("th");thL0.textContent="項目";thL0.style.cssText="background:#5b4636;color:#fff;font-size:13px;padding:4px 6px;text-align:center;white-space:nowrap;";hr0.appendChild(thL0);
 var thP=el("th");thP.colSpan=np+1;thP.textContent="提案の保険";thP.style.cssText="background:#1a7a3a;color:#fff;font-size:13px;padding:4px;text-align:center;";hr0.appendChild(thP);
 thead.appendChild(hr0);
 // 会社名： 現在証券… | 現在合計 | (空) | 提案合計 | 提案証券…
@@ -3130,6 +3136,7 @@ var thps=el("th");thps.textContent="合計";thps.style.cssText="background:#1f6b
 propPols.forEach(function(p,i){var th=el("th");th.innerHTML="<span style=\'color:#bfe6c9;\'>"+String.fromCharCode(0x32D0+i)+"</span> "+_kShort(p)+_khBadge(p);th.style.cssText="background:#1f6b35;color:#fff;font-size:12px;padding:3px 5px;text-align:center;white-space:nowrap;vertical-align:top;";hr1.appendChild(th);});
 thead.appendChild(hr1);tbl.appendChild(thead);
 var tb=el("tbody");
+(function(){var gr=el("tr");var gtd=el("td");gtd.colSpan=nc+np+3;gtd.textContent="■ 契約条件（保険期間・払込・保険料）";gtd.style.cssText="background:#f3eee6;color:#5b4636;font-weight:700;font-size:12px;padding:4px 6px;text-align:left;";gr.appendChild(gtd);tb.appendChild(gr);})();
 function _lblCell(label,detail){var lb=el("td");lb.textContent=label;lb.style.cssText="text-align:center;font-weight:700;font-size:13px;white-space:nowrap;padding:3px 6px;background:#f0ece6;color:#5b4636;";if(detail){var dc=(detail==="exempt")?"#6b21a8":"#8a5320";lb.style.background=dc;lb.style.color="#fff";}return lb;}
 function infoRow(label,fn){var tr=el("tr");curPols.forEach(function(p){var td=el("td");td.textContent=fn(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});var t1=el("td");t1.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;";tr.appendChild(t1);tr.appendChild(_lblCell(label));var t2=el("td");t2.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;";tr.appendChild(t2);propPols.forEach(function(p){var td=el("td");td.textContent=fn(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tb.appendChild(tr);}
 (function periodRow(){var tr=el("tr");function pc(p){var val=_kPeriod(p);var isWhole=(val==="終身");var isRenew=((p.dlPayType||"").indexOf("更新")>=0)||((p.dlPeriodType||"").indexOf("更新")>=0);var earliest=0;var ie=p.itemEnd||{};Object.keys(ie).forEach(function(k){var ea=+ie[k];if(ea>0&&(isWhole?true:(!(+p.dlPeriodEnd)||ea<+p.dlPeriodEnd))){if(!earliest||ea<earliest)earliest=ea;}});var html=isWhole?"<span style=\'color:#1a7a3a;font-weight:700;\'>終身</span>":"<span style=\'color:#c0392b;font-weight:700;\'>"+val+"</span>";if(isRenew)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a0特約"+earliest+"歳まで</span>";var td=el("td");td.style.cssText="text-align:center;font-size:11px;"+PADC+((!isWhole||earliest)?"background:#fdecea;":"");td.innerHTML=html;return td;}

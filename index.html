@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0709o-死亡保障を見える場所で金額+満了年齢の複数行入力に(組合せ対応)。版";
+var APP_VERSION="v2-0709p-死亡保障の複数行入力を保障明細の表に統合(死亡一時金の直下)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1255,6 +1255,19 @@ var td4=el("td");td4.style.padding="2px 4px";
 if(r.k==="surgin"||r.k==="surgout"){var _mf=(r.k==="surgin")?"surgInMode":"surgOutMode";var msel=sel([{v:"",l:"―金額を直接入力―"},{v:"5",l:"日額×5倍(固定)"},{v:"10",l:"日額×10倍(固定)"},{v:"20",l:"日額×20倍(固定)"},{v:"40",l:"日額×40倍(固定)"},{v:"tier",l:"術式別(最少〜最大倍)を入力"}],pol[_mf]==="tier"?"tier":"",function(v){if(v==="tier"){pol[_mf]="tier";pol[r.f]=0;dSync();saveState();}else if(v){pol[_mf]="";pol[r.f]=Math.round((+pol.hospDaily||0)*(+v)/10000*1000)/1000;dSync();saveState();}else{pol[_mf]="";dSync();saveState();}});msel.style.cssText="font-size:11px;margin:1px 0;width:100%;display:block;";msel.title="固定倍率＝1つの倍率で金額固定。術式別＝入院日額×(最少〜最大)倍を範囲で自動表示。";td4.appendChild(msel);if(pol[_mf]==="tier"){var _rw=el("div");_rw.style.cssText="display:flex;align-items:center;gap:3px;font-size:12px;color:#b9770e;font-weight:700;margin-top:3px;background:#fff7e6;border:1px solid #f0c068;border-radius:4px;padding:2px 4px;";var _mn=numChg(pol.surgMultMin||5,function(v){pol.surgMultMin=v||5;dSync();saveState();render();});_mn.style.cssText="width:44px;font-size:13px;padding:2px;text-align:right;";var _mx=numChg(pol.surgMultMax||40,function(v){pol.surgMultMax=v||40;dSync();saveState();render();});_mx.style.cssText="width:44px;font-size:13px;padding:2px;text-align:right;";var _bs=sel([{v:"daily",l:"日額"},{v:"lump",l:"一時金"},{v:"custom",l:"金額"}],pol.surgBase||"daily",function(v){pol.surgBase=v;dSync();saveState();render();});_bs.style.cssText="font-size:11px;padding:1px;";_rw.appendChild(_bs);if((pol.surgBase||"daily")==="custom"){var _ba=numChg(pol.surgBaseAmt||"",function(v){pol.surgBaseAmt=v||0;dSync();saveState();render();});_ba.style.cssText="width:54px;font-size:13px;padding:2px;text-align:right;";_ba.placeholder="円";_rw.appendChild(_ba);var _en=el("span");_en.textContent="円";_rw.appendChild(_en);}var _sx=el("span");_sx.textContent="×";var _s2=el("span");_s2.textContent="〜";var _s3=el("span");_s3.textContent="倍";_rw.appendChild(_sx);_rw.appendChild(_mn);_rw.appendChild(_s2);_rw.appendChild(_mx);_rw.appendChild(_s3);td4.appendChild(_rw);}}else if(r.conds){r.conds.forEach(function(cd){var opts=(typeof cd.o[0]==="object")?cd.o:cd.o.map(function(o){return{v:o,l:o||"（選択）"};});var sc=sel(opts,pol[cd.f]||"",function(v){upd(cd.f,v);});sc.style.cssText="font-size:11px;margin:1px 0;width:100%;display:block;";td4.appendChild(sc);});}
 if(!pol.itemCond)pol.itemCond={};var _ci=inp("text",pol.itemCond[r.k]||"",function(v){if(!pol.itemCond)pol.itemCond={};pol.itemCond[r.k]=v;saveState();});_ci.placeholder="条件を手入力";_ci.style.cssText="font-size:11px;width:100%;display:block;margin-top:2px;padding:1px 3px;box-sizing:border-box;";td4.appendChild(_ci);
 tr.appendChild(td4);dtb.appendChild(tr);
+if(r.k==="death"){
+if(!pol.deathLines)pol.deathLines=[];
+pol.deathLines.forEach(function(dl,di){
+var dtr=el("tr");dtr.style.background="#fbfcff";
+var c0=el("td");c0.style.cssText="padding:2px 5px;white-space:nowrap;text-align:left;";var _pf=el("span");_pf.textContent="死亡▸";_pf.style.cssText="font-size:10px;color:#8a8a8a;margin-right:2px;";c0.appendChild(_pf);var _ni=inp("text",dl.label||"",function(v){pol.deathLines[di].label=v;saveState();});_ni.placeholder="養老/定期 等";_ni.style.cssText="width:84px;font-size:12px;padding:2px;";c0.appendChild(_ni);dtr.appendChild(c0);
+var c1d=el("td");var _ai=inp("number",dl.amount||"",function(v){pol.deathLines[di].amount=+v;saveState();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});_ai.style.cssText="width:56px;font-size:12px;padding:2px;text-align:right;";c1d.appendChild(_ai);dtr.appendChild(c1d);
+var c2d=el("td");var _ei=inp("number",dl.endAge||"",function(v){pol.deathLines[di].endAge=+v;saveState();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});_ei.placeholder="終身";_ei.title="満了年齢(空欄=終身)";_ei.style.cssText="width:48px;font-size:12px;padding:2px;text-align:right;";c2d.appendChild(_ei);dtr.appendChild(c2d);
+dtr.appendChild(el("td"));
+var c4d=el("td");c4d.style.padding="2px 4px";var _db=btn("×","br",function(){pol.deathLines.splice(di,1);saveState();render();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});_db.style.cssText="font-size:11px;padding:2px 8px;";c4d.appendChild(_db);dtr.appendChild(c4d);
+dtb.appendChild(dtr);
+});
+var _atr=el("tr");var _atd=el("td");_atd.colSpan=5;_atd.style.cssText="padding:2px 5px;text-align:left;";var _addb=btn("＋ 死亡保障を追加（養老＋定期など期間別）","bg",function(){if(!pol.deathLines)pol.deathLines=[];pol.deathLines.push({label:"",amount:0,endAge:0});saveState();render();});_addb.style.cssText="font-size:11px;padding:3px 10px;";_atd.appendChild(_addb);_atr.appendChild(_atd);dtb.appendChild(_atr);
+}
 });
 dtbl.appendChild(dtb);dtw.appendChild(dtbl);
 var dWrap=el("div");
@@ -1266,30 +1279,6 @@ var exL=el("span");exL.style.cssText="font-size:12px;font-weight:600;color:#1a27
 var exS=sel(Object.keys(ET).map(function(k){return{v:k,l:ET[k]};}),pol.premExemptType||"none",function(v){upd("premExemptType",v);upd("premExempt",v!=="none");});exS.style.cssText="font-size:12px;max-width:220px;";exRow.appendChild(exS);
 dWrap.appendChild(exRow);
 cont.appendChild(sec("保障明細（ここで入力）",null,dWrap,true));
-if(!pol.deathLines)pol.deathLines=[];
-var dlWrap=el("div");
-var dlNote=el("p");dlNote.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:6px;line-height:1.6;";dlNote.textContent="死亡保険金を『名称・金額・満了年齢』で複数入れられます（例：養老300万/満了60、定期700万/満了60）。満了年齢が空欄なら終身。組み合わせ保険や逓減はここで分けて入れると、死亡保障グラフに期間ごとに正しく反映されます。1本の終身/定期だけなら上の『死亡一時金』でOK（ここは空でよい）。";
-dlWrap.appendChild(dlNote);
-var dlRows=el("div");
-function renderDL(){
-dlRows.innerHTML="";
-var dhd=el("div");dhd.style.cssText="display:grid;grid-template-columns:1.2fr 1fr 1fr 34px;gap:6px;font-size:11px;color:#8a8a8a;margin-bottom:3px;";
-["名称(例:養老/定期)","金額(万円)","満了年齢(空=終身)",""].forEach(function(h){dhd.appendChild(el("span",null,h));});
-dlRows.appendChild(dhd);
-if(!pol.deathLines.length){var e=el("p");e.style.cssText="font-size:12px;color:#aaa;padding:2px 0;";e.textContent="（未入力）";dlRows.appendChild(e);}
-pol.deathLines.forEach(function(dl,di){
-var row=el("div");row.style.cssText="display:grid;grid-template-columns:1.2fr 1fr 1fr 34px;gap:6px;margin-bottom:5px;align-items:center;";
-var ni=inp("text",dl.label||"",function(v){pol.deathLines[di].label=v;saveState();});ni.placeholder="養老/定期 など";
-var ai=inp("number",dl.amount||"",function(v){pol.deathLines[di].amount=+v;saveState();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});
-var ei=inp("number",dl.endAge||"",function(v){pol.deathLines[di].endAge=+v;saveState();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});ei.placeholder="終身";
-var db=btn("×","br",function(){pol.deathLines.splice(di,1);saveState();renderDL();if(typeof scheduleChartRefresh==="function")scheduleChartRefresh();});db.style.cssText="font-size:12px;padding:4px 0;";
-[ni,ai,ei,db].forEach(function(x){row.appendChild(x);});dlRows.appendChild(row);
-});
-}
-renderDL();
-dlWrap.appendChild(dlRows);
-dlWrap.appendChild(btn("＋ 死亡保障を追加","bg",function(){pol.deathLines.push({label:"",amount:0,endAge:0});saveState();renderDL();}));
-cont.appendChild(sec("死亡保障（金額と期間・複数OK）",null,dlWrap,true));
 var detailBox=el("div");
 
 var dCont=[rg("dt"+pol.id,pol.deathType||"none",[{v:"none",l:"なし"},{v:"lump",l:"一時金"},{v:"annuity",l:"年金"},{v:"both",l:"両方"}],function(v){upd("deathType",v);render();})];

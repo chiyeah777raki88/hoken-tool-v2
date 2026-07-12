@@ -325,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712b-加入一覧の印刷を1枚びっしり(先に幅いっぱい→余白を行間で詰める)に。文字が小さく下に余白の不具合を根本修正。版";
+var APP_VERSION="v2-0712c-印刷を印刷幅に固定して折り返し測定→文字を大きいまま1枚に収める(旧:自然幅で測って極小化していたのを根本修正)。加入一覧・左右比較に適用。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3570,21 +3570,24 @@ function _compactify(node){try{node.querySelectorAll("td,th").forEach(function(c
 function _clearOv(pw){try{pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
 function _tallenKanyu(node,pad){try{var p=pad||12;node.querySelectorAll(".kanyu td,.kanyu th").forEach(function(c){c.style.paddingTop=p+"px";c.style.paddingBottom=p+"px";c.style.lineHeight="1.5";});}catch(e){}}
 function _fitFillKanyu(pw,tEl,maxW,maxH,cap){
+ // 印刷幅に固定→セルを折り返して自然な高さを測り→1枚に収まるよう縦を埋める/はみ出す分だけ縮小。
  try{
-  var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;display:inline-block;background:#fff;z-index:-1;";
+  var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
   document.body.appendChild(probe);probe.appendChild(pw);_clearOv(pw);
-  function setPad(p){try{(tEl||pw).querySelectorAll("td,th").forEach(function(c){c.style.paddingTop=p+"px";c.style.paddingBottom=p+"px";c.style.lineHeight="1.45";});}catch(e){}}
-  setPad(4);
-  var w=(tEl&&tEl.offsetWidth)||pw.offsetWidth||1;
+  pw.style.display="block";pw.style.width=maxW+"px";
+  var t=(tEl&&tEl.tagName==="TABLE")?tEl:(pw.querySelector("table")||tEl);
+  if(t&&t.tagName==="TABLE"){t.style.width="100%";t.style.tableLayout="fixed";}
+  function setPad(p){try{pw.querySelectorAll("td,th").forEach(function(c){c.style.paddingTop=p+"px";c.style.paddingBottom=p+"px";c.style.lineHeight="1.4";c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(e){}}
+  setPad(6);
+  var rows=(pw.querySelectorAll("tr")||[]).length||12;
   var h0=pw.offsetHeight||1;
-  var rows=((tEl||pw).querySelectorAll("tr")||[]).length||12;
-  var scW=maxW/w,scH=maxH/h0,sc;
-  if(scW<=scH){
-    sc=Math.max(0.34,Math.min(scW,cap||4.5));
-    var addH=(maxH/sc)-h0;
-    if(addH>0&&rows>0){var pad=Math.max(4,Math.min(46,4+addH/rows/2));setPad(pad);}
+  var sc;
+  if(h0<=maxH){
+    sc=1;
+    var addH=maxH-h0;
+    if(addH>0&&rows>0){var pad=Math.max(6,Math.min(64,6+addH/rows/2));setPad(pad);}
   }else{
-    sc=Math.max(0.34,Math.min(scH,cap||4.5));
+    sc=Math.max(0.4,maxH/h0);
   }
   pw.style.zoom=sc;
   probe.removeChild(pw);document.body.removeChild(probe);

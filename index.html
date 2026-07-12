@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710p-加入一覧印刷の右上を被保険者(印刷対象の本人)名＋日付に。版";
+var APP_VERSION="v2-0710q-提案比較の印刷も右上を被保険者名＋日付に(加入一覧に加えて)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3517,7 +3517,8 @@ if(!groups.length){alert("選んだ被保険者の比較グループ（候補入
 var wrap=el("div");
 var hdT=el("div");hdT.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:10px;";
 var hT1=el("span");hT1.style.cssText="font-size:16px;font-weight:700;color:#1a2744;";hT1.textContent="提案比較";
-var hT2=el("span");hT2.style.cssText="font-size:12px;color:#555;";hT2.textContent=ymd;
+var _pcMems={};groups.forEach(function(g){var _m=state.family.filter(function(fm){return fm.id===g.memberId;})[0];if(_m&&_m.id)_pcMems[_m.id]=_m;});var _pcKs=Object.keys(_pcMems);var _pcBime=(_pcKs.length===1)?_pcMems[_pcKs[0]]:null;
+var hT2=el("span");hT2.style.cssText="font-size:12px;color:#555;";hT2.textContent=(_pcBime?(_pcBime.name||_pcBime.relation)+" 様　":"")+ymd;
 hdT.appendChild(hT1);hdT.appendChild(hT2);wrap.appendChild(hdT);
 groups.forEach(function(g,gi){
 var mem=state.family.filter(function(m){return m.id===g.memberId;})[0]||state.family[0];

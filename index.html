@@ -321,7 +321,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710q-提案比較の印刷も右上を被保険者名＋日付に(加入一覧に加えて)。版";
+var APP_VERSION="v2-0710r-提案比較印刷のグループ見出しから被保険者名を削除(右上に表示済のため)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3525,7 +3525,7 @@ var mem=state.family.filter(function(m){return m.id===g.memberId;})[0]||state.fa
 var gsec=el("div");gsec.style.cssText="margin-bottom:16px;page-break-inside:avoid;break-inside:avoid;";
 var selc=(g.candidates||[]).filter(function(c){return c.id===g.selId;})[0];
 var gh=el("div");gh.style.cssText="font-size:15px;font-weight:700;color:#1a2744;background:#eef3fb;border-left:6px solid #1a2744;padding:5px 10px;margin-bottom:4px;";
-gh.textContent="■ "+(g.name||("比較"+(gi+1)))+"（"+((mem&&(mem.name||mem.relation))||"")+"）"+(selc?("　　★ 決定: "+(polLabel(selc)||"候補")):"");
+gh.textContent="■ "+(g.name||("比較"+(gi+1)))+(selc?("　　★ 決定: "+(polLabel(selc)||"候補")):"");
 gsec.appendChild(gh);
 var memOf=g.candidates.map(function(){return mem;});
 var _ksa=kanyuShowAll;kanyuShowAll=false;var box=buildKanyuTable(g.candidates,memOf);kanyuShowAll=_ksa;

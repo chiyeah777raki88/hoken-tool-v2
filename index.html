@@ -70,6 +70,11 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .only-print{display:none;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .kanyu:not(.cmpct) td, .kanyu:not(.cmpct) th, .kanyu:not(.cmpct) td span, .kanyu:not(.cmpct) th span, .kanyu:not(.cmpct) td b { font-size: 13px !important; }
+/* 給付条件の縮小指定は画面でも適用（印刷時と同じ寸法で測定→正確にフィットさせる） */
+body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.2 !important; }
+body.pmatrix #print-area td div { min-height: 0 !important; padding: 2px 3px !important; }
+body.pmatrix #print-area .mxdot { width: 9px !important; height: 9px !important; border: none !important; box-shadow: none !important; }
+body.pmatrix #print-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
 @media print {
 .hdr, .tabs, .ptabs, .poltabs, .no-print { display: none !important; }
 .only-print{ display:block !important; }
@@ -325,7 +330,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712e-印刷サイズをA4横の実印刷領域(余白8mm,約1058x730px)に合わせ、倍率=既定のまま各ページが1枚に収まるよう修正。加入一覧・左右比較・連続印刷。版";
+var APP_VERSION="v2-0712f-提案比較は無駄な余白を無くし上から詰めて流す(必要な時だけ2枚目)。標準の給付条件比較は測定を正確化し表が途中で分断されないよう修正。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3528,9 +3533,9 @@ var hT2=el("span");hT2.style.cssText="font-size:12px;color:#555;";hT2.textConten
 hdT.appendChild(hT1);hdT.appendChild(hT2);wrap.appendChild(hdT);
 groups.forEach(function(g,gi){
 var mem=state.family.filter(function(m){return m.id===g.memberId;})[0]||state.family[0];
-var gsec=el("div");gsec.style.cssText="margin-bottom:16px;page-break-inside:avoid;break-inside:avoid;";
+var gsec=el("div");gsec.style.cssText="margin-bottom:8px;page-break-inside:auto;break-inside:auto;";
 var selc=(g.candidates||[]).filter(function(c){return c.id===g.selId;})[0];
-var gh=el("div");gh.style.cssText="font-size:15px;font-weight:700;color:#1a2744;background:#eef3fb;border-left:6px solid #1a2744;padding:5px 10px;margin-bottom:4px;";
+var gh=el("div");gh.style.cssText="font-size:15px;font-weight:700;color:#1a2744;background:#eef3fb;border-left:6px solid #1a2744;padding:5px 10px;margin-bottom:4px;break-after:avoid;page-break-after:avoid;";
 gh.textContent="■ "+(g.name||("比較"+(gi+1)))+(selc?("　　★ 決定: "+(polLabel(selc)||"候補")):"");
 gsec.appendChild(gh);
 var memOf=g.candidates.map(function(){return mem;});
@@ -3557,7 +3562,7 @@ var pw=el("div");pw.id="pmwrap";pw.style.transformOrigin="top left";pa.insertBef
 try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
 document.body.classList.add("psplit","pmatrix");setPageOrient("landscape",6);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){
-try{pw.style.zoom="1";var cw=pw.scrollWidth||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var maxW=1070,maxH=742;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
+try{pw.style.zoom="1";var _mt=pw.querySelector("table")||pw;var cw=Math.max(pw.scrollWidth,_mt.offsetWidth)||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var maxW=1050,maxH=718;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pmatrix");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},150);
 },350);
 }

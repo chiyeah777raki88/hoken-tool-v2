@@ -135,12 +135,14 @@ body.pdirectkanyu #app .kanyu td, body.pdirectkanyu #app .kanyu th { font-size: 
 body.pdirectkanyu #app .kanyu td span, body.pdirectkanyu #app .kanyu th span, body.pdirectkanyu #app .kanyu td b { font-size: 11px !important; }
 body.pdirectkanyu #app .tw, body.pdirectkanyu #app div[style*="overflow"] { overflow: visible !important; }
 /* 提案比較の印刷: 縦置き・複数グループを上から・読みやすいサイズ（縮小しない） */
-body.ppropcmp #print-area .kanyu { width: 100% !important; table-layout: fixed !important; }
+body.ppropcmp #print-area .kanyu { width: auto !important; max-width: 100% !important; table-layout: fixed !important; margin-left: 0 !important; }
+body.ppropcmp #print-area .kanyu col { width: 158px !important; }
+body.ppropcmp #print-area .kanyu col:first-child { width: 0 !important; }
+body.ppropcmp #print-area .kanyu col:nth-child(2) { width: 68px !important; }
 body.ppropcmp #print-area .kanyu td, body.ppropcmp #print-area .kanyu th { font-size: 13px !important; padding: 5px 6px !important; line-height: 1.5 !important; }
 body.ppropcmp #print-area .kanyu td span, body.ppropcmp #print-area .kanyu th span, body.ppropcmp #print-area .kanyu td b { font-size: 13px !important; }
 body.ppropcmp #print-area .kanyu td:first-child, body.ppropcmp #print-area .kanyu th:first-child { padding: 0 !important; border: none !important; }
 body.ppropcmp #print-area .kanyu td:nth-child(2), body.ppropcmp #print-area .kanyu th:nth-child(2) { white-space: normal !important; word-break: break-word; overflow: visible !important; text-overflow: clip !important; padding: 5px 4px !important; }
-body.ppropcmp #print-area .kanyu { margin-left: 0 !important; }
 body.ppropcmp #print-area .tw, body.ppropcmp #print-area div[style*="overflow"] { overflow: visible !important; }
 @page { size: A4 landscape; margin: 8mm; }
 }
@@ -324,7 +326,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710s-提案比較印刷:左余白列を詰め表を表題直下に＋保障項目列を狭く。版";
+var APP_VERSION="v2-0710t-提案比較印刷:表を内容幅にし左空列0・保障項目68px・保険会社列広めに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";

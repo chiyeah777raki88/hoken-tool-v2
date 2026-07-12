@@ -325,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710x-共通の列幅を元に戻し加入一覧など復旧＋提案比較は幅を数字(既定96)で調整。版";
+var APP_VERSION="v2-0712a-給付条件比較を被保険者ごとに紐づけ(本人の条件が家族に付いてこない)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3406,7 +3406,8 @@ var pairs=(summaryMember==="all")?pairsAll:pairsAll.filter(function(x){return x.
 var curPols=pairs.map(function(x){return x.policy;});
 var memOf=pairs.map(function(x){return x.member;});
 cont.appendChild(sec("加入内容一覧",null,buildKanyuTable(curPols,memOf),true));
-var _mxOpts=isProp?{store:"bigMatrixDataProp",pols:propPairs().map(function(x){return x.policy;})}:{};
+var _mxMid=((pairs[0]&&pairs[0].member&&pairs[0].member.id)||(typeof currentMid!=="undefined"?currentMid:""));
+var _mxOpts=isProp?{store:"bigMatrixDataProp",mid:_mxMid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxMid};
 cont.appendChild(sec("給付条件・免除条件の比較",null,buildBigDiseaseMatrix(curPols,_mxOpts),true));
 return cont;
 }
@@ -3554,7 +3555,7 @@ var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=ymd;
 hd.appendChild(h1);hd.appendChild(h2);pa.appendChild(hd);
 var pw=el("div");pw.id="pmwrap";pw.style.transformOrigin="top left";pa.insertBefore(pw,pa.firstChild===hd?hd:pa.firstChild);pw.appendChild(hd);
-try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxo=isProp?{store:"bigMatrixDataProp",pols:propPairs().map(function(x){return x.policy;})}:{};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
+try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
 document.body.classList.add("psplit","pmatrix");setPageOrient("landscape",6);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){
 try{pw.style.zoom="1";var cw=pw.scrollWidth||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var maxW=1070,maxH=742;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
@@ -3563,7 +3564,7 @@ setTimeout(function(){window.print();setTimeout(function(){document.body.classLi
 }
 function _cmpPairs(isProp){var p=isProp?propPairs():aPs();if(summaryMember!=="all")p=p.filter(function(x){return x.member&&x.member.id===summaryMember;});return p;}
 function _cmpKanyuNode(pairs,showAll,visPols){var pols=pairs.map(function(x){return x.policy;});var mem=pairs.map(function(x){return x.member;});var _k=kanyuShowAll;kanyuShowAll=!!showAll;var n=buildKanyuTable(pols,mem,visPols);kanyuShowAll=_k;_compactify(n);return n;}
-function _cmpMatrixNode(pairs,isProp){var pols=pairs.map(function(x){return x.policy;});var o=isProp?{store:"bigMatrixDataProp",pols:propPairs().map(function(x){return x.policy;})}:{};var n=buildBigDiseaseMatrix(pols,o);_compactify(n);return n;}
+function _cmpMatrixNode(pairs,isProp){var pols=pairs.map(function(x){return x.policy;});var _cmid=(pairs[0]&&pairs[0].member&&pairs[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var o=isProp?{store:"bigMatrixDataProp",mid:_cmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_cmid};var n=buildBigDiseaseMatrix(pols,o);_compactify(n);return n;}
 function _cmpHeader(title){var selM=(summaryMember!=="all")&&state.family.filter(function(fm){return fm.id===summaryMember;})[0];var mm=selM||state.family.find(function(m){return m.relation==="本人";})||state.family[0];var who=(mm&&(mm.name||mm.relation))||"";var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=title;var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent="被保険者："+who+" 様　"+ymd;hd.appendChild(h1);hd.appendChild(h2);return hd;}
 function _enlarge(node,fs){try{node.querySelectorAll("td,th").forEach(function(c){c.style.fontSize=fs;});node.querySelectorAll("td span,th span,td b").forEach(function(c){c.style.fontSize=fs;});node.querySelectorAll("textarea").forEach(function(t){t.style.minHeight="0";t.style.height="22px";});node.querySelectorAll("*").forEach(function(e){try{var ox=getComputedStyle(e).overflowX;if(ox==="auto"||ox==="scroll"){e.style.overflow="visible";e.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
 function _compactify(node){try{node.querySelectorAll("td,th").forEach(function(c){c.style.padding="1px 3px";c.style.lineHeight="1.2";});node.querySelectorAll("textarea").forEach(function(t){t.style.minHeight="0";t.style.height="20px";});node.querySelectorAll("*").forEach(function(e){try{var ox=getComputedStyle(e).overflowX;if(ox==="auto"||ox==="scroll"){e.style.overflow="visible";e.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
@@ -3777,7 +3778,7 @@ grid.appendChild(left);
 // ---- RIGHT COLUMN ----
 var right=document.createElement("div");
 // 5. 条件比較表（常に表示）
-var bmd=state.bigMatrixData&&state.bigMatrixData.kyufu||{};
+var _bmid=(typeof currentMid!=="undefined"&&currentMid)?currentMid:((state.family[0]||{}).id);var bmd=(state.bigMatrixData&&state.bigMatrixData[_bmid]&&state.bigMatrixData[_bmid].kyufu)||{};
 {
 var s5=document.createElement("div");s5.style.cssText="margin-bottom:5px;";
 var h5b=document.createElement("div");h5b.style.cssText="font-size:11px;font-weight:700;background:#166534;color:white;padding:2px 6px;margin-bottom:2px;";
@@ -3812,7 +3813,7 @@ s5.appendChild(t5);
 right.appendChild(s5);
 }
 // 6. 免除条件比較表（常に表示）
-var bmd2=state.bigMatrixData&&state.bigMatrixData.menjo||{};
+var bmd2=(state.bigMatrixData&&state.bigMatrixData[_bmid]&&state.bigMatrixData[_bmid].menjo)||{};
 {
 var s6=document.createElement("div");s6.style.cssText="margin-bottom:5px;";
 var h6b=document.createElement("div");h6b.style.cssText="font-size:11px;font-weight:700;background:#6b21a8;color:white;padding:2px 6px;margin-bottom:2px;";
@@ -3954,9 +3955,14 @@ var _defCols=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c
 var POL_COLS=policies.map(function(p,i){return p.chartColor&&p.chartColor!==""?p.chartColor:_defCols[i%_defCols.length];});
 var POL_LIGHT=POL_COLS.map(function(col){return col+"22";});
 function fmtCond(txt){if(!txt)return "";var out=txt.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});["悪性新生物","急性心筋梗塞","脳卒中","上皮内","労働制限","診断","入院","手術","通院","所定","一時金","要介護","60日","20日","10日","1泊"].forEach(function(k){out=out.split(k).join("<strong>"+k+"</strong>");});out=out.split("で").join("<span style=\"font-size:.82em;font-weight:600;\">で</span>");out=out.split("と").join("<span style=\"font-size:.82em;font-weight:600;\">と</span>");out=out.split("\n").join("<br>");return out;}
-if(!state[BMDK])state[BMDK]={kyufu:{},menjo:{}};
-if(!state[BMDK].kyufu)state[BMDK].kyufu={};
-if(!state[BMDK].menjo)state[BMDK].menjo={};
+var _mmid=opts.mid||(typeof currentMid!=="undefined"?currentMid:"")||((state.family[0]||{}).id)||"m1";
+if(!state[BMDK]||typeof state[BMDK]!=="object")state[BMDK]={};
+/*旧・顧客共通(フラット)形式を本人の被保険者に移行*/
+if(state[BMDK].kyufu||state[BMDK].menjo){var _own=((state.family[0]||{}).id)||"m1";var _of=state[BMDK];state[BMDK]={};state[BMDK][_own]=_of;}
+if(!state[BMDK][_mmid]||typeof state[BMDK][_mmid]!=="object")state[BMDK][_mmid]={kyufu:{},menjo:{}};
+if(!state[BMDK][_mmid].kyufu)state[BMDK][_mmid].kyufu={};
+if(!state[BMDK][_mmid].menjo)state[BMDK][_mmid].menjo={};
+var BMX=state[BMDK][_mmid];
 var COLS=[
 {id:"a",g:"first"},{id:"b",g:"first"},{id:"c",g:"first"},
 {id:"d",g:"first"},{id:"e",g:"first"},{id:"f",g:"first"},
@@ -4011,11 +4017,11 @@ if(_vi.length>=1)return "3px solid "+POL_COLS[_vi[0]%POL_COLS.length];
 return "1px solid #ddd";
 }
 function buildTable(tableType,rows,title,hColor,noSecond){
-var data=state[BMDK][tableType]||{};
+var data=BMX[tableType]||{};
 var visCOLS=noSecond?COLS.filter(function(col){return col.g!=="second";}):COLS;
 var firstCOLS=visCOLS.filter(function(col){return col.g==="first";});
 var secondCOLS=visCOLS.filter(function(col){return col.g==="second";});
-state[BMDK][tableType]=data;
+BMX[tableType]=data;
 var sec2=el("div");sec2.style.cssText="margin-bottom:20px;";
 var sh=el("div");sh.style.cssText="background:"+hColor+";color:white;font-size:12px;font-weight:700;padding:6px 12px;border-radius:4px 4px 0 0;";
 sh.textContent=title;sec2.appendChild(sh);
@@ -4138,7 +4144,7 @@ return sec2;
 function autoAssign(){
 function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];cd.na=false;if(cd.polIdxs.indexOf(pi)<0)cd.polIdxs.push(pi);}
 function condCol(c){var m={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};return m[c]||"a";}
-var K=state[BMDK].kyufu,M=state[BMDK].menjo;
+var K=BMX.kyufu,M=BMX.menjo;
 Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
 Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
 var _allP=opts.pols?opts.pols:((typeof aPs==="function")?aPs().map(function(x){return x.policy;}):policies);
@@ -4180,8 +4186,8 @@ wrap.appendChild(buildTable("kyufu",ROWS_KYUFU,"給付条件","#8a5320",false));
 wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
-if(state[BMDK].layoutVer!==14){state[BMDK].kyufu={};state[BMDK].menjo={};state[BMDK].layoutVer=14;state[BMDK].idBased=true;saveState();}
-var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=state[BMDK][tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
+if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
+var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=BMX[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
 if(!_anyDot)autoAssign();
 }catch(e){}
 rebuild();

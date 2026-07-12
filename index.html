@@ -325,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712c-印刷を印刷幅に固定して折り返し測定→文字を大きいまま1枚に収める(旧:自然幅で測って極小化していたのを根本修正)。加入一覧・左右比較に適用。版";
+var APP_VERSION="v2-0712d-各印刷を用紙の中央(上下左右)に配置。加入一覧・左右比較・連続印刷に適用(標準の給付条件比較は従来のまま)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3508,7 +3508,7 @@ try{_box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});
 pw.appendChild(_box);
 var _t=pw.querySelector(".kanyu")||_box;
 _fitFillKanyu(pw,_t,1135,792,4.2);
-pa.appendChild(pw);
+pa.appendChild(_centerPage(pw,1135,792));
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"加入一覧");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},250);
 }
@@ -3594,6 +3594,7 @@ function _fitFillKanyu(pw,tEl,maxW,maxH,cap){
  }catch(e){try{pw.style.zoom=1;}catch(_e){}}
  return pw;
 }
+function _centerPage(pw,W,H){var c=el("div");c.style.cssText="display:flex;align-items:center;justify-content:center;width:"+W+"px;height:"+H+"px;margin:0 auto;overflow:visible;";c.appendChild(pw);return c;}
 function _measZoom(pw,wEl,maxW,maxH,cap){var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;display:inline-block;background:#fff;z-index:-1;";document.body.appendChild(probe);probe.appendChild(pw);_clearOv(pw);var w=(wEl&&wEl.offsetWidth)||pw.offsetWidth||1,h=pw.offsetHeight||1;var sc=Math.min(maxW/w,maxH/h);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,cap||2.4);sc=Math.max(sc,0.34);pw.style.zoom=sc;probe.removeChild(pw);document.body.removeChild(probe);return pw;}
 function printComparePages(){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
@@ -3603,7 +3604,7 @@ var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】�
 defs.forEach(function(d,i){
 var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";var content=el("div");content.appendChild(d[1]);pw.appendChild(_cmpHeader(d[0]));pw.appendChild(content);
 if(i===0||i===2){_fitFillKanyu(pw,content.querySelector(".kanyu")||content.querySelector("table")||content,1078,760,2.8);}else{_measZoom(pw,content,1078,760,2.8);}
-var page=el("div");page.style.cssText="page-break-after:"+(i<defs.length-1?"always":"auto")+";break-after:"+(i<defs.length-1?"page":"auto")+";";page.appendChild(pw);pa.appendChild(page);
+var page=el("div");page.style.cssText="page-break-after:"+(i<defs.length-1?"always":"auto")+";break-after:"+(i<defs.length-1?"page":"auto")+";";page.appendChild(_centerPage(pw,1078,760));pa.appendChild(page);
 });
 document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_連続");
@@ -3622,7 +3623,7 @@ var cm=cur.map(function(x){return x.member;}),pm=prop.map(function(x){return x.m
 var tbl=buildCmpKanyu(cur.map(function(x){return x.policy;}),cm,prop.map(function(x){return x.policy;}),pm);
 pw.appendChild(tbl);
 _fitFillKanyu(pw,tbl,1190,832,4.5);
-var page=el("div");page.style.cssText="page-break-after:always;break-after:page;";page.appendChild(pw);pa.appendChild(page);
+var page=el("div");page.style.cssText="page-break-after:always;break-after:page;";page.appendChild(_centerPage(pw,1190,832));pa.appendChild(page);
 })();
 // 2枚目：給付条件・免除（左右に並べ）
 (function(){
@@ -3637,7 +3638,7 @@ wrap.appendChild(col);
 });
 pw.appendChild(wrap);
 _measZoom(pw,wrap,1078,756,2.6);
-var page=el("div");page.style.cssText="page-break-after:auto;break-after:auto;";page.appendChild(pw);pa.appendChild(page);
+var page=el("div");page.style.cssText="page-break-after:auto;break-after:auto;";page.appendChild(_centerPage(pw,1078,756));pa.appendChild(page);
 })();
 document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_並べ");

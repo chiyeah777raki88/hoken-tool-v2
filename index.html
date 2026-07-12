@@ -135,12 +135,13 @@ body.pdirectkanyu #app .kanyu td, body.pdirectkanyu #app .kanyu th { font-size: 
 body.pdirectkanyu #app .kanyu td span, body.pdirectkanyu #app .kanyu th span, body.pdirectkanyu #app .kanyu td b { font-size: 11px !important; }
 body.pdirectkanyu #app .tw, body.pdirectkanyu #app div[style*="overflow"] { overflow: visible !important; }
 /* 提案比較の印刷: 縦置き・複数グループを上から・読みやすいサイズ（縮小しない） */
-body.ppropcmp #print-area .kanyu { width: 100% !important; table-layout: auto !important; margin-left: 0 !important; }
-body.ppropcmp #print-area .kanyu col { width: auto !important; }
+body.ppropcmp #print-area .kanyu { width: 100% !important; table-layout: fixed !important; margin-left: 0 !important; }
+body.ppropcmp #print-area .kanyu col:first-child { width: 0 !important; }
+body.ppropcmp #print-area .kanyu col:nth-child(n+3) { width: auto !important; }
 body.ppropcmp #print-area .kanyu td, body.ppropcmp #print-area .kanyu th { font-size: 13px !important; padding: 5px 6px !important; line-height: 1.5 !important; }
 body.ppropcmp #print-area .kanyu td span, body.ppropcmp #print-area .kanyu th span, body.ppropcmp #print-area .kanyu td b { font-size: 13px !important; }
 body.ppropcmp #print-area .kanyu td:first-child, body.ppropcmp #print-area .kanyu th:first-child { padding: 0 !important; border: none !important; }
-body.ppropcmp #print-area .kanyu td:nth-child(2), body.ppropcmp #print-area .kanyu th:nth-child(2) { white-space: nowrap !important; overflow: visible !important; text-overflow: clip !important; }
+body.ppropcmp #print-area .kanyu td:nth-child(2), body.ppropcmp #print-area .kanyu th:nth-child(2) { white-space: normal !important; word-break: break-word !important; overflow: visible !important; text-overflow: clip !important; }
 body.ppropcmp #print-area .tw, body.ppropcmp #print-area div[style*="overflow"] { overflow: visible !important; }
 @page { size: A4 landscape; margin: 8mm; }
 }
@@ -324,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0710w-印刷タブに提案比較の調整(保障項目の幅・文字サイズ)を追加。自分で調整可。版";
+var APP_VERSION="v2-0710x-共通の列幅を元に戻し加入一覧など復旧＋提案比較は幅を数字(既定96)で調整。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3261,7 +3262,7 @@ var ktgl=el("button","btn");ktgl.style.cssText="font-size:12px;padding:3px 10px;
 var kjtgl=el("button","btn");kjtgl.style.cssText="font-size:12px;padding:3px 10px;margin:0 0 8px 6px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";kjtgl.textContent=kanyuShowKojin?"「個人」表示を隠す":"「個人」も表示";kjtgl.addEventListener("click",function(){kanyuShowKojin=!kanyuShowKojin;render();});box.appendChild(kjtgl);
 var tw=el("div","tw");
 var tbl=el("table");tbl.className="kanyu";
-var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="2px";cg.appendChild(cm);var c0=document.createElement("col");c0.style.width="88px";cg.appendChild(c0);
+var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="24px";cg.appendChild(cm);var c0=document.createElement("col");c0.style.width="104px";cg.appendChild(c0);
 curPols.forEach(function(){var c=document.createElement("col");c.style.width="92px";cg.appendChild(c);});
 ["120px"].forEach(function(w){var c=document.createElement("col");c.style.width=w;cg.appendChild(c);});
 tbl.appendChild(cg);
@@ -3540,7 +3541,7 @@ gsec.appendChild(box);
 wrap.appendChild(gsec);
 });
 pa.appendChild(wrap);
-try{var _pcs=document.getElementById("pc-dyn-style");if(_pcs)_pcs.remove();var _pcss="";var _fp=+state.pcFontPx||0;var _iw=+state.pcItemW||0;if(_fp>0)_pcss+="body.ppropcmp #print-area .kanyu td,body.ppropcmp #print-area .kanyu th,body.ppropcmp #print-area .kanyu td span,body.ppropcmp #print-area .kanyu th span,body.ppropcmp #print-area .kanyu td b{font-size:"+_fp+"px !important;}";if(_iw>0)_pcss+="body.ppropcmp #print-area .kanyu{table-layout:fixed !important;}body.ppropcmp #print-area .kanyu td:nth-child(2),body.ppropcmp #print-area .kanyu th:nth-child(2){width:"+_iw+"px !important;min-width:"+_iw+"px !important;max-width:"+_iw+"px !important;white-space:normal !important;word-break:break-word !important;}";if(_pcss){var _stn=document.createElement("style");_stn.id="pc-dyn-style";_stn.textContent=_pcss;document.head.appendChild(_stn);}}catch(e){}
+try{var _pcs=document.getElementById("pc-dyn-style");if(_pcs)_pcs.remove();var _pcss="";var _fp=+state.pcFontPx||0;var _iw=+state.pcItemW||0;if(_fp>0)_pcss+="body.ppropcmp #print-area .kanyu td,body.ppropcmp #print-area .kanyu th,body.ppropcmp #print-area .kanyu td span,body.ppropcmp #print-area .kanyu th span,body.ppropcmp #print-area .kanyu td b{font-size:"+_fp+"px !important;}";if(_iw>0)_pcss+="body.ppropcmp #print-area .kanyu col:nth-child(2){width:"+_iw+"px !important;}body.ppropcmp #print-area .kanyu td:nth-child(2),body.ppropcmp #print-area .kanyu th:nth-child(2){width:"+_iw+"px !important;white-space:normal !important;word-break:break-word !important;}";if(_pcss){var _stn=document.createElement("style");_stn.id="pc-dyn-style";_stn.textContent=_pcss;document.head.appendChild(_stn);}}catch(e){}
 document.body.classList.add("psplit");document.body.classList.add("ppropcmp");setPageOrient("portrait",8);var _ot=document.title;document.title=printName("提案比較");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("ppropcmp");pa.innerHTML="";document.title=_ot;var _pcs2=document.getElementById("pc-dyn-style");if(_pcs2)_pcs2.remove();},400);},300);
 }
@@ -3911,10 +3912,11 @@ bw1.appendChild(bAll);bw1.appendChild(bM);bw1.appendChild(bPC);cont.appendChild(
 var pcCfg=el("div");pcCfg.style.cssText="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 12px;padding:8px 12px;background:#fdf8ec;border:1px solid #e0d3a8;border-radius:6px;font-size:12px;color:#5a4a1a;";
 var pcT=el("b");pcT.textContent="提案比較の印刷 調整：";pcCfg.appendChild(pcT);
 var pcL1=el("span");pcL1.textContent="保障項目の幅";pcCfg.appendChild(pcL1);
-var pcW=inp("number",(state.pcItemW!==undefined&&state.pcItemW!=="")?state.pcItemW:"",function(v){state.pcItemW=(v===""?"":+v);saveState();});pcW.placeholder="自動";pcW.style.cssText="width:64px;font-size:12px;padding:3px;";pcCfg.appendChild(pcW);var pcU1=el("span");pcU1.textContent="px（空欄=自動）";pcCfg.appendChild(pcU1);
+if(state.pcItemW==null||state.pcItemW==="")state.pcItemW=96;
+var pcW=inp("number",state.pcItemW,function(v){state.pcItemW=(v===""?96:+v);saveState();render();});pcW.style.cssText="width:64px;font-size:12px;padding:3px;";pcCfg.appendChild(pcW);var pcU1=el("span");pcU1.textContent="px（既定96）";pcCfg.appendChild(pcU1);
 var pcL2=el("span");pcL2.textContent="文字サイズ";pcCfg.appendChild(pcL2);
-var pcF=inp("number",state.pcFontPx||"",function(v){state.pcFontPx=(v===""?"":+v);saveState();});pcF.placeholder="13";pcF.style.cssText="width:56px;font-size:12px;padding:3px;";pcCfg.appendChild(pcF);var pcU2=el("span");pcU2.textContent="px（既定13）";pcCfg.appendChild(pcU2);
-var pcNote=el("span");pcNote.style.cssText="color:#8a6d1a;flex-basis:100%;";pcNote.textContent="※ 数字を変えてから上の「提案比較を印刷」を押すと反映されます。保障項目を狭くしたい時は幅に小さい数字（例80）を入れてください（自動＝ラベルに合わせて1行）。";pcCfg.appendChild(pcNote);
+if(state.pcFontPx==null||state.pcFontPx==="")state.pcFontPx=13;var pcF=inp("number",state.pcFontPx,function(v){state.pcFontPx=(v===""?13:+v);saveState();render();});pcF.style.cssText="width:56px;font-size:12px;padding:3px;";pcCfg.appendChild(pcF);var pcU2=el("span");pcU2.textContent="px（既定13）";pcCfg.appendChild(pcU2);
+var pcNote=el("span");pcNote.style.cssText="color:#8a6d1a;flex-basis:100%;";pcNote.textContent="※ 保障項目の幅は今この数字（既定96px）です。狭くするなら小さく（例80）、1行に収めたいなら大きく（例120）してから「提案比較を印刷」を押してください。文字サイズも同様に反映されます。";pcCfg.appendChild(pcNote);
 cont.appendChild(pcCfg);
 // 提案の印刷
 var spP=el("div");spP.style.cssText="font-size:13px;font-weight:700;color:#1a7a3a;margin:10px 0 4px;";spP.textContent="①' 提案内容（各A4横1枚）";cont.appendChild(spP);

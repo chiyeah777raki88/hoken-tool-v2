@@ -70,11 +70,6 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .only-print{display:none;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .kanyu:not(.cmpct) td, .kanyu:not(.cmpct) th, .kanyu:not(.cmpct) td span, .kanyu:not(.cmpct) th span, .kanyu:not(.cmpct) td b { font-size: 13px !important; }
-/* 給付条件の縮小指定は画面でも適用（印刷時と同じ寸法で測定→正確にフィットさせる） */
-body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.2 !important; }
-body.pmatrix #print-area td div { min-height: 0 !important; padding: 2px 3px !important; }
-body.pmatrix #print-area .mxdot { width: 9px !important; height: 9px !important; border: none !important; box-shadow: none !important; }
-body.pmatrix #print-area table { page-break-inside: avoid !important; break-inside: avoid !important; }
 @media print {
 .hdr, .tabs, .ptabs, .poltabs, .no-print { display: none !important; }
 .only-print{ display:block !important; }
@@ -330,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712k-加入一覧を印刷領域の幅いっぱいに(誰の契約でも左右余白が均等に)。ボタン名を【提案】内容一覧/【提案】給付条件比較に修正。版";
+var APP_VERSION="v2-0712a-rev1-印刷レイアウトの本日の変更を全て取消し、印刷いじり前の状態に復元(データ・保険種類・備考は保持)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3503,7 +3498,7 @@ var _selM=(summaryMember!=="all")&&state.family.filter(function(fm){return fm.id
 var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";
 var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
-var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】内容一覧":"加入内容一覧");
+var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】":"")+"加入内容一覧";
 var _bime=(function(){var s={};mem.forEach(function(m){if(m&&m.id)s[m.id]=m;});var ks=Object.keys(s);return ks.length===1?s[ks[0]]:(_selM||null);})();
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=(_bime?(_bime.name||_bime.relation)+" 様　":"")+ymd;
 hd.appendChild(h1);hd.appendChild(h2);
@@ -3511,9 +3506,9 @@ var pw=el("div");pw.id="pkwrap";pw.style.cssText="transform-origin:top left;disp
 var _ksa=kanyuShowAll;kanyuShowAll=false;var _box=buildKanyuTable(pols,mem);kanyuShowAll=_ksa;
 try{_box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});}catch(e){}
 pw.appendChild(_box);
+var _rN=(pw.querySelectorAll(".kanyu tr")||[]).length||12;_tallenKanyu(pw,Math.max(3,Math.min(24,Math.round(520/_rN))));
 var _t=pw.querySelector(".kanyu")||_box;
-_fitFillKanyu(pw,_t,1058,730,4.2);
-pw.style.width="100%";if(_t){_t.style.width="100%";}
+_measZoom(pw,_t,1135,792,4.2);
 pa.appendChild(pw);
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"加入一覧");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},250);
@@ -3526,7 +3521,7 @@ var mm=state.family.find(function(m){return m.relation==="本人";})||state.fami
 var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";
 if(summaryMember!=="all")groups=groups.filter(function(g){return g.memberId===summaryMember;});
 if(!groups.length){alert("選んだ被保険者の比較グループ（候補入り）がありません。印刷タブ上部で被保険者を『全員』にするか、対象者を選んでください。");return;}
-var wrap=el("div");wrap.id="pc-wrap";wrap.style.transformOrigin="top left";
+var wrap=el("div");
 var hdT=el("div");hdT.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:10px;";
 var hT1=el("span");hT1.style.cssText="font-size:16px;font-weight:700;color:#1a2744;";hT1.textContent="提案比較";
 var _pcMems={};groups.forEach(function(g){var _m=state.family.filter(function(fm){return fm.id===g.memberId;})[0];if(_m&&_m.id)_pcMems[_m.id]=_m;});var _pcKs=Object.keys(_pcMems);var _pcBime=(_pcKs.length===1)?_pcMems[_pcKs[0]]:null;
@@ -3534,9 +3529,9 @@ var hT2=el("span");hT2.style.cssText="font-size:12px;color:#555;";hT2.textConten
 hdT.appendChild(hT1);hdT.appendChild(hT2);wrap.appendChild(hdT);
 groups.forEach(function(g,gi){
 var mem=state.family.filter(function(m){return m.id===g.memberId;})[0]||state.family[0];
-var gsec=el("div");gsec.style.cssText="margin-bottom:8px;page-break-inside:auto;break-inside:auto;";
+var gsec=el("div");gsec.style.cssText="margin-bottom:16px;page-break-inside:avoid;break-inside:avoid;";
 var selc=(g.candidates||[]).filter(function(c){return c.id===g.selId;})[0];
-var gh=el("div");gh.style.cssText="font-size:15px;font-weight:700;color:#1a2744;background:#eef3fb;border-left:6px solid #1a2744;padding:5px 10px;margin-bottom:4px;break-after:avoid;page-break-after:avoid;";
+var gh=el("div");gh.style.cssText="font-size:15px;font-weight:700;color:#1a2744;background:#eef3fb;border-left:6px solid #1a2744;padding:5px 10px;margin-bottom:4px;";
 gh.textContent="■ "+(g.name||("比較"+(gi+1)))+(selc?("　　★ 決定: "+(polLabel(selc)||"候補")):"");
 gsec.appendChild(gh);
 var memOf=g.candidates.map(function(){return mem;});
@@ -3549,10 +3544,7 @@ wrap.appendChild(gsec);
 pa.appendChild(wrap);
 try{var _pcs=document.getElementById("pc-dyn-style");if(_pcs)_pcs.remove();var _pcss="";var _fp=+state.pcFontPx||0;var _iw=+state.pcItemW||0;if(_fp>0)_pcss+="body.ppropcmp #print-area .kanyu td,body.ppropcmp #print-area .kanyu th,body.ppropcmp #print-area .kanyu td span,body.ppropcmp #print-area .kanyu th span,body.ppropcmp #print-area .kanyu td b{font-size:"+_fp+"px !important;}";if(_iw>0)_pcss+="body.ppropcmp #print-area .kanyu col:nth-child(2){width:"+_iw+"px !important;}body.ppropcmp #print-area .kanyu td:nth-child(2),body.ppropcmp #print-area .kanyu th:nth-child(2){width:"+_iw+"px !important;white-space:normal !important;word-break:break-word !important;}";if(_pcss){var _stn=document.createElement("style");_stn.id="pc-dyn-style";_stn.textContent=_pcss;document.head.appendChild(_stn);}}catch(e){}
 document.body.classList.add("psplit");document.body.classList.add("ppropcmp");setPageOrient("portrait",8);var _ot=document.title;document.title=printName("提案比較");
-setTimeout(function(){
-try{var _w=document.getElementById("pc-wrap");if(_w){_w.style.zoom="1";var _hh=_w.scrollHeight||_w.offsetHeight;var _ph=1049;if(_hh>_ph){var _z=Math.max(0.62,_ph/_hh);_w.style.zoom=_z;}}}catch(e){}
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("ppropcmp");pa.innerHTML="";document.title=_ot;var _pcs2=document.getElementById("pc-dyn-style");if(_pcs2)_pcs2.remove();},400);},120);
-},300);
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("ppropcmp");pa.innerHTML="";document.title=_ot;var _pcs2=document.getElementById("pc-dyn-style");if(_pcs2)_pcs2.remove();},400);},300);
 }
 function printMatrix(isProp){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
@@ -3562,11 +3554,11 @@ var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;al
 var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】":"")+"給付条件・免除条件の比較";
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=ymd;
 hd.appendChild(h1);hd.appendChild(h2);pa.appendChild(hd);
-var pw=el("div");pw.id="pmwrap";pw.style.transformOrigin="top left";pw.style.display="inline-block";pw.appendChild(hd);var _pmCenter=_centerPage(pw,1050,724);pa.appendChild(_pmCenter);
+var pw=el("div");pw.id="pmwrap";pw.style.transformOrigin="top left";pa.insertBefore(pw,pa.firstChild===hd?hd:pa.firstChild);pw.appendChild(hd);
 try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
 document.body.classList.add("psplit","pmatrix");setPageOrient("landscape",6);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){
-try{pw.style.zoom="1";var _mt=pw.querySelector("table")||pw;var cw=Math.max(pw.scrollWidth,_mt.offsetWidth)||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var maxW=1050,maxH=718;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
+try{pw.style.zoom="1";var cw=pw.scrollWidth||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var maxW=1070,maxH=742;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pmatrix");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},150);
 },350);
 }
@@ -3578,44 +3570,17 @@ function _enlarge(node,fs){try{node.querySelectorAll("td,th").forEach(function(c
 function _compactify(node){try{node.querySelectorAll("td,th").forEach(function(c){c.style.padding="1px 3px";c.style.lineHeight="1.2";});node.querySelectorAll("textarea").forEach(function(t){t.style.minHeight="0";t.style.height="20px";});node.querySelectorAll("*").forEach(function(e){try{var ox=getComputedStyle(e).overflowX;if(ox==="auto"||ox==="scroll"){e.style.overflow="visible";e.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
 function _clearOv(pw){try{pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
 function _tallenKanyu(node,pad){try{var p=pad||12;node.querySelectorAll(".kanyu td,.kanyu th").forEach(function(c){c.style.paddingTop=p+"px";c.style.paddingBottom=p+"px";c.style.lineHeight="1.5";});}catch(e){}}
-function _fitFillKanyu(pw,tEl,maxW,maxH,cap){
- // 印刷幅に固定→セルを折り返して自然な高さを測り→1枚に収まるよう縦を埋める/はみ出す分だけ縮小。
- try{
-  var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
-  document.body.appendChild(probe);probe.appendChild(pw);_clearOv(pw);
-  pw.style.display="block";pw.style.width=maxW+"px";
-  var t=(tEl&&tEl.tagName==="TABLE")?tEl:(pw.querySelector("table")||tEl);
-  if(t&&t.tagName==="TABLE"){t.style.width="100%";t.style.tableLayout="fixed";}
-  function setPad(p,lh){try{pw.querySelectorAll("td,th").forEach(function(c){c.style.paddingTop=p+"px";c.style.paddingBottom=p+"px";c.style.lineHeight=(lh||1.4);c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(e){}}
-  setPad(6,1.4);
-  var rows=(pw.querySelectorAll("tr")||[]).length||12;
-  var h0=pw.offsetHeight||1;
-  var sc=1;
-  if(h0<=maxH){
-    var addH=maxH-h0;
-    if(addH>0&&rows>0){var pad=Math.max(6,Math.min(64,6+addH/rows/2));setPad(pad,1.4);}
-  }else{
-    // 高さ超過: 幅は用紙いっぱいのまま、行を詰めて1枚に収める（左右に余白を作らない）
-    var opts=[[5,1.3],[4,1.2],[3,1.12],[2,1.06],[1,1.0]];var fit=false;
-    for(var i=0;i<opts.length;i++){setPad(opts[i][0],opts[i][1]);if((pw.offsetHeight||1)<=maxH){fit=true;break;}}
-    if(!fit){sc=Math.max(0.5,maxH/(pw.offsetHeight||1));}
-  }
-  pw.style.zoom=sc;
-  probe.removeChild(pw);document.body.removeChild(probe);
- }catch(e){try{pw.style.zoom=1;}catch(_e){}}
- return pw;
-}
-function _centerPage(pw,W,H){var c=el("div");c.style.cssText="display:flex;align-items:center;justify-content:center;width:"+W+"px;height:"+H+"px;margin:0 auto;overflow:visible;";c.appendChild(pw);return c;}
 function _measZoom(pw,wEl,maxW,maxH,cap){var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;display:inline-block;background:#fff;z-index:-1;";document.body.appendChild(probe);probe.appendChild(pw);_clearOv(pw);var w=(wEl&&wEl.offsetWidth)||pw.offsetWidth||1,h=pw.offsetHeight||1;var sc=Math.min(maxW/w,maxH/h);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,cap||2.4);sc=Math.max(sc,0.34);pw.style.zoom=sc;probe.removeChild(pw);document.body.removeChild(probe);return pw;}
 function printComparePages(){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
 var cur=_cmpPairs(false),prop=_cmpPairs(true);
 if(!cur.length&&!prop.length){alert("証券がありません");return;}
-var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】給付条件・免除条件",_cmpMatrixNode(cur,false)],["【提案】内容一覧",_cmpKanyuNode(prop)],["【提案】給付条件・免除条件",_cmpMatrixNode(prop,true)]];
+var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】給付条件・免除条件",_cmpMatrixNode(cur,false)],["【提案】加入内容一覧",_cmpKanyuNode(prop)],["【提案】給付条件・免除条件",_cmpMatrixNode(prop,true)]];
 defs.forEach(function(d,i){
 var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";var content=el("div");content.appendChild(d[1]);pw.appendChild(_cmpHeader(d[0]));pw.appendChild(content);
-if(i===0||i===2){_fitFillKanyu(pw,content.querySelector(".kanyu")||content.querySelector("table")||content,1058,730,2.8);}else{_measZoom(pw,content,1058,730,2.8);}
-var page=el("div");page.style.cssText="page-break-after:"+(i<defs.length-1?"always":"auto")+";break-after:"+(i<defs.length-1?"page":"auto")+";";page.appendChild(_centerPage(pw,1058,730));pa.appendChild(page);
+if(i===0||i===2)_tallenKanyu(content,12);
+_measZoom(pw,content,1078,760,2.8);
+var page=el("div");page.style.cssText="page-break-after:"+(i<defs.length-1?"always":"auto")+";break-after:"+(i<defs.length-1?"page":"auto")+";";page.appendChild(pw);pa.appendChild(page);
 });
 document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_連続");
@@ -3633,12 +3598,12 @@ pw.appendChild(_cmpHeader("現在 ↔ 提案　加入内容一覧"));
 var cm=cur.map(function(x){return x.member;}),pm=prop.map(function(x){return x.member;});
 var tbl=buildCmpKanyu(cur.map(function(x){return x.policy;}),cm,prop.map(function(x){return x.policy;}),pm);
 pw.appendChild(tbl);
-_fitFillKanyu(pw,tbl,1058,730,4.5);
-var page=el("div");page.style.cssText="page-break-after:always;break-after:page;";page.appendChild(_centerPage(pw,1058,730));pa.appendChild(page);
+_measZoom(pw,tbl,1190,832,4.5);
+var page=el("div");page.style.cssText="page-break-after:always;break-after:page;";page.appendChild(pw);pa.appendChild(page);
 })();
 // 2枚目：給付条件・免除（左右に並べ）
 (function(){
-var pw=el("div");pw.id="pcs-mx-pw";pw.style.cssText="transform-origin:top left;display:inline-block;";
+var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";
 pw.appendChild(_cmpHeader("現在 ↔ 提案　給付条件・免除条件"));
 var wrap=el("div");wrap.className="cmpwrap";wrap.style.cssText="display:inline-flex;gap:8px;align-items:flex-start;";
 [["現在の保険",cur,false,"#1a2744"],["提案の保険",prop,true,"#27ae60"]].forEach(function(c){
@@ -3648,15 +3613,12 @@ col.appendChild(_cmpMatrixNode(c[1],c[2]));
 wrap.appendChild(col);
 });
 pw.appendChild(wrap);
-_measZoom(pw,wrap,1058,730,2.6);
-var page=el("div");page.style.cssText="page-break-after:auto;break-after:auto;";page.appendChild(_centerPage(pw,1058,730));pa.appendChild(page);
+_measZoom(pw,wrap,1078,756,2.6);
+var page=el("div");page.style.cssText="page-break-after:auto;break-after:auto;";page.appendChild(pw);pa.appendChild(page);
 })();
 document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_並べ");
-setTimeout(function(){
-try{var _p=document.getElementById("pcs-mx-pw");if(_p){_p.style.zoom="1";var _w=_p.scrollWidth||_p.offsetWidth||1,_h=_p.scrollHeight||_p.offsetHeight||1;var _z=Math.min(1050/_w,720/_h);if(!isFinite(_z)||_z<=0)_z=1;_z=Math.min(_z,2.6);_z=Math.max(_z,0.3);_p.style.zoom=_z;}}catch(e){}
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},120);
-},250);
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},250);
 }
 
 function buildPrintTab(){
@@ -3960,8 +3922,8 @@ cont.appendChild(pcCfg);
 // 提案の印刷
 var spP=el("div");spP.style.cssText="font-size:13px;font-weight:700;color:#1a7a3a;margin:10px 0 4px;";spP.textContent="①' 提案内容（各A4横1枚）";cont.appendChild(spP);
 var bwP=el("div");bwP.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;";
-var bAllP=btn("【提案】内容一覧を印刷(横1枚)","bn",function(){printKanyuAll(true);});bAllP.style.cssText="padding:12px 18px;font-size:14px;background:#1a7a3a;color:#fff;border-radius:6px;font-weight:700;";
-var bMP=btn("【提案】給付条件比較を印刷(横1枚)","bn",function(){printMatrix(true);});bMP.style.cssText="padding:12px 18px;font-size:14px;background:#2f8f4a;color:#fff;border-radius:6px;font-weight:700;";
+var bAllP=btn("提案の加入一覧を印刷(横1枚)","bn",function(){printKanyuAll(true);});bAllP.style.cssText="padding:12px 18px;font-size:14px;background:#1a7a3a;color:#fff;border-radius:6px;font-weight:700;";
+var bMP=btn("提案の給付条件比較を印刷(横1枚)","bn",function(){printMatrix(true);});bMP.style.cssText="padding:12px 18px;font-size:14px;background:#2f8f4a;color:#fff;border-radius:6px;font-weight:700;";
 bwP.appendChild(bAllP);bwP.appendChild(bMP);cont.appendChild(bwP);
 // 現在↔提案 比較印刷
 var spC=el("div");spC.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:10px 0 4px;";spC.textContent="③ 現在 ↔ 提案 の比較印刷";cont.appendChild(spC);

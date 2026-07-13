@@ -329,7 +329,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713c-給付条件:スタイルシートでなくセルに直接インラインで文字/余白/縦中央を指定(印刷に確実に効く)。下余白解消・1回目上ズレ/大小差も修正。版";
+var APP_VERSION="v2-0713d-給付条件:提案版の凡例を『証券：』→『提案：』に変更。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4195,7 +4195,7 @@ saveState();
 function rebuild(){
 wrap.innerHTML="";
 var leg=el("div");leg.style.cssText="margin-bottom:8px;font-size:14px;padding:7px 12px;background:#f8f7f4;border-radius:4px;display:flex;gap:7px;flex-wrap:wrap;align-items:center;";
-var lt=el("strong");lt.textContent="証券：";leg.appendChild(lt);
+var lt=el("strong");lt.textContent=(opts&&opts.store==="bigMatrixDataProp"?"提案：":"証券：");leg.appendChild(lt);
 policies.forEach(function(p,pi){
 var s=el("span");s.style.cssText="padding:3px 10px;border-radius:10px;background:"+POL_LIGHT[pi%POL_LIGHT.length]+";font-size:14px;font-weight:700;color:"+POL_COLS[pi%POL_COLS.length]+";";
 s.textContent=(pi+1)+"."+polLabel(p);leg.appendChild(s);

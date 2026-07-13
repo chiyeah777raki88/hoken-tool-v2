@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714c-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714d-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3673,7 +3673,8 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
   try{pw.querySelectorAll("td span[style*='82em']").forEach(function(sp){sp.setAttribute("data-hira","1");});}catch(_e){}
   try{pw.querySelectorAll("td strong").forEach(function(st2){if(st2.textContent==="上皮内"){var nx=st2.nextSibling;if(nx&&nx.nodeType===3){var m=nx.textContent.match(/^(癌|がん)/);if(m){st2.textContent+=m[0];nx.textContent=nx.textContent.slice(m[0].length);}}}});}catch(_e){}
   try{_shrinkParticles(pw);}catch(_e){}
-  try{pw.querySelectorAll("td span[data-hira],td span[data-hira2]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp);sp.parentNode.insertBefore(document.createElement("wbr"),sp.nextSibling);}catch(_x){}});}catch(_e){}
+  try{pw.querySelectorAll("td span[data-hira]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp);}catch(_x){}});}catch(_e){}
+  try{pw.querySelectorAll("td span[data-hira2]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp.nextSibling);}catch(_x){}});}catch(_e){}
   try{pw.querySelectorAll("tr").forEach(function(tr2){var c0=tr2.cells&&tr2.cells[0];var t0=c0?(c0.textContent||"").replace(/\s/g,""):"";if(t0==="がん"||t0==="心臓"||t0==="脳"||t0.indexOf("糖尿病")===0)tr2.setAttribute("data-imp","1");});}catch(_e){}
   try{pw.querySelectorAll("div[style*='f8f7f4'],div[style*='248, 247, 244']").forEach(function(lg){lg.style.setProperty("padding","2px 6px","important");lg.style.setProperty("margin-bottom","3px","important");lg.style.setProperty("font-size","10px","important");lg.querySelectorAll("span").forEach(function(sp){sp.style.setProperty("font-size","10px","important");sp.style.setProperty("padding","1px 6px","important");});});}catch(_e){}
   try{pw.querySelectorAll("div[style*='8a5320'],div[style*='6b21a8'],div[style*='138, 83, 32'],div[style*='107, 33, 168']").forEach(function(bar){bar.style.setProperty("padding","2px 8px","important");bar.style.setProperty("font-size","10px","important");});}catch(_e){}

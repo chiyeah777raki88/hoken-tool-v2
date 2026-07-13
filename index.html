@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713u-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0713u2-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3846,11 +3846,10 @@ function _fitPropCmp(wrap,nGroups){
    wrap.querySelectorAll("td,th").forEach(function(c){
     c.style.setProperty("padding-top",py+"px","important");
     c.style.setProperty("padding-bottom",py+"px","important");
-    if(c.getAttribute("contenteditable")==="true")return;
     c.style.setProperty("font-size",fs+"px","important");
     c.style.setProperty("line-height",lh,"important");
    });
-   wrap.querySelectorAll("td *,th *").forEach(function(e2){try{if(e2.closest&&e2.closest('[contenteditable="true"]'))return;if(e2.getAttribute&&e2.getAttribute("data-hira2")==="1")return;e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");}catch(_x){}});
+   wrap.querySelectorAll("td *,th *").forEach(function(e2){try{if(e2.getAttribute&&e2.getAttribute("data-hira2")==="1")return;e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");}catch(_x){}});
    wrap.querySelectorAll("td span[data-hira2]").forEach(function(sp){try{var pe=sp.parentElement;var base=pe?parseFloat(getComputedStyle(pe).fontSize):fs;if(!base)base=fs;sp.style.setProperty("font-size",(Math.round(base*8.8)/10)+"px","important");}catch(_x){}});
   }
   var fsList=[12,11,10,9,8];var fs=8;

@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714b-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714c-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3882,9 +3882,11 @@ function _shrinkParticles(root){
    while(walker.nextNode())nodes.push(walker.currentNode);
    nodes.forEach(function(tn){
     var t=tn.textContent;var frag=null;var last=0;
+    function prevCh(i){if(i>0)return t.charAt(i-1);var ps=tn.previousSibling;while(ps&&ps.nodeName==="WBR")ps=ps.previousSibling;var pt=ps?(ps.textContent||""):"";return pt.charAt(pt.length-1);}
+    function nextCh(i){if(i<t.length-1)return t.charAt(i+1);var ns=tn.nextSibling;while(ns&&ns.nodeName==="WBR")ns=ns.nextSibling;var nt=ns?(ns.textContent||""):"";return nt.charAt(0);}
     for(var i=0;i<t.length;i++){
      var ch=t.charAt(i);
-     if(PART[ch]&&hard(t.charAt(i-1))&&hard(t.charAt(i+1))){
+     if(PART[ch]&&hard(prevCh(i))&&hard(nextCh(i))){
       if(!frag)frag=document.createDocumentFragment();
       if(i>last)frag.appendChild(document.createTextNode(t.slice(last,i)));
       var sp=document.createElement("span");sp.setAttribute("data-hira2","1");sp.style.fontSize="88%";sp.textContent=ch;frag.appendChild(sp);

@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713n2-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0713o-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3622,6 +3622,7 @@ function _fitFillMatrix(pw,maxW,maxH){
     c.style.setProperty("overflow-wrap","break-word","important");
    });
    pw.querySelectorAll("td *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");e2.style.setProperty("white-space","normal","important");e2.style.setProperty("word-break","keep-all","important");e2.style.setProperty("overflow-wrap","break-word","important");}catch(_x){}});
+   pw.querySelectorAll("td span[style*='82em']").forEach(function(sp){try{sp.style.setProperty("font-size",(Math.round(fs*8.2)/10)+"px","important");}catch(_x){}});
    pw.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","block","important");dv.style.setProperty("text-align","center","important");dv.style.setProperty("padding","2px 3px","important");}catch(_x){}});
   }
   /* 1) 収まる範囲で最大の文字サイズを選ぶ(大きい方から) */
@@ -3641,7 +3642,7 @@ function _fitFillMatrix(pw,maxW,maxH){
  return pw;
 }
 function _fitFillCmpMx(pw,wrap,maxW,maxH){
- /* 現在↔提案 2枚目(条件比較 左右並び): zoomをやめ、実寸の折り返し+左右カラム個別の縦充填で1枚に */
+ /* 現在↔提案 2枚目: 実寸折返し。brは外しbalanceで均等割り(一文字はみ出し防止)、ひらがな(で/と)は82%維持、左右カラム個別に縦充填 */
  try{
   var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
   document.body.appendChild(probe);probe.appendChild(pw);if(typeof _clearOv==="function")_clearOv(pw);
@@ -3649,33 +3650,36 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
   try{pw.querySelectorAll(".no-print,button,textarea").forEach(function(e){e.remove();});}catch(_e){}
   try{pw.querySelectorAll("span").forEach(function(s2){if(/セルに直接入力/.test(s2.textContent||""))s2.remove();});}catch(_e){}
   try{pw.querySelectorAll("td > div").forEach(function(dv){if(!(dv.textContent||"").replace(/\s/g,"")&&!dv.querySelector("svg,img"))dv.parentNode.removeChild(dv);});}catch(_e){}
-  try{pw.querySelectorAll("td div").forEach(function(dv){if(dv.children.length===0&&(dv.textContent||"").indexOf("\n")>=0){var _t=dv.textContent.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});dv.innerHTML=_t.split("\n").join("<br>");}});}catch(_e){}
+  try{pw.querySelectorAll("td br").forEach(function(b){b.parentNode.removeChild(b);});}catch(_e){}
   try{pw.querySelectorAll("div[style*='f8f7f4']").forEach(function(lg){lg.style.setProperty("padding","2px 6px","important");lg.style.setProperty("margin-bottom","3px","important");lg.style.setProperty("font-size","10px","important");lg.querySelectorAll("span").forEach(function(sp){sp.style.setProperty("font-size","10px","important");sp.style.setProperty("padding","1px 6px","important");});});}catch(_e){}
   try{pw.querySelectorAll("div[style*='8a5320'],div[style*='6b21a8']").forEach(function(bar){bar.style.setProperty("padding","2px 8px","important");bar.style.setProperty("font-size","10px","important");});}catch(_e){}
   wrap.style.setProperty("display","flex","important");wrap.style.setProperty("width","100%","important");wrap.style.setProperty("gap","8px","important");wrap.style.setProperty("align-items","stretch","important");
   var colDivs=[];Array.prototype.forEach.call(wrap.children,function(cd){cd.style.setProperty("flex","1 1 0","important");cd.style.setProperty("min-width","0","important");colDivs.push(cd);});
   wrap.querySelectorAll("table").forEach(function(tb){
    var trs=tb.querySelectorAll("tr");var hr2=trs[1];var nd=hr2?hr2.querySelectorAll("th,td").length:6;
-   var units=100+Math.min(nd,6)*124+Math.max(nd-6,0)*58;
+   var units=88+Math.min(nd,6)*118+Math.max(nd-6,0)*68;
    var old=tb.querySelector("colgroup");if(old)old.parentNode.removeChild(old);
-   var cg=document.createElement("colgroup");var c0=document.createElement("col");c0.style.width=(100*100/units).toFixed(3)+"%";cg.appendChild(c0);
-   for(var i=0;i<nd;i++){var c=document.createElement("col");c.style.width=((i<6?124:58)*100/units).toFixed(3)+"%";cg.appendChild(c);}
+   var cg=document.createElement("colgroup");var c0=document.createElement("col");c0.style.width=(88*100/units).toFixed(3)+"%";cg.appendChild(c0);
+   for(var i=0;i<nd;i++){var c=document.createElement("col");c.style.width=((i<6?118:68)*100/units).toFixed(3)+"%";cg.appendChild(c);}
    tb.insertBefore(cg,tb.firstChild);
    tb.style.setProperty("width","100%","important");tb.style.setProperty("table-layout","fixed","important");
    tb.style.setProperty("page-break-inside","avoid","important");tb.style.setProperty("break-inside","avoid","important");
   });
   function _sF(root,fs,py,lh){
    root.querySelectorAll("th").forEach(function(c){var big=(c.colSpan&&c.colSpan>1)||(c.rowSpan&&c.rowSpan>1);
-    c.style.setProperty("font-size",(fs+(big?2:1))+"px","important");
+    c.style.setProperty("font-size",(fs+(big?2:0))+"px","important");
     c.style.setProperty("line-height",lh,"important");
     c.style.setProperty("vertical-align","middle","important");
     c.style.setProperty("padding-top",Math.max(1,Math.round(py/2))+"px","important");
     c.style.setProperty("padding-bottom",Math.max(1,Math.round(py/2))+"px","important");
+    c.style.setProperty("padding-left","0px","important");
+    c.style.setProperty("padding-right","0px","important");
     c.style.setProperty("white-space","normal","important");});
    root.querySelectorAll("th *").forEach(function(e2){try{e2.style.setProperty("font-size","inherit","important");e2.style.setProperty("line-height",lh,"important");}catch(_x){}});
-   root.querySelectorAll("td").forEach(function(c){c.style.setProperty("font-size",fs+"px","important");c.style.setProperty("line-height",lh,"important");c.style.setProperty("vertical-align","middle","important");c.style.setProperty("padding-top",py+"px","important");c.style.setProperty("padding-bottom",py+"px","important");c.style.setProperty("white-space","normal","important");c.style.setProperty("word-break","keep-all","important");c.style.setProperty("overflow-wrap","break-word","important");});
-   root.querySelectorAll("td *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");e2.style.setProperty("white-space","normal","important");e2.style.setProperty("word-break","keep-all","important");e2.style.setProperty("overflow-wrap","break-word","important");}catch(_x){}});
-   root.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","block","important");dv.style.setProperty("text-align","center","important");dv.style.setProperty("padding","1px 2px","important");}catch(_x){}});
+   root.querySelectorAll("td").forEach(function(c){c.style.setProperty("font-size",fs+"px","important");c.style.setProperty("line-height",lh,"important");c.style.setProperty("vertical-align","middle","important");c.style.setProperty("padding-top",py+"px","important");c.style.setProperty("padding-bottom",py+"px","important");c.style.setProperty("padding-left","0px","important");c.style.setProperty("padding-right","0px","important");c.style.setProperty("white-space","normal","important");c.style.setProperty("word-break","normal","important");c.style.setProperty("overflow-wrap","break-word","important");c.style.setProperty("text-wrap","balance","important");});
+   root.querySelectorAll("td *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");e2.style.setProperty("white-space","normal","important");e2.style.setProperty("word-break","normal","important");e2.style.setProperty("overflow-wrap","break-word","important");}catch(_x){}});
+   root.querySelectorAll("td span[style*=\'82em\']").forEach(function(sp){try{sp.style.setProperty("font-size",(Math.round(fs*8.2)/10)+"px","important");}catch(_x){}});
+   root.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","block","important");dv.style.setProperty("text-align","center","important");dv.style.setProperty("padding","1px 1px","important");}catch(_x){}});
   }
   var fsList=[11,10,9,8,7,6];var fi=0;
   for(fi=0;fi<fsList.length;fi++){_sF(wrap,fsList[fi],1,"1.12");if((pw.offsetHeight||1)<=maxH)break;}

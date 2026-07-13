@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713n-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0713n2-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3678,12 +3678,12 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
    root.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","block","important");dv.style.setProperty("text-align","center","important");dv.style.setProperty("padding","1px 2px","important");}catch(_x){}});
   }
   var fsList=[11,10,9,8,7,6];var fi=0;
-  for(fi=0;fi<fsList.length;fi++){_sF(wrap,fsList[fi],1,"1.2");if((pw.offsetHeight||1)<=maxH)break;}
+  for(fi=0;fi<fsList.length;fi++){_sF(wrap,fsList[fi],1,"1.12");if((pw.offsetHeight||1)<=maxH)break;}
   var fs=fsList[Math.min(fi,fsList.length-1)];
   var hdH=(pw.firstChild&&pw.firstChild.offsetHeight)||0;
   colDivs.forEach(function(cd){
    var target=maxH-hdH-10;var rows=(cd.querySelectorAll("tr")||[]).length||16;var h=cd.offsetHeight||1;
-   if(h<target){var pad=1+(target-h)/(2*rows);pad=Math.max(1,Math.min(18,pad));_sF(cd,fs,pad,"1.2");var g=0;while((cd.offsetHeight||1)>target&&pad>1&&g<40){pad-=1;_sF(cd,fs,pad,"1.2");g++;}}
+   if(h<target){var pad=1+(target-h)/(2*rows);pad=Math.max(1,Math.min(18,pad));_sF(cd,fs,pad,"1.12");var g=0;while((cd.offsetHeight||1)>target&&pad>1&&g<40){pad-=1;_sF(cd,fs,pad,"1.12");g++;}}
   });
   probe.removeChild(pw);document.body.removeChild(probe);
  }catch(e){try{pw.style.zoom="1";}catch(_e){}}

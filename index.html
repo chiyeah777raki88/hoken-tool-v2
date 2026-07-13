@@ -325,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712n-加入一覧の右ズレを解消(表左端の空列を0幅化)。実データ宏仁で保障項目が用紙左端と揃うのを検証済み。版";
+var APP_VERSION="v2-0712p-加入一覧の右ズレ解消(表左端の空列を0幅化)。宏仁実データで左端が揃うのを検証済み。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4837,4 +4837,48 @@ Promise.resolve(window.storage.list()).then(function(kr){
 var ks=(kr&&kr.keys)||[];
 var ik=ks.filter(function(k){return k.indexOf("ins_")==0||k.indexOf("kudo_")==0;});
 if(ik.length===0){return Promise.resolve(window.storage.get("hoken_backup")).then(function(r){restoreAndInit(r&&r.value?JSON.parse(r.value):null);});}
-return Promise.all(ik.map(function(k){return Promise.resolve(window.storage.get(k));})).then(function(rs){var m={};rs.forEach(functio
+return Promise.all(ik.map(function(k){return Promise.resolve(window.storage.get(k));})).then(function(rs){var m={};rs.forEach(function(r,i){if(r&&r.value!==undefined)m[ik[i]]=r.value;});restoreAndInit(Object.keys(m).length?m:null);});
+}).catch(function(){doInit();});
+} else if(window.storage&&typeof window.storage.get==="function"){
+var storagePromise;
+try{storagePromise=Promise.resolve(window.storage.get("hoken_backup"));}catch(e){storagePromise=null;}
+if(storagePromise){
+storagePromise.then(function(result){
+try{
+if(result&&result.value){
+try{
+var data=JSON.parse(result.value);
+Object.keys(data).forEach(function(k){
+try{storageSet(k,data[k]);}catch(e){}
+});
+state=loadState();
+}catch(e){}
+}
+}catch(e){}
+doInit();
+}).catch(function(){doInit();});
+} else {doInit();}
+} else {doInit();}
+}catch(e){doInit();}
+} // end startApp
+// 起動：すでにログイン済みなら自動で入る（ログイン画面を出さない）
+(function(){
+  if(sbInit()&&sbClient&&sbClient.auth&&sbClient.auth.getSession){
+    sbClient.auth.getSession().then(async function(r){
+      if(r&&r.data&&r.data.session&&r.data.session.user){
+        sbUser=r.data.session.user;SYNC_ON=true;
+        /* 起動時のクラウド自動取り込みを無効化（localStorageを正とし、再読込でローカルデータが空クラウドで上書きされるのを防止） */
+        try{await sbLoadApiKey();}catch(e){}
+        startApp();
+      }else{
+        showLogin();
+      }
+    }).catch(function(){showLogin();});
+  }else{
+    showLogin();
+  }
+})();
+})();
+</script>
+</body>
+</html>

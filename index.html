@@ -330,7 +330,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712i-提案の内容一覧の名称修正・提案比較を全体縮小で1枚化(多い時のみ2枚)・加入一覧の左右余白は左右2pxで均等確認。版";
+var APP_VERSION="v2-0712j-現在↔提案の給付条件(左右並べ)の見切れを修正(実DOMで幅測定し確実に縮小)。名称修正・提案比較1枚化も継続。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3637,7 +3637,7 @@ var page=el("div");page.style.cssText="page-break-after:always;break-after:page;
 })();
 // 2枚目：給付条件・免除（左右に並べ）
 (function(){
-var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";
+var pw=el("div");pw.id="pcs-mx-pw";pw.style.cssText="transform-origin:top left;display:inline-block;";
 pw.appendChild(_cmpHeader("現在 ↔ 提案　給付条件・免除条件"));
 var wrap=el("div");wrap.className="cmpwrap";wrap.style.cssText="display:inline-flex;gap:8px;align-items:flex-start;";
 [["現在の保険",cur,false,"#1a2744"],["提案の保険",prop,true,"#27ae60"]].forEach(function(c){
@@ -3652,7 +3652,10 @@ var page=el("div");page.style.cssText="page-break-after:auto;break-after:auto;";
 })();
 document.body.classList.add("psplit");setPageOrient("landscape",3);
 var _ot=document.title;document.title=printName("現在と提案_並べ");
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},250);
+setTimeout(function(){
+try{var _p=document.getElementById("pcs-mx-pw");if(_p){_p.style.zoom="1";var _w=_p.scrollWidth||_p.offsetWidth||1,_h=_p.scrollHeight||_p.offsetHeight||1;var _z=Math.min(1050/_w,720/_h);if(!isFinite(_z)||_z<=0)_z=1;_z=Math.min(_z,2.6);_z=Math.max(_z,0.3);_p.style.zoom=_z;}}catch(e){}
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},120);
+},250);
 }
 
 function buildPrintTab(){

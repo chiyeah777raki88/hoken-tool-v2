@@ -330,7 +330,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712j-現在↔提案の給付条件(左右並べ)の見切れを修正(実DOMで幅測定し確実に縮小)。名称修正・提案比較1枚化も継続。版";
+var APP_VERSION="v2-0712k-加入一覧を印刷領域の幅いっぱいに(誰の契約でも左右余白が均等に)。ボタン名を【提案】内容一覧/【提案】給付条件比較に修正。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3513,7 +3513,8 @@ try{_box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});
 pw.appendChild(_box);
 var _t=pw.querySelector(".kanyu")||_box;
 _fitFillKanyu(pw,_t,1058,730,4.2);
-pa.appendChild(_centerPage(pw,1058,730));
+pw.style.width="100%";if(_t){_t.style.width="100%";}
+pa.appendChild(pw);
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"加入一覧");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},250);
 }
@@ -3959,8 +3960,8 @@ cont.appendChild(pcCfg);
 // 提案の印刷
 var spP=el("div");spP.style.cssText="font-size:13px;font-weight:700;color:#1a7a3a;margin:10px 0 4px;";spP.textContent="①' 提案内容（各A4横1枚）";cont.appendChild(spP);
 var bwP=el("div");bwP.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;";
-var bAllP=btn("提案の加入一覧を印刷(横1枚)","bn",function(){printKanyuAll(true);});bAllP.style.cssText="padding:12px 18px;font-size:14px;background:#1a7a3a;color:#fff;border-radius:6px;font-weight:700;";
-var bMP=btn("提案の給付条件比較を印刷(横1枚)","bn",function(){printMatrix(true);});bMP.style.cssText="padding:12px 18px;font-size:14px;background:#2f8f4a;color:#fff;border-radius:6px;font-weight:700;";
+var bAllP=btn("【提案】内容一覧を印刷(横1枚)","bn",function(){printKanyuAll(true);});bAllP.style.cssText="padding:12px 18px;font-size:14px;background:#1a7a3a;color:#fff;border-radius:6px;font-weight:700;";
+var bMP=btn("【提案】給付条件比較を印刷(横1枚)","bn",function(){printMatrix(true);});bMP.style.cssText="padding:12px 18px;font-size:14px;background:#2f8f4a;color:#fff;border-radius:6px;font-weight:700;";
 bwP.appendChild(bAllP);bwP.appendChild(bMP);cont.appendChild(bwP);
 // 現在↔提案 比較印刷
 var spC=el("div");spC.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:10px 0 4px;";spC.textContent="③ 現在 ↔ 提案 の比較印刷";cont.appendChild(spC);

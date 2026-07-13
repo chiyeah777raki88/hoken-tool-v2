@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713k-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0713L-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3640,6 +3640,43 @@ function _fitFillMatrix(pw,maxW,maxH){
  try{pw.style.width="100%";}catch(e){}
  return pw;
 }
+function _fitFillCmp(pw,maxW,maxH){
+ /* 現在↔提案 加入一覧: zoomを使わず実寸で1枚充填(右余り・途中改ページ対策) */
+ try{
+  var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
+  document.body.appendChild(probe);probe.appendChild(pw);if(typeof _clearOv==="function")_clearOv(pw);
+  pw.style.display="block";pw.style.width=maxW+"px";pw.style.zoom="1";
+  pw.querySelectorAll("table").forEach(function(t){t.style.setProperty("width","100%","important");});
+  function setF(fs,py,lh){
+   pw.querySelectorAll("td,th").forEach(function(c){
+    c.style.setProperty("font-size",fs+"px","important");
+    c.style.setProperty("line-height",lh,"important");
+    c.style.setProperty("padding-top",py+"px","important");
+    c.style.setProperty("padding-bottom",py+"px","important");
+    c.style.setProperty("white-space","normal","important");
+    c.style.setProperty("word-break","normal","important");
+    c.style.setProperty("overflow-wrap","break-word","important");
+   });
+   pw.querySelectorAll("td *,th *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");}catch(_x){}});
+  }
+  var fsList=[13,12,11,10,9,8,7];
+  for(var fi=0;fi<fsList.length;fi++){setF(fsList[fi],2,"1.25");if((pw.offsetHeight||1)<=maxH)break;}
+  var fs=fsList[Math.min(fi,fsList.length-1)];
+  var rows=(pw.querySelectorAll("tr")||[]).length||20;
+  var h=pw.offsetHeight||1;
+  if(h<maxH){
+   var pad=2+(maxH-h)/(2*rows);pad=Math.max(2,Math.min(24,pad));
+   setF(fs,pad,"1.25");var g=0;
+   while((pw.offsetHeight||1)>maxH&&pad>2&&g<50){pad-=1;setF(fs,pad,"1.25");g++;}
+  }
+  /* 最小文字でも収まらない場合のみ、表の途中改ページを許可(行単位で切れる) */
+  var fits=(pw.offsetHeight||1)<=maxH;
+  pw.querySelectorAll("table").forEach(function(t){t.style.setProperty("page-break-inside",fits?"avoid":"auto","important");t.style.setProperty("break-inside",fits?"avoid":"auto","important");});
+  probe.removeChild(pw);document.body.removeChild(probe);
+ }catch(e){try{pw.style.zoom="1";}catch(_e){}}
+ try{pw.style.width="100%";}catch(e){}
+ return pw;
+}
 function _pcApplyWysiwyg(box,n){
  /* 提案比較: 画面の編集表と印刷を同一の列幅・文字にして、備考の改行を入力=印刷で一致させる */
  try{
@@ -3743,7 +3780,7 @@ pw.appendChild(_cmpHeader("現在 ↔ 提案　加入内容一覧"));
 var cm=cur.map(function(x){return x.member;}),pm=prop.map(function(x){return x.member;});
 var tbl=buildCmpKanyu(cur.map(function(x){return x.policy;}),cm,prop.map(function(x){return x.policy;}),pm);
 pw.appendChild(tbl);
-_measZoom(pw,tbl,1190,832,4.5);
+_fitFillCmp(pw,1058,700);
 var page=el("div");page.style.cssText="page-break-after:always;break-after:page;";page.appendChild(pw);pa.appendChild(page);
 })();
 // 2枚目：給付条件・免除（左右に並べ）

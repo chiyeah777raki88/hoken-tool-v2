@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713g-給付条件マトリクス印刷を全面刷新:加入一覧と同方式で1枚充填・全員同一列幅・被保険者名を日付の隣に表示・文字統一/縦中央。版";
+var APP_VERSION="v2-0713h-給付条件:文字を最大化し下余白を充填・1回目列を広げ自然な改行に。提案比較:3グループまで1枚(4以上は2枚許容)。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3547,6 +3547,7 @@ try{box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});}
 gsec.appendChild(box);
 wrap.appendChild(gsec);
 });
+_fitPropCmp(wrap,groups.length);
 pa.appendChild(wrap);
 try{var _pcs=document.getElementById("pc-dyn-style");if(_pcs)_pcs.remove();var _pcss="";var _fp=+state.pcFontPx||0;var _iw=+state.pcItemW||0;if(_fp>0)_pcss+="body.ppropcmp #print-area .kanyu td,body.ppropcmp #print-area .kanyu th,body.ppropcmp #print-area .kanyu td span,body.ppropcmp #print-area .kanyu th span,body.ppropcmp #print-area .kanyu td b{font-size:"+_fp+"px !important;}";if(_iw>0)_pcss+="body.ppropcmp #print-area .kanyu col:nth-child(2){width:"+_iw+"px !important;}body.ppropcmp #print-area .kanyu td:nth-child(2),body.ppropcmp #print-area .kanyu th:nth-child(2){width:"+_iw+"px !important;white-space:normal !important;word-break:break-word !important;}";if(_pcss){var _stn=document.createElement("style");_stn.id="pc-dyn-style";_stn.textContent=_pcss;document.head.appendChild(_stn);}}catch(e){}
 document.body.classList.add("psplit");document.body.classList.add("ppropcmp");setPageOrient("portrait",8);var _ot=document.title;document.title=printName("提案比較");
@@ -3567,25 +3568,26 @@ hd.appendChild(h1);hd.appendChild(h2);
 try{pw.querySelectorAll(".no-print,button,textarea").forEach(function(e){e.remove();});}catch(e){}
 try{pw.querySelectorAll("span").forEach(function(s2){if(/セルに直接入力/.test(s2.textContent||""))s2.remove();});}catch(e){}
 try{pw.querySelectorAll("td > div").forEach(function(dv){if(!(dv.textContent||"").replace(/\s/g,"")&&!dv.querySelector("svg,img"))dv.parentNode.removeChild(dv);});}catch(e){}
-_fitFillMatrix(pw,1058,720);
+_fitFillMatrix(pw,1058,730);
 pa.appendChild(pw);
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},250);
 }
 function _fitFillMatrix(pw,maxW,maxH){
- /* 加入一覧(_fitFillKanyu)と同じ思想: オフスクリーン実測→colgroupで全員同一の列幅→文字/行間/padding実縮小・充填で1枚(zoom不使用) */
+ /* 加入一覧(_fitFillKanyu)と同じ思想: オフスクリーン実測→colgroupで全員同一の列幅→できるだけ大きい文字を選び→paddingで縦充填→1枚(zoom不使用) */
  try{
   var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
   document.body.appendChild(probe);probe.appendChild(pw);if(typeof _clearOv==="function")_clearOv(pw);
   pw.style.display="block";pw.style.width=maxW+"px";pw.style.zoom="1";
   var tabs=[];pw.querySelectorAll("table").forEach(function(tb){tabs.push(tb);});
-  var infos=tabs.map(function(tb){var trs=tb.querySelectorAll("tr");var hr2=trs[1];var nd=hr2?hr2.querySelectorAll("th,td").length:6;var units=112+Math.min(nd,6)*98+Math.max(nd-6,0)*70;return {t:tb,nd:nd,units:units};});
+  /* 列幅の重み: 病名100 / 1回目(①〜⑥)124 / 2回目以降58(単語のみで狭くてよい) → 1回目の条件文をなるべく折り返さない */
+  var infos=tabs.map(function(tb){var trs=tb.querySelectorAll("tr");var hr2=trs[1];var nd=hr2?hr2.querySelectorAll("th,td").length:6;var units=100+Math.min(nd,6)*124+Math.max(nd-6,0)*58;return {t:tb,nd:nd,units:units};});
   var maxU=1;infos.forEach(function(x){if(x.units>maxU)maxU=x.units;});
   infos.forEach(function(x){
    var old=x.t.querySelector("colgroup");if(old)old.parentNode.removeChild(old);
    var cg=document.createElement("colgroup");
-   var c0=document.createElement("col");c0.style.width=(112*100/x.units).toFixed(3)+"%";cg.appendChild(c0);
-   for(var i=0;i<x.nd;i++){var c=document.createElement("col");c.style.width=((i<6?98:70)*100/x.units).toFixed(3)+"%";cg.appendChild(c);}
+   var c0=document.createElement("col");c0.style.width=(100*100/x.units).toFixed(3)+"%";cg.appendChild(c0);
+   for(var i=0;i<x.nd;i++){var c=document.createElement("col");c.style.width=((i<6?124:58)*100/x.units).toFixed(3)+"%";cg.appendChild(c);}
    x.t.insertBefore(cg,x.t.firstChild);
    x.t.style.setProperty("width",(x.units*100/maxU).toFixed(2)+"%","important");
    x.t.style.setProperty("table-layout","fixed","important");
@@ -3611,26 +3613,53 @@ function _fitFillMatrix(pw,maxW,maxH){
     c.style.setProperty("padding-top",py+"px","important");
     c.style.setProperty("padding-bottom",py+"px","important");
     c.style.setProperty("white-space","normal","important");
-    c.style.setProperty("word-break","break-word","important");
+    c.style.setProperty("word-break","normal","important");
+    c.style.setProperty("overflow-wrap","break-word","important");
    });
-   pw.querySelectorAll("td *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");}catch(_x){}});
+   pw.querySelectorAll("td *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");e2.style.setProperty("word-break","normal","important");e2.style.setProperty("overflow-wrap","break-word","important");}catch(_x){}});
    pw.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","flex","important");dv.style.setProperty("flex-direction","column","important");dv.style.setProperty("justify-content","center","important");dv.style.setProperty("align-items","center","important");dv.style.setProperty("padding","2px 3px","important");}catch(_x){}});
   }
-  setF(12,2,"1.25");
+  /* 1) 収まる範囲で最大の文字サイズを選ぶ(大きい方から) */
+  var fsList=[15,14,13,12,11,10,9,8,7];var fs=7;
+  for(var fi=0;fi<fsList.length;fi++){setF(fsList[fi],2,"1.3");if((pw.offsetHeight||1)<=maxH){fs=fsList[fi];break;}}
+  /* 2) 余った高さをpaddingで充填(縮小後でも必ず実行=下余白をなくす) */
+  var rows=0;tabs.forEach(function(tb){rows+=(tb.querySelectorAll("tr")||[]).length;});rows=rows||16;
   var h=pw.offsetHeight||1;
-  if(h>maxH){
-   var f=12;
-   while(f>7&&(pw.offsetHeight||1)>maxH){f--;setF(f,1,"1.15");}
-  }else{
-   var rows=0;tabs.forEach(function(tb){rows+=(tb.querySelectorAll("tr")||[]).length;});rows=rows||16;
-   var pad=2+(maxH-h)/(2*rows);pad=Math.max(2,Math.min(28,pad));
-   setF(12,pad,"1.25");var g=0;
-   while((pw.offsetHeight||1)>maxH&&pad>2&&g<50){pad-=1;setF(12,pad,"1.25");g++;}
+  if(h<maxH){
+   var pad=2+(maxH-h)/(2*rows);pad=Math.max(2,Math.min(34,pad));
+   setF(fs,pad,"1.3");var g=0;
+   while((pw.offsetHeight||1)>maxH&&pad>2&&g<60){pad-=1;setF(fs,pad,"1.3");g++;}
   }
   probe.removeChild(pw);document.body.removeChild(probe);
  }catch(e){try{pw.style.zoom="1";}catch(_e){}}
  try{pw.style.width="100%";}catch(e){}
  return pw;
+}
+function _fitPropCmp(wrap,nGroups){
+ /* 提案比較: 3グループまでは1枚に収まるように縮小(それ以上は2枚まで許容)。既に収まる場合は何もしない */
+ try{
+  var maxW=730,maxH=1020;var limit=(nGroups>3)?(maxH*2):maxH;
+  var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
+  document.body.appendChild(probe);probe.appendChild(wrap);if(typeof _clearOv==="function")_clearOv(wrap);
+  wrap.style.display="block";wrap.style.width=maxW+"px";
+  var kids=wrap.children;for(var i=0;i<kids.length;i++){try{kids[i].style.setProperty("page-break-inside","avoid","important");kids[i].style.setProperty("break-inside","avoid","important");}catch(_e){}}
+  function setF(fs,py,lh){
+   wrap.querySelectorAll("td,th").forEach(function(c){
+    c.style.setProperty("font-size",fs+"px","important");
+    c.style.setProperty("line-height",lh,"important");
+    c.style.setProperty("padding-top",py+"px","important");
+    c.style.setProperty("padding-bottom",py+"px","important");
+   });
+   wrap.querySelectorAll("td *,th *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");}catch(_x){}});
+  }
+  if((wrap.offsetHeight||1)>limit){
+   var fsList=[13,12,11,10,9,8];
+   for(var fi=0;fi<fsList.length;fi++){setF(fsList[fi],2,"1.25");if((wrap.offsetHeight||1)<=limit)break;}
+  }
+  probe.removeChild(wrap);document.body.removeChild(probe);
+ }catch(e){}
+ try{wrap.style.width="100%";}catch(e){}
+ return wrap;
 }
 function _cmpPairs(isProp){var p=isProp?propPairs():aPs();if(summaryMember!=="all")p=p.filter(function(x){return x.member&&x.member.id===summaryMember;});return p;}
 function _cmpKanyuNode(pairs,showAll,visPols){var pols=pairs.map(function(x){return x.policy;});var mem=pairs.map(function(x){return x.member;});var _k=kanyuShowAll;kanyuShowAll=!!showAll;var n=buildKanyuTable(pols,mem,visPols);kanyuShowAll=_k;_compactify(n);return n;}

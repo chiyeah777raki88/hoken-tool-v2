@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713f-給付条件:1回目/2回目の文字サイズを統一・全セル縦中央(常設!importantで確実に)＋日付の隣に被保険者名を表示。版";
+var APP_VERSION="v2-0713g-給付条件マトリクス印刷を全面刷新:加入一覧と同方式で1枚充填・全員同一列幅・被保険者名を日付の隣に表示・文字統一/縦中央。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3554,20 +3554,83 @@ setTimeout(function(){window.print();setTimeout(function(){document.body.classLi
 }
 function printMatrix(isProp){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
-var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
+var _selM=(summaryMember!=="all")&&state.family.filter(function(fm){return fm.id===summaryMember;})[0];
 var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";
 var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
 var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】":"")+"給付条件・免除条件の比較";
-var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=ymd;
+var pw=el("div");pw.id="pmwrap";pw.style.cssText="transform-origin:top left;display:block;";pw.appendChild(hd);
+var _mp=[];
+try{_mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
+var _bime=(function(){var s={};_mp.forEach(function(x){var m=x&&x.member;if(m&&m.id)s[m.id]=m;});var ks=Object.keys(s);return ks.length===1?s[ks[0]]:(_selM||null);})();
+var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=(_bime?("被保険者："+(_bime.name||_bime.relation)+" 様　"):"")+ymd;
 hd.appendChild(h1);hd.appendChild(h2);
-var pw=el("div");pw.id="pmwrap";pw.style.cssText="transform-origin:top left;display:inline-block;";pw.appendChild(hd);
-var _mcz=el("div");_mcz.style.cssText="width:1058px;margin:0 auto;text-align:center;";_mcz.appendChild(pw);pa.appendChild(_mcz);
-try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
-document.body.classList.add("psplit","pmatrix");setPageOrient("landscape",6);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
-setTimeout(function(){
-try{var _pas=pa.getAttribute("style")||"";pa.style.cssText="display:inline-block;position:fixed;left:-99999px;top:0;background:#fff;z-index:-1;";pw.style.zoom="1";try{pw.querySelectorAll("td,th").forEach(function(c){c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(_e){}if(typeof _clearOv==="function")_clearOv(pw);var _fst=document.getElementById("pm-fs")||document.createElement("style");_fst.id="pm-fs";document.head.appendChild(_fst);function _rh(){var h=0;var _hd=pw.firstChild;if(_hd&&_hd.offsetHeight)h+=_hd.offsetHeight;pw.querySelectorAll("table").forEach(function(tb){h+=tb.offsetHeight;});return h;}function _rw(){var w=0;pw.querySelectorAll("table").forEach(function(tb){w=Math.max(w,tb.scrollWidth,tb.offsetWidth);});return w||pw.scrollWidth;}function _setF(px,py){try{pw.querySelectorAll("table").forEach(function(t){if(!t.querySelector("colgroup")){var _trs=t.querySelectorAll("tr");var _hr2=_trs[1];var _nd=_hr2?_hr2.querySelectorAll("th,td").length:6;var _cg=document.createElement("colgroup");var _c0=document.createElement("col");_c0.style.width="112px";_cg.appendChild(_c0);for(var _i=0;_i<_nd;_i++){var _c=document.createElement("col");_c.style.width=(_i<6?"98px":"70px");_cg.appendChild(_c);}t.insertBefore(_cg,t.firstChild);}t.style.setProperty("table-layout","fixed","important");t.style.setProperty("width","auto","important");t.style.setProperty("page-break-inside","avoid","important");});pw.querySelectorAll("td,th").forEach(function(c){c.style.setProperty("font-size",px+"px","important");c.style.setProperty("line-height","1.2","important");c.style.setProperty("vertical-align","middle","important");c.style.setProperty("padding-top",py+"px","important");c.style.setProperty("padding-bottom",py+"px","important");c.style.setProperty("white-space","normal","important");c.style.setProperty("word-break","break-word","important");});pw.querySelectorAll("td *").forEach(function(e){try{e.style.setProperty("font-size",px+"px","important");e.style.setProperty("line-height","1.2","important");}catch(_x){}});}catch(_e){}}_setF(12,1);var _w=_rw();var sc=Math.min(1,1058/_w);if(!isFinite(sc)||sc<=0)sc=1;var _pH=650,_tRH=_pH/sc;var _rows=(pw.querySelectorAll("tr")||[]).length||14;if(_rh()>_tRH){var _f=12;while(_f>7){_setF(_f,1);if(_rh()<=_tRH)break;_f--;}}else{var _pad=1+(_tRH-_rh())/(2*_rows);_pad=Math.max(1,Math.min(34,_pad));_setF(12,_pad);var _g=0;while(_rh()>_tRH&&_pad>1&&_g<50){_pad-=1;_setF(12,_pad);_g++;}}pw.style.zoom=sc;pa.setAttribute("style",_pas);}catch(e){}
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pmatrix");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;var _pmfs=document.getElementById("pm-fs");if(_pmfs)_pmfs.remove();},400);},150);
-},350);
+try{pw.querySelectorAll(".no-print,button,textarea").forEach(function(e){e.remove();});}catch(e){}
+try{pw.querySelectorAll("span").forEach(function(s2){if(/セルに直接入力/.test(s2.textContent||""))s2.remove();});}catch(e){}
+try{pw.querySelectorAll("td > div").forEach(function(dv){if(!(dv.textContent||"").replace(/\s/g,"")&&!dv.querySelector("svg,img"))dv.parentNode.removeChild(dv);});}catch(e){}
+_fitFillMatrix(pw,1058,720);
+pa.appendChild(pw);
+document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},250);
+}
+function _fitFillMatrix(pw,maxW,maxH){
+ /* 加入一覧(_fitFillKanyu)と同じ思想: オフスクリーン実測→colgroupで全員同一の列幅→文字/行間/padding実縮小・充填で1枚(zoom不使用) */
+ try{
+  var probe=document.createElement("div");probe.style.cssText="position:fixed;left:-99999px;top:0;width:"+maxW+"px;display:block;background:#fff;z-index:-1;";
+  document.body.appendChild(probe);probe.appendChild(pw);if(typeof _clearOv==="function")_clearOv(pw);
+  pw.style.display="block";pw.style.width=maxW+"px";pw.style.zoom="1";
+  var tabs=[];pw.querySelectorAll("table").forEach(function(tb){tabs.push(tb);});
+  var infos=tabs.map(function(tb){var trs=tb.querySelectorAll("tr");var hr2=trs[1];var nd=hr2?hr2.querySelectorAll("th,td").length:6;var units=112+Math.min(nd,6)*98+Math.max(nd-6,0)*70;return {t:tb,nd:nd,units:units};});
+  var maxU=1;infos.forEach(function(x){if(x.units>maxU)maxU=x.units;});
+  infos.forEach(function(x){
+   var old=x.t.querySelector("colgroup");if(old)old.parentNode.removeChild(old);
+   var cg=document.createElement("colgroup");
+   var c0=document.createElement("col");c0.style.width=(112*100/x.units).toFixed(3)+"%";cg.appendChild(c0);
+   for(var i=0;i<x.nd;i++){var c=document.createElement("col");c.style.width=((i<6?98:70)*100/x.units).toFixed(3)+"%";cg.appendChild(c);}
+   x.t.insertBefore(cg,x.t.firstChild);
+   x.t.style.setProperty("width",(x.units*100/maxU).toFixed(2)+"%","important");
+   x.t.style.setProperty("table-layout","fixed","important");
+   x.t.style.setProperty("page-break-inside","avoid","important");
+   x.t.style.setProperty("break-inside","avoid","important");
+   try{var od=x.t.parentNode;if(od){od.style.setProperty("overflow","visible","important");var s3=od.parentNode;if(s3){s3.style.setProperty("page-break-inside","avoid","important");s3.style.setProperty("break-inside","avoid","important");s3.style.setProperty("margin-bottom","6px","important");}}}catch(_e){}
+  });
+  function setF(fs,py,lh){
+   pw.querySelectorAll("th").forEach(function(c){
+    var big=(c.colSpan&&c.colSpan>1)||(c.rowSpan&&c.rowSpan>1);
+    c.style.setProperty("font-size",(fs+(big?3:1))+"px","important");
+    c.style.setProperty("line-height",lh,"important");
+    c.style.setProperty("vertical-align","middle","important");
+    c.style.setProperty("padding-top",Math.max(1,Math.round(py/2))+"px","important");
+    c.style.setProperty("padding-bottom",Math.max(1,Math.round(py/2))+"px","important");
+    c.style.setProperty("white-space","normal","important");
+   });
+   pw.querySelectorAll("th *").forEach(function(e2){try{e2.style.setProperty("font-size","inherit","important");e2.style.setProperty("line-height",lh,"important");}catch(_x){}});
+   pw.querySelectorAll("td").forEach(function(c){
+    c.style.setProperty("font-size",fs+"px","important");
+    c.style.setProperty("line-height",lh,"important");
+    c.style.setProperty("vertical-align","middle","important");
+    c.style.setProperty("padding-top",py+"px","important");
+    c.style.setProperty("padding-bottom",py+"px","important");
+    c.style.setProperty("white-space","normal","important");
+    c.style.setProperty("word-break","break-word","important");
+   });
+   pw.querySelectorAll("td *").forEach(function(e2){try{e2.style.setProperty("font-size",fs+"px","important");e2.style.setProperty("line-height",lh,"important");e2.style.setProperty("min-height","0","important");}catch(_x){}});
+   pw.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","flex","important");dv.style.setProperty("flex-direction","column","important");dv.style.setProperty("justify-content","center","important");dv.style.setProperty("align-items","center","important");dv.style.setProperty("padding","2px 3px","important");}catch(_x){}});
+  }
+  setF(12,2,"1.25");
+  var h=pw.offsetHeight||1;
+  if(h>maxH){
+   var f=12;
+   while(f>7&&(pw.offsetHeight||1)>maxH){f--;setF(f,1,"1.15");}
+  }else{
+   var rows=0;tabs.forEach(function(tb){rows+=(tb.querySelectorAll("tr")||[]).length;});rows=rows||16;
+   var pad=2+(maxH-h)/(2*rows);pad=Math.max(2,Math.min(28,pad));
+   setF(12,pad,"1.25");var g=0;
+   while((pw.offsetHeight||1)>maxH&&pad>2&&g<50){pad-=1;setF(12,pad,"1.25");g++;}
+  }
+  probe.removeChild(pw);document.body.removeChild(probe);
+ }catch(e){try{pw.style.zoom="1";}catch(_e){}}
+ try{pw.style.width="100%";}catch(e){}
+ return pw;
 }
 function _cmpPairs(isProp){var p=isProp?propPairs():aPs();if(summaryMember!=="all")p=p.filter(function(x){return x.member&&x.member.id===summaryMember;});return p;}
 function _cmpKanyuNode(pairs,showAll,visPols){var pols=pairs.map(function(x){return x.policy;});var mem=pairs.map(function(x){return x.member;});var _k=kanyuShowAll;kanyuShowAll=!!showAll;var n=buildKanyuTable(pols,mem,visPols);kanyuShowAll=_k;_compactify(n);return n;}

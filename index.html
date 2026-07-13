@@ -330,7 +330,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712h-給付条件比較(単独)を無理やり1枚に縮小し中央寄せ。加入一覧の左右余白解消も継続。版";
+var APP_VERSION="v2-0712i-提案の内容一覧の名称修正・提案比較を全体縮小で1枚化(多い時のみ2枚)・加入一覧の左右余白は左右2pxで均等確認。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3503,7 +3503,7 @@ var _selM=(summaryMember!=="all")&&state.family.filter(function(fm){return fm.id
 var mm=state.family.find(function(m){return m.relation==="本人";})||state.family[0];
 var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";
 var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
-var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】":"")+"加入内容一覧";
+var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】内容一覧":"加入内容一覧");
 var _bime=(function(){var s={};mem.forEach(function(m){if(m&&m.id)s[m.id]=m;});var ks=Object.keys(s);return ks.length===1?s[ks[0]]:(_selM||null);})();
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=(_bime?(_bime.name||_bime.relation)+" 様　":"")+ymd;
 hd.appendChild(h1);hd.appendChild(h2);
@@ -3525,7 +3525,7 @@ var mm=state.family.find(function(m){return m.relation==="本人";})||state.fami
 var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate()+"日";
 if(summaryMember!=="all")groups=groups.filter(function(g){return g.memberId===summaryMember;});
 if(!groups.length){alert("選んだ被保険者の比較グループ（候補入り）がありません。印刷タブ上部で被保険者を『全員』にするか、対象者を選んでください。");return;}
-var wrap=el("div");
+var wrap=el("div");wrap.id="pc-wrap";wrap.style.transformOrigin="top left";
 var hdT=el("div");hdT.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:10px;";
 var hT1=el("span");hT1.style.cssText="font-size:16px;font-weight:700;color:#1a2744;";hT1.textContent="提案比較";
 var _pcMems={};groups.forEach(function(g){var _m=state.family.filter(function(fm){return fm.id===g.memberId;})[0];if(_m&&_m.id)_pcMems[_m.id]=_m;});var _pcKs=Object.keys(_pcMems);var _pcBime=(_pcKs.length===1)?_pcMems[_pcKs[0]]:null;
@@ -3548,7 +3548,10 @@ wrap.appendChild(gsec);
 pa.appendChild(wrap);
 try{var _pcs=document.getElementById("pc-dyn-style");if(_pcs)_pcs.remove();var _pcss="";var _fp=+state.pcFontPx||0;var _iw=+state.pcItemW||0;if(_fp>0)_pcss+="body.ppropcmp #print-area .kanyu td,body.ppropcmp #print-area .kanyu th,body.ppropcmp #print-area .kanyu td span,body.ppropcmp #print-area .kanyu th span,body.ppropcmp #print-area .kanyu td b{font-size:"+_fp+"px !important;}";if(_iw>0)_pcss+="body.ppropcmp #print-area .kanyu col:nth-child(2){width:"+_iw+"px !important;}body.ppropcmp #print-area .kanyu td:nth-child(2),body.ppropcmp #print-area .kanyu th:nth-child(2){width:"+_iw+"px !important;white-space:normal !important;word-break:break-word !important;}";if(_pcss){var _stn=document.createElement("style");_stn.id="pc-dyn-style";_stn.textContent=_pcss;document.head.appendChild(_stn);}}catch(e){}
 document.body.classList.add("psplit");document.body.classList.add("ppropcmp");setPageOrient("portrait",8);var _ot=document.title;document.title=printName("提案比較");
-setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("ppropcmp");pa.innerHTML="";document.title=_ot;var _pcs2=document.getElementById("pc-dyn-style");if(_pcs2)_pcs2.remove();},400);},300);
+setTimeout(function(){
+try{var _w=document.getElementById("pc-wrap");if(_w){_w.style.zoom="1";var _hh=_w.scrollHeight||_w.offsetHeight;var _ph=1049;if(_hh>_ph){var _z=Math.max(0.62,_ph/_hh);_w.style.zoom=_z;}}}catch(e){}
+setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("ppropcmp");pa.innerHTML="";document.title=_ot;var _pcs2=document.getElementById("pc-dyn-style");if(_pcs2)_pcs2.remove();},400);},120);
+},300);
 }
 function printMatrix(isProp){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
@@ -3607,7 +3610,7 @@ function printComparePages(){
 var pa=document.getElementById("print-area");if(!pa)return;pa.innerHTML="";
 var cur=_cmpPairs(false),prop=_cmpPairs(true);
 if(!cur.length&&!prop.length){alert("証券がありません");return;}
-var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】給付条件・免除条件",_cmpMatrixNode(cur,false)],["【提案】加入内容一覧",_cmpKanyuNode(prop)],["【提案】給付条件・免除条件",_cmpMatrixNode(prop,true)]];
+var defs=[["【現在】加入内容一覧",_cmpKanyuNode(cur)],["【現在】給付条件・免除条件",_cmpMatrixNode(cur,false)],["【提案】内容一覧",_cmpKanyuNode(prop)],["【提案】給付条件・免除条件",_cmpMatrixNode(prop,true)]];
 defs.forEach(function(d,i){
 var pw=el("div");pw.style.cssText="transform-origin:top left;display:inline-block;";var content=el("div");content.appendChild(d[1]);pw.appendChild(_cmpHeader(d[0]));pw.appendChild(content);
 if(i===0||i===2){_fitFillKanyu(pw,content.querySelector(".kanyu")||content.querySelector("table")||content,1058,730,2.8);}else{_measZoom(pw,content,1058,730,2.8);}

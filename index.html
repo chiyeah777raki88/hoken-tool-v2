@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713z2-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0713z3-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3720,6 +3720,8 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
    root.querySelectorAll("tr[data-imp] td").forEach(function(c){try{c.style.setProperty("font-size",(fs+1)+"px","important");}catch(_x){}});
    root.querySelectorAll("tr[data-imp] td *").forEach(function(e2){try{e2.style.setProperty("font-size",(fs+1)+"px","important");}catch(_x){}});
    root.querySelectorAll("tr[data-imp] td span[data-hira]").forEach(function(sp){try{sp.style.setProperty("font-size",(Math.round((fs+1)*8.2)/10)+"px","important");}catch(_x){}});
+   root.querySelectorAll("tr[data-imp] td:first-child").forEach(function(c){try{c.style.setProperty("font-size",Math.max(6,fs-1)+"px","important");}catch(_x){}});
+   root.querySelectorAll("tr[data-imp] td:first-child *").forEach(function(e2){try{e2.style.setProperty("font-size",Math.max(6,fs-1)+"px","important");}catch(_x){}});
    root.querySelectorAll("td strong").forEach(function(st2){try{st2.style.setProperty("white-space","normal","important");st2.style.setProperty("word-break","keep-all","important");st2.style.setProperty("overflow-wrap","anywhere","important");}catch(_x){}});
    root.querySelectorAll("td > div").forEach(function(dv){try{dv.style.setProperty("display","block","important");dv.style.setProperty("text-align","center","important");dv.style.setProperty("padding","1px 1px","important");}catch(_x){}});
   }
@@ -3757,20 +3759,31 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
     var addOther=perColOther?Math.floor(leftover*0.4/perColOther):0;
     wrap.querySelectorAll("tr").forEach(function(tr){var add=tr.hasAttribute("data-imp")?addImp:addOther;if(add>0){var ch=parseFloat(tr.style.height)||tr.offsetHeight||18;tr.style.setProperty("height",(ch+add)+"px","important");}});
    }
-   /* 全行+1pxの粗い充填 */
-   var g1=0;var allTrs=[];wrap.querySelectorAll("tr").forEach(function(tr){allTrs.push(tr);});
-   while(g1<12){
-    if(maxColH2()>=target-4)break;
-    allTrs.forEach(function(tr){var ch=parseFloat(tr.style.height)||tr.offsetHeight||16;tr.style.setProperty("height",(ch+1)+"px","important");});g1++;
-    if(maxColH2()>target){allTrs.forEach(function(tr){var ch=parseFloat(tr.style.height)||tr.offsetHeight||17;tr.style.setProperty("height",Math.max(10,ch-1)+"px","important");});break;}
-   }
    /* 端数は重要行へ+2ずつ */
    var g2=0;
    while(imp.length&&g2<20){
-    if(maxColH2()>=target-2)break;
+    if(maxColH2()>=target-6)break;
     imp.forEach(function(tr){var ch=parseFloat(tr.style.height)||tr.offsetHeight||22;tr.style.setProperty("height",(ch+2)+"px","important");});g2++;
     if(maxColH2()>target){imp.forEach(function(tr){var ch=parseFloat(tr.style.height)||tr.offsetHeight||24;tr.style.setProperty("height",Math.max(10,ch-2)+"px","important");});break;}
    }
+   /* 残りは低い行(非重要行)へ左右ペアで1pxずつ順番に配分(精密充填) */
+   try{
+    if(colDivs.length===2){
+     var tA2=colDivs[0].querySelectorAll("table"),tB2=colDivs[1].querySelectorAll("table");
+     var lowPairs=[];
+     for(var ti2=0;ti2<Math.min(tA2.length,tB2.length);ti2++){
+      var rA2=tA2[ti2].querySelectorAll("tr"),rB2=tB2[ti2].querySelectorAll("tr");
+      for(var ri3=0;ri3<Math.min(rA2.length,rB2.length);ri3++){if(!rA2[ri3].hasAttribute("data-imp"))lowPairs.push([rA2[ri3],rB2[ri3]]);}
+     }
+     var g3=0,idx=0;
+     while(lowPairs.length&&g3<80){
+      if(maxColH2()>=target-1)break;
+      var pr=lowPairs[idx%lowPairs.length];idx++;g3++;
+      pr.forEach(function(tr){var ch=parseFloat(tr.style.height)||tr.offsetHeight||16;tr.style.setProperty("height",(ch+1)+"px","important");});
+      if(maxColH2()>target){pr.forEach(function(tr){var ch=parseFloat(tr.style.height)||tr.offsetHeight||17;tr.style.setProperty("height",Math.max(10,ch-1)+"px","important");});break;}
+     }
+    }
+   }catch(_e){}
   }catch(_e){}
   probe.removeChild(pw);document.body.removeChild(probe);
  }catch(e){try{pw.style.zoom="1";}catch(_e){}}

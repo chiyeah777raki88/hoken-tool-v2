@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0713L-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0713m-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3569,7 +3569,7 @@ try{pw.querySelectorAll(".no-print,button,textarea").forEach(function(e){e.remov
 try{pw.querySelectorAll("span").forEach(function(s2){if(/セルに直接入力/.test(s2.textContent||""))s2.remove();});}catch(e){}
 try{pw.querySelectorAll("td div").forEach(function(dv){if(dv.children.length===0&&(dv.textContent||"").indexOf("\n")>=0){var _t=dv.textContent.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});dv.innerHTML=_t.split("\n").join("<br>");}});}catch(e){}
 try{pw.querySelectorAll("td > div").forEach(function(dv){if(!(dv.textContent||"").replace(/\s/g,"")&&!dv.querySelector("svg,img"))dv.parentNode.removeChild(dv);});}catch(e){}
-_fitFillMatrix(pw,1058,700);
+_fitFillMatrix(pw,1058,726);
 pa.appendChild(pw);
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pa.innerHTML="";document.title=_ot;},400);},250);

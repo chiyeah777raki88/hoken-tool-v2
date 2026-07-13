@@ -70,6 +70,10 @@ table.cmpct td:first-child,table.cmpct th:first-child{text-align:left;}
 .only-print{display:none;}
 .tooltip-popup{position:fixed;bottom:20px;left:10px;right:10px;background:#1a2744;color:white;padding:12px 16px;border-radius:8px;font-size:12px;z-index:9999;line-height:1.6;box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .kanyu:not(.cmpct) td, .kanyu:not(.cmpct) th, .kanyu:not(.cmpct) td span, .kanyu:not(.cmpct) th span, .kanyu:not(.cmpct) td b { font-size: 13px !important; }
+/* 給付条件のコンパクト化を画面でも適用(印刷と同じ寸法で測定するため) */
+body.pmatrix #print-area td, body.pmatrix #print-area th { padding: 1px 3px !important; line-height: 1.2 !important; }
+body.pmatrix #print-area td div { min-height: 0 !important; padding: 2px 3px !important; }
+body.pmatrix #print-area .mxdot { width: 9px !important; height: 9px !important; border: none !important; box-shadow: none !important; }
 @media print {
 .hdr, .tabs, .ptabs, .poltabs, .no-print { display: none !important; }
 .only-print{ display:block !important; }
@@ -325,7 +329,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712v-給付条件印刷:文字を実縮小して高さを1枚に収め(改ページに効く)＋幅はzoomで用紙内。芳之font12/zoom0.92で1枚検証。版";
+var APP_VERSION="v2-0712z-給付条件:測定領域を内容幅に(自然幅で正しく縮小)＋目標高さ655px。測定=印刷一致・測定中表示・文字実縮小で1枚。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3558,7 +3562,7 @@ var _mcz=el("div");_mcz.style.cssText="width:1058px;margin:0 auto;text-align:cen
 try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
 document.body.classList.add("psplit","pmatrix");setPageOrient("landscape",6);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){
-try{pw.style.zoom="1";try{pw.querySelectorAll("td,th").forEach(function(c){c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(_e){}if(typeof _clearOv==="function")_clearOv(pw);var _fst=document.getElementById("pm-fs")||document.createElement("style");_fst.id="pm-fs";document.head.appendChild(_fst);function _rh(){var h=0;var _hd=pw.firstChild;if(_hd&&_hd.offsetHeight)h+=_hd.offsetHeight;pw.querySelectorAll("table").forEach(function(tb){h+=tb.offsetHeight;});return h;}function _rw(){var w=0;pw.querySelectorAll("table").forEach(function(tb){w=Math.max(w,tb.scrollWidth,tb.offsetWidth);});return w||pw.scrollWidth;}var _fpx=13;while(_fpx>7){_fst.textContent="body.pmatrix #print-area td,body.pmatrix #print-area th,body.pmatrix #print-area td div,body.pmatrix #print-area td span,body.pmatrix #print-area td b{font-size:"+_fpx+"px !important;}";if(_rh()<=705)break;_fpx--;}var _w=_rw();var sc=Math.min(1,1058/_w);if(!isFinite(sc)||sc<=0)sc=1;pw.style.zoom=sc;}catch(e){}
+try{var _pas=pa.getAttribute("style")||"";pa.style.cssText="display:inline-block;position:fixed;left:-99999px;top:0;background:#fff;z-index:-1;";pw.style.zoom="1";try{pw.querySelectorAll("td,th").forEach(function(c){c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(_e){}if(typeof _clearOv==="function")_clearOv(pw);var _fst=document.getElementById("pm-fs")||document.createElement("style");_fst.id="pm-fs";document.head.appendChild(_fst);function _rh(){var h=0;var _hd=pw.firstChild;if(_hd&&_hd.offsetHeight)h+=_hd.offsetHeight;pw.querySelectorAll("table").forEach(function(tb){h+=tb.offsetHeight;});return h;}function _rw(){var w=0;pw.querySelectorAll("table").forEach(function(tb){w=Math.max(w,tb.scrollWidth,tb.offsetWidth);});return w||pw.scrollWidth;}var _fpx=13;while(_fpx>6){_fst.textContent="body.pmatrix #print-area td,body.pmatrix #print-area th,body.pmatrix #print-area td div,body.pmatrix #print-area td span,body.pmatrix #print-area td b{font-size:"+_fpx+"px !important;padding-top:0px !important;padding-bottom:0px !important;}body.pmatrix #print-area table{page-break-inside:avoid !important;break-inside:avoid !important;}";if(_rh()<=655)break;_fpx--;}var _w=_rw();var sc=Math.min(1,1058/_w);if(!isFinite(sc)||sc<=0)sc=1;pw.style.zoom=sc;pa.setAttribute("style",_pas);}catch(e){}
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pmatrix");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;var _pmfs=document.getElementById("pm-fs");if(_pmfs)_pmfs.remove();},400);},150);
 },350);
 }

@@ -325,7 +325,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0712r-給付条件比較(単独)を中央寄せ＋セル折り返しで1枚に。加入一覧の上下左右いっぱいも継続。版";
+var APP_VERSION="v2-0712t-給付条件印刷:オーバーフロー解除で正しい表幅を測り縮小＋text-alignで中央寄せ(flexの横あふれ回避)。芳之で1枚・見切れ無しを目指す。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3553,12 +3553,12 @@ var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;al
 var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】":"")+"給付条件・免除条件の比較";
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=ymd;
 hd.appendChild(h1);hd.appendChild(h2);
-var pw=el("div");pw.id="pmwrap";pw.style.cssText="transform-origin:top center;display:inline-block;";pw.appendChild(hd);
-var _mcz=el("div");_mcz.style.cssText="display:flex;justify-content:center;align-items:flex-start;width:1058px;margin:0 auto;";_mcz.appendChild(pw);pa.appendChild(_mcz);
+var pw=el("div");pw.id="pmwrap";pw.style.cssText="transform-origin:top left;display:inline-block;";pw.appendChild(hd);
+var _mcz=el("div");_mcz.style.cssText="width:1058px;margin:0 auto;text-align:center;";_mcz.appendChild(pw);pa.appendChild(_mcz);
 try{var _mp=(isProp?propPairs():aPs());if(summaryMember!=="all")_mp=_mp.filter(function(x){return x.member&&x.member.id===summaryMember;});var _mxmid=(_mp[0]&&_mp[0].member&&_mp[0].member.id)||(summaryMember!=="all"?summaryMember:(typeof currentMid!=="undefined"?currentMid:""));var _mxo=isProp?{store:"bigMatrixDataProp",mid:_mxmid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxmid};pw.appendChild(buildBigDiseaseMatrix(_mp.map(function(x){return x.policy;}),_mxo));}catch(e){var er=el("div");er.textContent="表示エラー:"+e.message;pw.appendChild(er);}
 document.body.classList.add("psplit","pmatrix");setPageOrient("landscape",6);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"給付条件比較");
 setTimeout(function(){
-try{pw.style.zoom="1";try{pw.querySelectorAll("td,th").forEach(function(c){c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(_e){}var cw=pw.scrollWidth||pw.offsetWidth,ch=pw.scrollHeight||pw.offsetHeight;var maxW=1058,maxH=730;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
+try{pw.style.zoom="1";try{pw.querySelectorAll("td,th").forEach(function(c){c.style.whiteSpace="normal";c.style.wordBreak="break-word";});}catch(_e){}if(typeof _clearOv==="function")_clearOv(pw);var cw=pw.scrollWidth||pw.offsetWidth;try{pw.querySelectorAll("table").forEach(function(tb){cw=Math.max(cw,tb.scrollWidth,tb.offsetWidth);});}catch(_e2){}var ch=pw.scrollHeight||pw.offsetHeight;var maxW=1058,maxH=730;var sc=Math.min(maxW/cw,maxH/ch);if(!isFinite(sc)||sc<=0)sc=1;sc=Math.min(sc,1.4);pw.style.zoom=sc;}catch(e){}
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");document.body.classList.remove("pmatrix");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},150);
 },350);
 }

@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714e-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714f-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3689,7 +3689,7 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
    });
   }catch(_e){}
   /* 5疾病の病名は疾患ごとに5行固定 */
-  try{pw.querySelectorAll("tr[data-imp] td:first-child").forEach(function(c){var t=(c.textContent||"").replace(/\s/g,"");if(t.indexOf("糖尿病")===0){c.innerHTML="糖尿病<br>高血圧<br>肝硬変<br>腎不全<br>膵疾患";}});}catch(_e){}
+  try{pw.querySelectorAll("td:first-child").forEach(function(c){var t=(c.textContent||"").replace(/\s/g,"");if(t.indexOf("糖尿病")===0){c.innerHTML="糖尿病<br>高血圧<br>肝硬変<br>腎不全<br>膵疾患";}});}catch(_e){}
 
   try{pw.querySelectorAll("td span[data-hira]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp);}catch(_x){}});}catch(_e){}
   try{pw.querySelectorAll("td span[data-hira2]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp.nextSibling);}catch(_x){}});}catch(_e){}

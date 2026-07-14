@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714j-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714k-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3709,15 +3709,17 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
    }
   });}catch(_e){}
   /* 列幅: 左右ペアの内容を合算して同一配分(左右で改行を統一) */
+  function _maxSeg9(t){t=String(t).replace(/悪性新生物/g,"悪性 新生物").replace(/急性心筋梗塞/g,"急性心筋 梗塞").replace(/脳血管疾患/g,"脳血管 疾患");var m=0;t.split(/or|[でとのやにをはが\s\/、。・]+/i).forEach(function(sg){if(sg.length>m)m=sg.length;});return m;}
   function _colLens(tb){var trs=tb.querySelectorAll("tr");var hr2=trs[1];var nd=hr2?hr2.querySelectorAll("th,td").length:6;
-   var lens=[];for(var i=0;i<nd;i++)lens.push(2);
+   var lens=[];var mins=[];for(var i=0;i<nd;i++){lens.push(2);mins.push(2);}
    var hc=hr2?hr2.querySelectorAll("th,td"):[];
    for(var i2=0;i2<hc.length&&i2<nd;i2++){var hl=(hc[i2].textContent||"").replace(/\s/g,"").length;if(hl>lens[i2])lens[i2]=hl;}
-   for(var ri=2;ri<trs.length;ri++){var cells=trs[ri].cells;if(!cells)continue;for(var ci=1;ci<cells.length&&(ci-1)<nd;ci++){var t=(cells[ci].textContent||"").replace(/\s/g,"");if(t==="入力...")t="入力";var L=t.length;if(L>lens[ci-1])lens[ci-1]=L;}}
-   return lens;}
-  function _applyCols(tb,lens){
+   for(var ri=2;ri<trs.length;ri++){var cells=trs[ri].cells;if(!cells)continue;for(var ci=1;ci<cells.length&&(ci-1)<nd;ci++){var t=(cells[ci].textContent||"").replace(/\s/g,"");if(t==="入力...")t="入力";var L=t.length;if(L>lens[ci-1])lens[ci-1]=L;var ms=_maxSeg9(t);if(ms>mins[ci-1])mins[ci-1]=ms;}}
+   return {lens:lens,mins:mins};}
+  function _applyCols(tb,info){
+   var lens=info.lens,mins=info.mins;
    var nd=lens.length;
-   var ws=lens.map(function(L,i3){if(i3>=6)return 5;return Math.max(3.5,Math.min(11,2+L*0.55));});
+   var ws=lens.map(function(L,i3){var base=(i3>=6)?5:Math.max(3.5,Math.min(11,2+L*0.55));var mn=Math.min(9,(mins[i3]||2)+0.7);return Math.max(base,mn);});
    var total=8.5;ws.forEach(function(w){total+=w;});
    var old=tb.querySelector("colgroup");if(old)old.parentNode.removeChild(old);
    var cg=document.createElement("colgroup");var c0=document.createElement("col");c0.style.width=(8.5*100/total).toFixed(3)+"%";cg.appendChild(c0);
@@ -3730,11 +3732,15 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
    var tA0=colDivs[0].querySelectorAll("table"),tB0=colDivs[1].querySelectorAll("table");
    var n0=Math.max(tA0.length,tB0.length);
    for(var i0=0;i0<n0;i0++){
-    var a0=tA0[i0],b0=tB0[i0];var lensU=null;
-    if(a0)lensU=_colLens(a0);
-    if(b0){var lb=_colLens(b0);if(!lensU)lensU=lb;else{var mN=Math.max(lensU.length,lb.length);var mg=[];for(var k0=0;k0<mN;k0++)mg.push(Math.max(lensU[k0]||2,lb[k0]||2));lensU=mg;}}
-    if(a0)_applyCols(a0,lensU);
-    if(b0)_applyCols(b0,lensU);
+    var a0=tA0[i0],b0=tB0[i0];var infoU=null;
+    if(a0)infoU=_colLens(a0);
+    if(b0){var lb=_colLens(b0);
+     if(!infoU)infoU=lb;
+     else{var mN=Math.max(infoU.lens.length,lb.lens.length);var mg={lens:[],mins:[]};
+      for(var k0=0;k0<mN;k0++){mg.lens.push(Math.max(infoU.lens[k0]||2,lb.lens[k0]||2));mg.mins.push(Math.max(infoU.mins[k0]||2,lb.mins[k0]||2));}
+      infoU=mg;}}
+    if(a0)_applyCols(a0,infoU);
+    if(b0)_applyCols(b0,infoU);
    }
   }else{
    wrap.querySelectorAll("table").forEach(function(tb){_applyCols(tb,_colLens(tb));});
@@ -3778,7 +3784,7 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
        if(glue[k3+1])continue;
        var pl=(k3===idx&&toks[k3].p);
        var m3=Math.max(mx,pl?9e8:w3);
-       var p3=pen+(latinAt[k3+1]?W*0.3:0)+((toks[k3+1]&&toks[k3+1].p&&toks[k3+1].s>0.85)?W*0.2:0);
+       var nt9=toks[k3+1];var p3=pen+(latinAt[k3+1]?W*0.3:0)+((nt9&&nt9.p&&nt9.t!=="で"&&nt9.t!=="と")?W*0.2:0);
        if(m3+p3>=bestScore)continue;
        arr.push(k3+1);rec(k3+1,left-1,arr,m3,p3);arr.pop();
       }

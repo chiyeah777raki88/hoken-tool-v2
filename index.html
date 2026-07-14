@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714h-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714i-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3767,23 +3767,24 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
     var toks=_tokDiv(dv);if(!toks.length)return;
     var W=Math.max(20,td.clientWidth-6);
     var ws=toks.map(function(tk){_cx.font=(tk.b?"700 ":"")+fs+"px "+_fam;return _cx.measureText(tk.t).width*(tk.s||1);});
-    var glue=[];for(var gi2=1;gi2<toks.length;gi2++){glue[gi2]=(/^[A-Za-z]+$/.test(toks[gi2-1].t)||/^[A-Za-z]+$/.test(toks[gi2].t));}
+    var glue=[];var latinAt=[];for(var gi2=0;gi2<toks.length;gi2++){latinAt[gi2]=/^[A-Za-z]+$/.test(toks[gi2].t);}for(var gi3=1;gi3<toks.length;gi3++){glue[gi3]=latinAt[gi3-1];}
     function bestCuts(L){
-     var best=null,bestMax=1e9;
-     function rec(idx,left,arr,mx){
-      if(left===1){var w2=0,pOnly=(toks.length-idx===1&&toks[idx].p);for(var k2=idx;k2<toks.length;k2++)w2+=ws[k2];var m2=Math.max(mx,pOnly?9e8:w2);if(m2<bestMax){bestMax=m2;best=arr.slice();}return;}
+     var best=null,bestScore=1e9,bestReal=1e9;
+     function rec(idx,left,arr,mx,pen){
+      if(left===1){var w2=0,pOnly=(toks.length-idx===1&&toks[idx].p);for(var k2=idx;k2<toks.length;k2++)w2+=ws[k2];var real=Math.max(mx,pOnly?9e8:w2);var sc=real+pen;if(sc<bestScore){bestScore=sc;bestReal=real;best=arr.slice();}return;}
       var w3=0;
       for(var k3=idx;k3<=toks.length-left;k3++){
        w3+=ws[k3];
        if(glue[k3+1])continue;
        var pl=(k3===idx&&toks[k3].p);
        var m3=Math.max(mx,pl?9e8:w3);
-       if(m3>=bestMax)continue;
-       arr.push(k3+1);rec(k3+1,left-1,arr,m3);arr.pop();
+       var p3=pen+(latinAt[k3+1]?W*0.3:0);
+       if(m3+p3>=bestScore)continue;
+       arr.push(k3+1);rec(k3+1,left-1,arr,m3,p3);arr.pop();
       }
      }
-     rec(0,L,[],0);
-     return {cuts:best,max:bestMax};
+     rec(0,L,[],0,0);
+     return {cuts:best,max:bestReal};
     }
     var need=1,tw=0,cnt=0;
     for(var i2=0;i2<toks.length;i2++){if(cnt>0&&tw+ws[i2]>W){need++;tw=0;cnt=0;}tw+=ws[i2];cnt++;}
@@ -4081,7 +4082,7 @@ function _buildCmpSidePages(quiet){
  wrap.appendChild(col);
  });
  pw.appendChild(wrap);
- _fitFillCmpMx(pw,wrap,1058,726);
+ _fitFillCmpMx(pw,wrap,1058,742);
  pages.push(pw);
  })();
  return pages;

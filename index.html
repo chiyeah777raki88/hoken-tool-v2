@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714f-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714g-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3739,6 +3739,64 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
   }else{
    wrap.querySelectorAll("table").forEach(function(tb){_applyCols(tb,_colLens(tb));});
   }
+  /* 手動改行エンジン: トークン幅を実測し、重要行は3行へ均等配分(助詞のみの行は禁止)して<br>で確定 */
+  var _cv=document.createElement("canvas"),_cx=_cv.getContext("2d");var _fam=null;
+  function _esc9(x){return String(x).replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});}
+  function _tokDiv(dv){
+   if(dv.__toks)return dv.__toks;
+   var toks=[];
+   function pushTxt(t,isB){if(!t)return;var parts=t.match(/[A-Za-z0-9,.%\u00a5]+|[^A-Za-z0-9,.%\u00a5]+/g)||[t];
+    parts.forEach(function(pt){pt=pt.replace(/^\s+|\s+$/g,"");if(!pt)return;toks.push({t:pt,b:!!isB,s:1,h:(isB?"<strong>"+_esc9(pt)+"</strong>":_esc9(pt))});});}
+   (function walk(n){Array.prototype.forEach.call(n.childNodes,function(ch){
+    if(ch.nodeType===3){pushTxt(ch.textContent,false);return;}
+    if(ch.nodeName==="WBR"||ch.nodeName==="BR")return;
+    var isH=ch.getAttribute&&(ch.getAttribute("data-hira")||ch.getAttribute("data-hira2"));
+    if(isH){toks.push({t:ch.textContent,b:false,s:(ch.getAttribute("data-hira")?0.82:0.88),p:1,h:ch.outerHTML});return;}
+    if(ch.nodeName==="STRONG"){var seg="";Array.prototype.forEach.call(ch.childNodes,function(c2){if(c2.nodeName==="WBR"){if(seg)pushTxt(seg,true);seg="";}else seg+=(c2.textContent||"");});if(seg)pushTxt(seg,true);return;}
+    walk(ch);
+   });})(dv);
+   dv.__toks=toks;return toks;
+  }
+  function _mlb(root,fs){
+   try{
+   if(!_fam){var td0=root.querySelector("td");_fam=td0?getComputedStyle(td0).fontFamily:"sans-serif";}
+   root.querySelectorAll("td div").forEach(function(dv){
+    if(dv.querySelector("div,svg,input,textarea,table"))return;
+    var td=dv.closest?dv.closest("td"):null;if(!td)return;
+    var txt=(dv.textContent||"").replace(/\s/g,"");if(!txt||txt.indexOf("入力")===0)return;
+    var toks=_tokDiv(dv);if(!toks.length)return;
+    var W=Math.max(20,td.clientWidth-6);
+    var ws=toks.map(function(tk){_cx.font=(tk.b?"700 ":"")+fs+"px "+_fam;return _cx.measureText(tk.t).width*(tk.s||1);});
+    function bestCuts(L){
+     var best=null,bestMax=1e9;
+     function rec(idx,left,arr,mx){
+      if(left===1){var w2=0,pOnly=(toks.length-idx===1&&toks[idx].p);for(var k2=idx;k2<toks.length;k2++)w2+=ws[k2];var m2=Math.max(mx,pOnly?9e8:w2);if(m2<bestMax){bestMax=m2;best=arr.slice();}return;}
+      var w3=0;
+      for(var k3=idx;k3<=toks.length-left;k3++){
+       w3+=ws[k3];
+       var pl=(k3===idx&&toks[k3].p);
+       var m3=Math.max(mx,pl?9e8:w3);
+       if(m3>=bestMax)continue;
+       arr.push(k3+1);rec(k3+1,left-1,arr,m3);arr.pop();
+      }
+     }
+     rec(0,L,[],0);
+     return {cuts:best,max:bestMax};
+    }
+    var need=1,tw=0,cnt=0;
+    for(var i2=0;i2<toks.length;i2++){if(cnt>0&&tw+ws[i2]>W){need++;tw=0;cnt=0;}tw+=ws[i2];cnt++;}
+    var isImp=!!(td.parentNode&&td.parentNode.hasAttribute&&td.parentNode.hasAttribute("data-imp"));
+    var L=need;
+    if(isImp&&toks.length>=3&&need<3){var t3=bestCuts(3);if(t3.cuts&&t3.max<9e8&&t3.max<=W)L=3;}
+    var res=null;
+    if(L>1&&toks.length>1){var bb=bestCuts(Math.min(L,toks.length));res=bb.cuts;}
+    var cutSet={};(res||[]).forEach(function(c3){cutSet[c3]=1;});
+    var html="";
+    for(var i3=0;i3<toks.length;i3++){if(i3>0&&cutSet[i3])html+="<br>";html+=toks[i3].h;}
+    dv.innerHTML=html;
+   });
+   }catch(e){}
+  }
   function _sF(root,fs,py,lh){
    root.querySelectorAll("th").forEach(function(c){var big=(c.colSpan&&c.colSpan>1)||(c.rowSpan&&c.rowSpan>1);
     c.style.setProperty("font-size",(fs+(big?2:0))+"px","important");
@@ -3781,7 +3839,7 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
   /* フォント探索: 3行保証+左右同期まで込みで収まる最大サイズを選ぶ */
   var fsList=[11,10,9,8,7,6];var fs=6;
   for(var fi=0;fi<fsList.length;fi++){
-   fs=fsList[fi];clearH();_sF(wrap,fs,1,"1.12");min3(fs);syncRows();
+   fs=fsList[fi];clearH();_sF(wrap,fs,1,"1.12");_mlb(wrap,fs);min3(fs);syncRows();
    if(maxColH2()<=target)break;
   }
   /* 余白を一括配分: 60%を3大(がん・心臓・脳)へ、40%を他の全行へ */

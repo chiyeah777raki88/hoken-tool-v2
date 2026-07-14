@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714d-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714e-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3673,6 +3673,24 @@ function _fitFillCmpMx(pw,wrap,maxW,maxH){
   try{pw.querySelectorAll("td span[style*='82em']").forEach(function(sp){sp.setAttribute("data-hira","1");});}catch(_e){}
   try{pw.querySelectorAll("td strong").forEach(function(st2){if(st2.textContent==="上皮内"){var nx=st2.nextSibling;if(nx&&nx.nodeType===3){var m=nx.textContent.match(/^(癌|がん)/);if(m){st2.textContent+=m[0];nx.textContent=nx.textContent.slice(m[0].length);}}}});}catch(_e){}
   try{_shrinkParticles(pw);}catch(_e){}
+  /* 複合語の分割位置を明示(悪性|新生物・急性心筋|梗塞・脳血管|疾患) */
+  try{
+   var SPLITS=[["悪性新生物","悪性","新生物"],["急性心筋梗塞","急性心筋","梗塞"],["脳血管疾患","脳血管","疾患"]];
+   pw.querySelectorAll("td strong").forEach(function(st2){var t=st2.textContent;SPLITS.forEach(function(sp){if(t===sp[0]){st2.textContent="";st2.appendChild(document.createTextNode(sp[1]));st2.appendChild(document.createElement("wbr"));st2.appendChild(document.createTextNode(sp[2]));}});});
+   pw.querySelectorAll("td").forEach(function(td){
+    var walker=document.createTreeWalker(td,NodeFilter.SHOW_TEXT,null,false);var nodes=[];
+    while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(function(tn){var t=tn.textContent;var hit=null;SPLITS.forEach(function(sp){if(!hit&&t.indexOf(sp[0])>=0)hit=sp;});if(!hit)return;
+     var idx=t.indexOf(hit[0]);var frag=document.createDocumentFragment();
+     frag.appendChild(document.createTextNode(t.slice(0,idx+hit[1].length)));
+     frag.appendChild(document.createElement("wbr"));
+     frag.appendChild(document.createTextNode(t.slice(idx+hit[1].length)));
+     tn.parentNode.replaceChild(frag,tn);});
+   });
+  }catch(_e){}
+  /* 5疾病の病名は疾患ごとに5行固定 */
+  try{pw.querySelectorAll("tr[data-imp] td:first-child").forEach(function(c){var t=(c.textContent||"").replace(/\s/g,"");if(t.indexOf("糖尿病")===0){c.innerHTML="糖尿病<br>高血圧<br>肝硬変<br>腎不全<br>膵疾患";}});}catch(_e){}
+
   try{pw.querySelectorAll("td span[data-hira]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp);}catch(_x){}});}catch(_e){}
   try{pw.querySelectorAll("td span[data-hira2]").forEach(function(sp){try{sp.parentNode.insertBefore(document.createElement("wbr"),sp.nextSibling);}catch(_x){}});}catch(_e){}
   try{pw.querySelectorAll("tr").forEach(function(tr2){var c0=tr2.cells&&tr2.cells[0];var t0=c0?(c0.textContent||"").replace(/\s/g,""):"";if(t0==="がん"||t0==="心臓"||t0==="脳"||t0.indexOf("糖尿病")===0)tr2.setAttribute("data-imp","1");});}catch(_e){}

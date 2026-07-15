@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0714m-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
+var APP_VERSION="v2-0714n-給付条件:セル内の強制改行を印刷時は解除し自然に流し込み(行数半減→文字大)・両表を用紙幅いっぱいに。版";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4136,6 +4136,7 @@ function buildCmpSideTab(){
  var pages=_buildCmpSidePages(true);
  if(!pages){var e=el("p");e.style.cssText="font-size:12px;color:#888;";e.textContent="証券がありません。";cont.appendChild(e);return cont;}
  var sc=el("div");sc.style.cssText="overflow-x:auto;";
+ try{var _z=Math.min(1,(window.innerWidth-60)/1092);if(_z<1)sc.style.zoom=_z;}catch(_e){}
  pages.forEach(function(pw,i){
  var frame=el("div");frame.style.cssText="width:1058px;background:#fff;border:1px solid #ccc;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:14px;margin:0 0 18px;box-sizing:content-box;";
  frame.appendChild(pw);sc.appendChild(frame);

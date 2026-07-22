@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722e(からだエール自動ポッチ:がん特約は1回目通院にも)";
+var APP_VERSION="v2-0722f(全証券自動ポッチ・免除なし/2回目なしは✕で表現)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4702,17 +4702,22 @@ tbl.appendChild(tr2);
 outerDiv.appendChild(tbl);sec2.appendChild(outerDiv);
 return sec2;
 }
-function autoAssign(){
-function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];cd.na=false;if(cd.polIdxs.indexOf(pi)<0)cd.polIdxs.push(pi);}
+function _applyAutoRules(K,M,pols,additive){
+/* 入力タブの内容から給付・免除のポッチを判定。additive=trueなら追加のみ(手動ポッチ・✕セルは保持) */
+var changed=false;
+function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;changed=true;}if(!cd.polIdxs)cd.polIdxs=[];if(cd.na){if(additive)return;cd.na=false;changed=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}}
 function condCol(c){var m={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};return m[c]||"a";}
-var K=BMX.kyufu,M=BMX.menjo;
-Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
-Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
-var _allP=opts.pols?opts.pols:((typeof aPs==="function")?aPs().map(function(x){return x.policy;}):policies);
-_allP.forEach(function(p){
-/* からだエール(第一ネオ/よく使う更新型8疾病): 3大=年1回・入院要(がん特約付きはがん外来OK)、残り5疾病=1回のみ入院、更新型のため免除なし */
+function naMark(data,tt,rid,cid,pi){/*「この証券は該当なし」を✕で表現(他証券の色ポッチがあるセルには付けない)*/
+ var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];
+ if(!cd){cd=mkCell("",[],false);cd.na=true;data[ck]=cd;changed=true;}
+ if(!cd.polIdxs)cd.polIdxs=[];
+ if(!cd.na){if(cd.polIdxs.length>0)return;cd.na=true;changed=true;}
+ if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}
+}
+pols.forEach(function(p){
+/* からだエール: 3大=年1回・入院要(がん特約付きはがん外来OK・1回目も通院列)、残り5疾病=1回のみ入院、更新型のため免除なし */
 var _isKarada=(((p.polName||"")+(p.company||"")+(p.insType||"")+(p.notes||"")).indexOf("からだエール")>=0);
-if(p.cancerOn||(+p.c1st>0)){if(+p.c1st>0){if(p.cCond==="W"){setDot(K,"kyufu","cancer","a",p.id);}else{setDot(K,"kyufu","cancer","b",p.id);if(p.cCond==="B")setDot(K,"kyufu","cancer","e",p.id);}}if(+p.cancerHosp>0){setDot(K,"kyufu","cancer","c",p.id);if(p.cCond==="B")setDot(K,"kyufu","cancer","d",p.id);}if(+p.cancerOut2>0)setDot(K,"kyufu","cancer","f",p.id);}
+if(p.cancerOn||(+p.c1st>0)){if(+p.c1st>0){if(p.cCond==="W"){setDot(K,"kyufu","cancer","a",p.id);}else{setDot(K,"kyufu","cancer","b",p.id);if(p.cCond==="B")setDot(K,"kyufu","cancer","e",p.id);}}if(+p.cancerHosp>0){setDot(K,"kyufu","cancer","f",p.id);}}
 if(p.bigOn&&+p.h1st>0)setDot(K,"kyufu","heart",condCol(p.hCond),p.id);
 if(p.bigOn&&+p.b1st>0)setDot(K,"kyufu","brain",condCol(p.bCond),p.id);
 if(p.disType&&p.disType!=="none"){var ds=p.disScope||"5big";var dcol=(ds==="7big")?"b":(ds==="all"||ds==="grade2")?"c":"a";setDot(K,"kyufu","dis",dcol,p.id);}
@@ -4729,20 +4734,29 @@ if(et==="cancer")setDot(M,"menjo","m_cancer","b",p.id);
 else if(et==="cancer_jhi")setDot(M,"menjo","m_cancer","c",p.id);
 else if(et==="3big"||et==="5big"||et==="8big"||et==="multi"){setDot(M,"menjo","m_cancer",cCol2,p.id);setDot(M,"menjo","m_heart",mjCol(),p.id);setDot(M,"menjo","m_brain",mjCol(),p.id);}
 else if(et==="care")setDot(M,"menjo","m_care","c",p.id);}
+/* 免除に該当しない証券(からだエール含む)は免除条件の一番左(①)に自動で✕ */
+if(_isKarada||!et||et==="none"||et===""){
+ ["m_cancer","m_heart","m_brain"].forEach(function(rid){naMark(M,"menjo",rid,"a",p.id);});
+}
 if(_isKarada){
- /* 3大の2回目以降: 1年後(入院要)。がん特約付きならがんは外来OK */
  setDot(K,"kyufu","cancer",(p.cancerOn?"s4":"s3"),p.id);
  setDot(K,"kyufu","heart","s3",p.id);
  setDot(K,"kyufu","brain","s3",p.id);
- /* 1回目が未割当なら1泊入院列(⑥)に */
  if(p.cancerOn||!(+p.c1st>0))setDot(K,"kyufu","cancer","f",p.id);/*がん特約付きは1回目も通院列*/
  if(!(+p.h1st>0))setDot(K,"kyufu","heart","f",p.id);
  if(!(+p.b1st>0))setDot(K,"kyufu","brain","f",p.id);
- /* 残り5疾病: 1回のみ(入院)→1回目⑥・2回目以降は無し */
  setDot(K,"kyufu","metabo","f",p.id);
- setDot(K,"kyufu","metabo","s1",p.id);
+ naMark(K,"kyufu","metabo","s1",p.id);/*2回目以降なし=✕で表現(1回ぽっきりと分かる)*/
 }
 });
+return changed;
+}
+function autoAssign(){
+var K=BMX.kyufu,M=BMX.menjo;
+Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
+Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
+var _allP=opts.pols?opts.pols:((typeof aPs==="function")?aPs().map(function(x){return x.policy;}):policies);
+_applyAutoRules(K,M,_allP,false);
 saveState();
 }
 function rebuild(){
@@ -4765,25 +4779,9 @@ try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
 var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=BMX[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
 if(!_anyDot)autoAssign();
-/* からだエールはボタン不要で常時自動反映(追加のみ・手動ポッチは消さない) */
+/* 全証券: 入力タブの内容からボタン不要で常時自動反映(追加のみ・手動ポッチ/✕は保持) */
 try{
- var _kK=BMX.kyufu,_kChanged=false;
- function _kSet(rid,cid,pi){var ck="kyufu|"+rid+"|"+cid;var cd=_kK[ck];if(!cd){cd=mkCell("",[],false);_kK[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];if(cd.na){cd.na=false;_kChanged=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);_kChanged=true;}}
- var _cc9={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};
- policies.forEach(function(p){
-  var _isK=(((p.polName||"")+(p.company||"")+(p.insType||"")+(p.notes||"")).indexOf("からだエール")>=0);
-  if(!_isK)return;
-  if(+p.c1st>0)_kSet("cancer",(p.cCond==="W"?"a":"b"),p.id);else if(!p.cancerOn)_kSet("cancer","f",p.id);
-  if(p.cancerOn)_kSet("cancer","f",p.id);/*がん特約付きは1回目も通院列に色*/
-  _kSet("heart",(+p.h1st>0?(_cc9[p.hCond]||"f"):"f"),p.id);
-  _kSet("brain",(+p.b1st>0?(_cc9[p.bCond]||"f"):"f"),p.id);
-  _kSet("cancer",(p.cancerOn?"s4":"s3"),p.id);
-  _kSet("heart","s3",p.id);
-  _kSet("brain","s3",p.id);
-  _kSet("metabo","f",p.id);
-  _kSet("metabo","s1",p.id);
- });
- if(_kChanged)saveState();
+ if(_applyAutoRules(BMX.kyufu,BMX.menjo,policies,true))saveState();
 }catch(_e){}
 }catch(e){}
 rebuild();

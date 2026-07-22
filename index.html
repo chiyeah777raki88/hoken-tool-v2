@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722g(2回目が出ない証券は無し列に✕=からだエール等の複数回と対比)";
+var APP_VERSION="v2-0722h(✕セルにも証券色の背景=どの証券が1回ぽっきり/免除なしか色で分かる)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4620,9 +4620,16 @@ var w=col.g==="second"?"54px":"56px";
 var td=el("td");
 td.style.cssText="padding:0;border:1px solid #ddd;border-left:"+cellBorder(cd)+";vertical-align:"+(row.id==="metabo"?"middle":"top")+";min-width:"+w+";position:relative;";
 if(cd.na){
-// ✕: show text + diagonal lines overlay (like Excel)
+// ✕: show text + diagonal lines overlay (like Excel)。該当証券の色も背景に敷く(どの証券が✕か分かる)
 td.style.position="relative";
-var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:36px;background:#fff5f5;";
+var _naBg="#fff5f5";
+try{
+ var _ncols=(cd.polIdxs||[]).map(function(pid){var pi2=_pid2idx(pid);return pi2<0?null:POL_COLS[pi2%POL_COLS.length];}).filter(Boolean);
+ function _hexNA(h,a){h=String(h).replace("#","");if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);return "rgba("+r+","+g+","+b+","+a+")";}
+ if(_ncols.length===1){_naBg=_hexNA(_ncols[0],0.28);}
+ else if(_ncols.length>1){var _nseg=100/_ncols.length;_naBg="linear-gradient(90deg,"+_ncols.map(function(c9,ci9){return _hexNA(c9,0.30)+" "+(_nseg*ci9).toFixed(2)+"% "+(_nseg*(ci9+1)).toFixed(2)+"%";}).join(",")+")";}
+}catch(_e){}
+var naWrap=el("div");naWrap.style.cssText="position:relative;min-height:36px;background:"+_naBg+";";
 var naTxt=el("div");naTxt.style.cssText="padding:3px;font-size:12px;color:#333;word-break:break-all;white-space:pre-wrap;";naTxt.textContent=cd.text||"";
 // Diagonal lines SVG overlay
 var naOver=document.createElementNS("http://www.w3.org/2000/svg","svg");

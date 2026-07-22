@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722k(一覧:3大を連続配置+3大いずれか1回タグ・期間欄に給付後終了)";
+var APP_VERSION="v2-0722k2(3大連続配置の修復版)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1276,7 +1276,6 @@ var DET=[
 {k:"advLump",l:"先進医療一時金",f:"advancedMedicalLump",grp:"保障"},
 {k:"cancer",l:"がん一時金",f:"c1st",grp:"保障",conds:[{f:"cCond",o:[{v:"A",l:"1回目:悪性のみ"},{v:"B",l:"1回目:上皮内含む"},{v:"W",l:"1回目:60日就業不能"}]},{f:"cancer2ndCond",o:[{v:"",l:"2回目—"},{v:"none",l:"2回目なし"},{v:"2y",l:"2回目:2年後"},{v:"1y",l:"2回目:1年後"},{v:"out",l:"2回目:外来OK"}]},{f:"cancer2ndReq",o:REQ2},{f:"cancerInterval",o:INTV}]},
 {k:"heart",l:"心疾患",f:"h1st",grp:"保障",conds:[{f:"hCond",o:HBOPTS},{f:"heartSecond",o:[{v:"same",l:"2回目:同条件"},{v:"none",l:"2回目なし"},{v:"2y",l:"2回目:2年後"},{v:"1y",l:"2回目:1年後"}]},{f:"heart2ndReq",o:REQ2},{f:"heartInterval",o:INTV}]},
-{k:"brain",l:"脳血管疾患",u:"万",grp:"保障",detail:true,g:function(p){return p.bigOn?(+p.b1st||0):0;}},
 {k:"cout",l:"がん通院/治療",f:"cancerOut2",grp:"保障",cu:"円",conds:[{f:"cancerOutReq",o:["","入院前後","がん治療通院","退院後のみ","上限日数あり"]}]},
 {k:"cinsitu",l:"がん診断(上皮内)",f:"cInSitu",grp:"保障"},
 {k:"chosp",l:"がん入院(日額)",f:"cancerHosp",grp:"保障",cu:"円"},
@@ -3183,13 +3182,14 @@ function kanyuRowDefs(){var _accAges=_getAccAges();return [
 {k:"flump",l:"女性疾病一時金",u:"万",grp:"保障",g:function(p){return +p.femaleLump||0;}},
 {k:"out",l:"通院",u:"円",grp:"保障",g:function(p){return +p.outAmount||0;}},
 {k:"cancer",l:"がん一時金",u:"万",grp:"保障",detail:true,g:function(p){return (p.cancerOn?(+p.c1st||0):0)+((p.cancerContinue&&p.cancerContinueType==="annual")?(+p.cancerContinueAmount||0):0);}},
+{k:"heart",l:"心疾患",u:"万",grp:"保障",detail:true,g:function(p){return p.bigOn?(+p.h1st||0):0;}},
+{k:"brain",l:"脳血管疾患",u:"万",grp:"保障",detail:true,g:function(p){return p.bigOn?(+p.b1st||0):0;}},
+{k:"cout",l:"がん通院/治療",u:"",grp:"保障",detail:true,noSum:true,g:function(p){return (+p.cancerMonthly||0)||(+p.cancerOut2||0);},disp:function(p){if(+p.cancerMonthly>0)return (+p.cancerMonthly).toLocaleString()+"万/月";if(+p.cancerOut2>0)return (+p.cancerOut2).toLocaleString()+"円/日";return "";}},
 {k:"cinsitu",l:"がん診断(上皮内)",u:"万",grp:"保障",g:function(p){return +p.cInSitu||0;}},
 {k:"chosp",l:"がん入院",u:"円",grp:"保障",g:function(p){return +p.cancerHosp||0;}},
-{k:"cout",l:"がん通院/治療",u:"",grp:"保障",detail:true,noSum:true,g:function(p){return (+p.cancerMonthly||0)||(+p.cancerOut2||0);},disp:function(p){if(+p.cancerMonthly>0)return (+p.cancerMonthly).toLocaleString()+"万/月";if(+p.cancerOut2>0)return (+p.cancerOut2).toLocaleString()+"円/日";return "";}},
 {k:"csurg",l:"がん手術",u:"万",grp:"保障",g:function(p){return +p.cancerSurg||0;}},
 {k:"cchemo",l:"がん化学療法",u:"万",grp:"保障",g:function(p){return +p.cancerChemo||0;}},
 {k:"crad",l:"がん放射線",u:"万",grp:"保障",g:function(p){return +p.cancerRadiation||0;}},
-{k:"heart",l:"心疾患",u:"万",grp:"保障",detail:true,g:function(p){return p.bigOn?(+p.h1st||0):0;}},
 {k:"adv",l:"先進医療",u:"万",grp:"保障",g:function(p){return p.advancedMedical?(+p.advancedMedicalAmount||0):0;}},
 {k:"dislump",l:"就業不能一時金",u:"万",grp:"保障",detail:true,g:function(p){return (p.disType&&p.disType!=="none")?(+p.disLump||0):0;}},
 {k:"dis",l:"就業不能(月額)",u:"万/月",grp:"保障",detail:true,g:function(p){return (p.disType&&p.disType!=="none")?(+p.disMonthly||0):0;}},

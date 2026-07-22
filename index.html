@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722b(最終更新日はタイトルに自動表示)";
+var APP_VERSION="v2-0722c(保障グラフ:更新後終身の連動・死亡積み上げは長い順に下から)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2019,6 +2019,12 @@ wrap.appendChild(plot);
 return wrap;
 }
 
+function _covEndAge(p,def){
+ var t=p.dlPeriodType||"";
+ if(t.indexOf("終身")>=0)return 120;/*終身・更新後終身(からだエール型:3年更新→70歳から終身)は終身扱い*/
+ if(t==="年更新"){var e=+p.dlPeriodEnd||0;if(e>=20)return e;var re=+p.renewalEndAge||0;if(re>=20)return re;return def||100;}
+ return (+p.dlPeriodEnd>0)?+p.dlPeriodEnd:(def||100);
+}
 function buildGraphTab(){
 var cont=el("div","content");
 if(summaryMember!=="all"&&!state.family.some(function(fm){return fm.id===summaryMember;}))summaryMember="all";
@@ -2038,6 +2044,13 @@ var ap=aPs();if(summaryMember!=="all")ap=ap.filter(function(x){return x.member&&
 var dp=ap.filter(function(x){var p=x.policy;return (+p.dlAmount>0)||(+p.dlReducedAmount>0)||(p.deathLines&&p.deathLines.length>0)||(p.deathType==="annuity"&&+p.daAmount>0)||(p.deathType==="both")||(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0);});
 var ages=[];for(var a=baseAge;a<=100;a++)ages.push(a);
 var dSets=[];
+/* 積み上げ順: 保障が長いものほど下(終身が最下段)。上に行くほど早く途切れる */
+function _dEnd(x){var p=x.policy;var e=0;
+ if(p.deathLines&&p.deathLines.length){p.deathLines.forEach(function(dl){var d=(+dl.endAge>0)?+dl.endAge:120;if(d>e)e=d;});}
+ else e=_covEndAge(p,100);
+ if((p.deathType==="annuity"||p.deathType==="both")&&+p.daAmount>0){var e2=+p.daPeriodEnd||65;if(e2>e)e=e2;}
+ return e;}
+dp=dp.slice().sort(function(a,b){var d=_dEnd(b)-_dEnd(a);if(d)return d;var am=(+b.policy.dlAmount||0)-(+a.policy.dlAmount||0);return am;});
 dp.forEach(function(x,ci){
 var p=x.policy,m=x.member;
 var mAge=getAge(m.dob)||baseAge;
@@ -2047,8 +2060,8 @@ var col=hC?CARE_COLS[careCI%CARE_COLS.length]:(p.chartColor&&p.chartColor!==""?p
 var data=ages.map(function(a2){
 var ma=a2-(baseAge-mAge),v=0;
 if(p.deathLines&&p.deathLines.length){p.deathLines.forEach(function(dl){var amt=+dl.amount||0;if(amt>10000)amt=Math.round(amt/10000);var end=(+dl.endAge>0)?+dl.endAge:120;if(amt>0&&ma>0&&ma<=end)v+=amt;});}
-else if((+p.dlAmount>0||+p.dlReducedAmount>0)&&!(+p.daAmount>0)){var en=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||100);var dlAmt=(p.dlAmount||0)>10000?Math.round((p.dlAmount||0)/10000):(p.dlAmount||0);var redAmt=(+p.dlReducedAmount>0)?((+p.dlReducedAmount>10000)?Math.round(+p.dlReducedAmount/10000):+p.dlReducedAmount):0;if(ma>0&&ma<=en){v+=(redAmt>0&&+p.dlPayEnd>0&&ma>+p.dlPayEnd)?redAmt:dlAmt;}}
-if(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0){var en3=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||90);if(ma>0&&ma<=en3)v+=Math.max(p.h1st||0,p.b1st||0,p.c1st||0);}
+else if((+p.dlAmount>0||+p.dlReducedAmount>0)&&!(+p.daAmount>0)){var en=_covEndAge(p,100);var dlAmt=(p.dlAmount||0)>10000?Math.round((p.dlAmount||0)/10000):(p.dlAmount||0);var redAmt=(+p.dlReducedAmount>0)?((+p.dlReducedAmount>10000)?Math.round(+p.dlReducedAmount/10000):+p.dlReducedAmount):0;if(ma>0&&ma<=en){v+=(redAmt>0&&+p.dlPayEnd>0&&ma>+p.dlPayEnd)?redAmt:dlAmt;}}
+if(p.bigOn&&p.insType&&p.insType.indexOf("3大疾病")>=0){var en3=_covEndAge(p,90);if(ma>0&&ma<=en3)v+=Math.max(p.h1st||0,p.b1st||0,p.c1st||0);}
 if((p.deathType==="annuity"||p.deathType==="both")&&p.daAmount>0){
 var endAge3=p.daPeriodEnd||65;var minG=p.daMinGuarantee||0;
 if(ma>0&&ma<endAge3){var remYrs=Math.max(minG,endAge3-ma);v+=p.daAmount*12*remYrs;}
@@ -2079,14 +2092,14 @@ var mAge2=getAge(m.dob)||baseAge;
 var ma=a2-(baseAge-mAge2);
 var pt=p.dlPayType||"終身払";var pe2;
 if(pt.indexOf("更新型")>=0)pe2=p.dlPeriodEnd||90;
-else if(pt==="保険期間と同じ")pe2=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||100);
+else if(pt==="保険期間と同じ")pe2=(p.dlPeriodType==="年更新"||p.dlPeriodType==="更新後終身")?_covEndAge(p,100):(p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||100));
 else if(pt==="終身払"||pt.indexOf("終身払")>=0)pe2=120;
 else if(pt==="一時払")pe2=0;
 else if(pt==="60歳払済")pe2=60;
 else if(pt==="65歳払済")pe2=65;
 else if(pt==="70歳払済")pe2=70;
 else if(pt==="80歳払済")pe2=80;
-else pe2=p.dlPayEnd>0?p.dlPayEnd:(p.dlPeriodType==="終身"?120:(p.dlPeriodEnd||100));
+else pe2=p.dlPayEnd>0?p.dlPayEnd:_covEndAge(p,100);
 if(ma>0&&a2<=pe2){
 var actualPrem=toM(p);
 if(p.renewalRates&&p.renewalRates.length>0){
@@ -2701,7 +2714,7 @@ var row={age:ag};row["NISA"]=Math.round(nR*drawdownRatio)||0;row["iDeCo"]=Math.r
 pProjs.forEach(function(x){
 var p=x.policy;
 // Check policy end age
-var pEnd=p.dlPeriodType==="終身"?120:(p.dlPeriodEnd>0?p.dlPeriodEnd:120);
+var pEnd=_covEndAge(p,120);
 if(ag>pEnd){row[polLabel(p)]=0;return;}
 var v=Math.round(insV[p.id])||0;
 // Fallback: only if no specific asset value is defined

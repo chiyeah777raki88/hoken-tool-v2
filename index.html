@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722d(保障グラフ連動・死亡積み上げ順・からだエール自動割当)";
+var APP_VERSION="v2-0722e(からだエール自動ポッチ:がん特約は1回目通院にも)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4735,7 +4735,7 @@ if(_isKarada){
  setDot(K,"kyufu","heart","s3",p.id);
  setDot(K,"kyufu","brain","s3",p.id);
  /* 1回目が未割当なら1泊入院列(⑥)に */
- if(!(+p.c1st>0)&&!p.cancerOn)setDot(K,"kyufu","cancer","f",p.id);
+ if(p.cancerOn||!(+p.c1st>0))setDot(K,"kyufu","cancer","f",p.id);/*がん特約付きは1回目も通院列*/
  if(!(+p.h1st>0))setDot(K,"kyufu","heart","f",p.id);
  if(!(+p.b1st>0))setDot(K,"kyufu","brain","f",p.id);
  /* 残り5疾病: 1回のみ(入院)→1回目⑥・2回目以降は無し */
@@ -4765,6 +4765,26 @@ try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
 var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=BMX[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
 if(!_anyDot)autoAssign();
+/* からだエールはボタン不要で常時自動反映(追加のみ・手動ポッチは消さない) */
+try{
+ var _kK=BMX.kyufu,_kChanged=false;
+ function _kSet(rid,cid,pi){var ck="kyufu|"+rid+"|"+cid;var cd=_kK[ck];if(!cd){cd=mkCell("",[],false);_kK[ck]=cd;}if(!cd.polIdxs)cd.polIdxs=[];if(cd.na){cd.na=false;_kChanged=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);_kChanged=true;}}
+ var _cc9={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};
+ policies.forEach(function(p){
+  var _isK=(((p.polName||"")+(p.company||"")+(p.insType||"")+(p.notes||"")).indexOf("からだエール")>=0);
+  if(!_isK)return;
+  if(+p.c1st>0)_kSet("cancer",(p.cCond==="W"?"a":"b"),p.id);else if(!p.cancerOn)_kSet("cancer","f",p.id);
+  if(p.cancerOn)_kSet("cancer","f",p.id);/*がん特約付きは1回目も通院列に色*/
+  _kSet("heart",(+p.h1st>0?(_cc9[p.hCond]||"f"):"f"),p.id);
+  _kSet("brain",(+p.b1st>0?(_cc9[p.bCond]||"f"):"f"),p.id);
+  _kSet("cancer",(p.cancerOn?"s4":"s3"),p.id);
+  _kSet("heart","s3",p.id);
+  _kSet("brain","s3",p.id);
+  _kSet("metabo","f",p.id);
+  _kSet("metabo","s1",p.id);
+ });
+ if(_kChanged)saveState();
+}catch(_e){}
 }catch(e){}
 rebuild();
 return wrap;

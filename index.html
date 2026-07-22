@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="最終更新 2026/07/22 (v2-0722a) 年更新表示修正・更新後保険料の目安・疾病限定入院日額を追加";
+var APP_VERSION="v2-0722b(最終更新日はタイトルに自動表示)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4910,7 +4910,9 @@ expBtn.addEventListener("click",function(){exportData();});
 /*削除:データ保存*/
 var saveInd=el("span");saveInd.id="save-ind";saveInd.style.cssText="font-size:11px;color:#aaa;padding:2px 6px;";saveInd.textContent=window._lastSaved?"● 保存済":"";if(window._lastSaved)saveInd.style.color="#27ae60";custWrap.appendChild(saveInd);
 var bkBtn=el("button");bkBtn.textContent="🕐復元";bkBtn.title="自動バックアップから復元（データを過去の時点に戻す）";bkBtn.style.cssText="font-size:11px;padding:2px 7px;background:#8a6d1a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:700;white-space:nowrap;";bkBtn.addEventListener("click",function(){showBackupRestore();});custWrap.appendChild(bkBtn);
-var verInd=el("span");verInd.style.cssText="font-size:11px;color:#c9a84c;padding:2px 6px;font-weight:700;";verInd.textContent="版 "+APP_VERSION;custWrap.appendChild(verInd);
+var verInd=el("span");verInd.style.cssText="font-size:11px;color:#c9a84c;padding:2px 6px;font-weight:700;";
+var _lm="";try{var _d=new Date(document.lastModified);if(!isNaN(_d.getTime()))_lm="最終更新 "+_d.getFullYear()+"/"+("0"+(_d.getMonth()+1)).slice(-2)+"/"+("0"+_d.getDate()).slice(-2)+"　";}catch(_e){}
+verInd.textContent=_lm+"版 "+APP_VERSION;custWrap.appendChild(verInd);
 var impBtn=el("button","btn");impBtn.style.cssText="padding:3px 12px;font-size:12px;font-weight:700;white-space:nowrap;background:#27ae60;color:white;border-radius:4px;cursor:pointer;border:none;";
 impBtn.textContent="↑ データ読込";
 impBtn.addEventListener("click",function(){

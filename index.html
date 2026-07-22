@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722c(保障グラフ:更新後終身の連動・死亡積み上げは長い順に下から)";
+var APP_VERSION="v2-0722d(保障グラフ連動・死亡積み上げ順・からだエール自動割当)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4710,6 +4710,8 @@ Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
 Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
 var _allP=opts.pols?opts.pols:((typeof aPs==="function")?aPs().map(function(x){return x.policy;}):policies);
 _allP.forEach(function(p){
+/* からだエール(第一ネオ/よく使う更新型8疾病): 3大=年1回・入院要(がん特約付きはがん外来OK)、残り5疾病=1回のみ入院、更新型のため免除なし */
+var _isKarada=(((p.polName||"")+(p.company||"")+(p.insType||"")+(p.notes||"")).indexOf("からだエール")>=0);
 if(p.cancerOn||(+p.c1st>0)){if(+p.c1st>0){if(p.cCond==="W"){setDot(K,"kyufu","cancer","a",p.id);}else{setDot(K,"kyufu","cancer","b",p.id);if(p.cCond==="B")setDot(K,"kyufu","cancer","e",p.id);}}if(+p.cancerHosp>0){setDot(K,"kyufu","cancer","c",p.id);if(p.cCond==="B")setDot(K,"kyufu","cancer","d",p.id);}if(+p.cancerOut2>0)setDot(K,"kyufu","cancer","f",p.id);}
 if(p.bigOn&&+p.h1st>0)setDot(K,"kyufu","heart",condCol(p.hCond),p.id);
 if(p.bigOn&&+p.b1st>0)setDot(K,"kyufu","brain",condCol(p.bCond),p.id);
@@ -4720,13 +4722,26 @@ if(+p.big8Amount>0){var b8c=({days60:"a",days20:"c",days10:"d",hospital1:"f",sur
 if(+p.disPensionAmt>0&&p.disPensionGrade){var gco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.disPensionGrade];if(gco)setDot(K,"kyufu","dis_grade",gco,p.id);}
 if(+p.welfareAmt>0&&p.welfareGrade){var wco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.welfareGrade];if(wco)setDot(K,"kyufu","welfare",wco,p.id);}
 var et=p.premExemptType;
-if(et&&et!=="none"&&et!==""){var det=p.premExemptDetail||"";
+if(!_isKarada&&et&&et!=="none"&&et!==""){var det=p.premExemptDetail||"";
 function mjCol(){if(det.indexOf("60日")>=0)return "a";if(det.indexOf("20日")>=0)return "c";if(det.indexOf("10日")>=0)return "d";if(det.indexOf("手術")>=0)return "e";return "f";}
 var cCol2=(det.indexOf("上皮内")>=0||p.cCond==="B")?"c":"b";
 if(et==="cancer")setDot(M,"menjo","m_cancer","b",p.id);
 else if(et==="cancer_jhi")setDot(M,"menjo","m_cancer","c",p.id);
 else if(et==="3big"||et==="5big"||et==="8big"||et==="multi"){setDot(M,"menjo","m_cancer",cCol2,p.id);setDot(M,"menjo","m_heart",mjCol(),p.id);setDot(M,"menjo","m_brain",mjCol(),p.id);}
 else if(et==="care")setDot(M,"menjo","m_care","c",p.id);}
+if(_isKarada){
+ /* 3大の2回目以降: 1年後(入院要)。がん特約付きならがんは外来OK */
+ setDot(K,"kyufu","cancer",(p.cancerOn?"s4":"s3"),p.id);
+ setDot(K,"kyufu","heart","s3",p.id);
+ setDot(K,"kyufu","brain","s3",p.id);
+ /* 1回目が未割当なら1泊入院列(⑥)に */
+ if(!(+p.c1st>0)&&!p.cancerOn)setDot(K,"kyufu","cancer","f",p.id);
+ if(!(+p.h1st>0))setDot(K,"kyufu","heart","f",p.id);
+ if(!(+p.b1st>0))setDot(K,"kyufu","brain","f",p.id);
+ /* 残り5疾病: 1回のみ(入院)→1回目⑥・2回目以降は無し */
+ setDot(K,"kyufu","metabo","f",p.id);
+ setDot(K,"kyufu","metabo","s1",p.id);
+}
 });
 saveState();
 }

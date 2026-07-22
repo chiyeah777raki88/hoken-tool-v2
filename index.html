@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0722m(3大いずれか1回はセル縦結合〔案A〕・各疾患の条件も全記載)";
+var APP_VERSION="v2-0722m2(加入一覧本体にもセル縦結合を適用)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3404,6 +3404,31 @@ else if(_hasC){sumTd.innerHTML="<div style='color:#9a6b00;'><b>法人</b><br>"+_
 else{sumTd.innerHTML=_premLine(mSumP,ySumP,oSumP);}
 tr.appendChild(sumTd);
 tb.appendChild(tr);})();
+/* 給付後契約終了(3大いずれか1回)は、がん・心臓・脳の表示行を縦結合セルに(条件は全記載) */
+var _chbAll9=["cancer","heart","brain"];
+var _chbVis9=_chbAll9.filter(function(k){var rd=null;ROWS.forEach(function(r){if(r.k===k)rd=r;});if(!rd)return false;return kanyuShowAll||_visPols.some(function(p){return (rd.g(p)||0)>0;});});
+function _isMergePK9(p){return !!p.contractEndsOnClaim&&_chbVis9.length>1&&(((+p.c1st>0)||(p.bigOn&&+p.h1st>0)||(p.bigOn&&+p.b1st>0)));}
+function _mergedCHB9(p){
+ var td=el("td");td.rowSpan=_chbVis9.length;
+ td.style.cssText="text-align:center;font-size:12px;padding:4px;vertical-align:middle;white-space:normal;background:#fdf6ec;border-left:3px solid #b9770e;";
+ var amts={cancer:(p.cancerOn||+p.c1st>0)?(+p.c1st||0):0,heart:p.bigOn?(+p.h1st||0):0,brain:p.bigOn?(+p.b1st||0):0};
+ var vals=_chbVis9.map(function(k){return amts[k];}).filter(function(v){return v>0;});
+ var same=vals.length>0&&vals.every(function(v){return v===vals[0];});
+ var h="";
+ if(same)h+="<div style='font-size:14px;font-weight:700;color:#1f7d56;'>"+_shrU(vals[0].toLocaleString()+"万")+"</div>";
+ h+="<div style='font-size:10px;color:#b9770e;font-weight:700;margin-bottom:2px;'>〔"+(_chbVis9.length===3?"3大":"")+"いずれか1回〕</div>";
+ var names={cancer:"がん",heart:"心臓",brain:"脳"};
+ _chbVis9.forEach(function(k){
+  var line="<span style='font-weight:700;color:#1a2744;'>"+names[k]+"</span>";
+  if(!same&&amts[k]>0)line+=" <span style='color:#1f7d56;font-weight:700;'>"+amts[k].toLocaleString()+"万</span>";
+  var fc=_firstCondTxt(k,p),sc=_secondDetailTxt(k,p);
+  if(fc)line+=" <span style='color:#555;'>1回目:"+fc+"</span>";
+  if(sc)line+=" <span style='color:#555;'>2回目:"+sc+"</span>";
+  h+="<div style='font-size:10px;line-height:1.4;text-align:left;'>"+line+"</div>";
+ });
+ td.innerHTML=h;
+ return td;
+}
 var lastGrp="";
 var _MN={hospout:1,fhosp:1,fsurg:1,flump:1,chosp:1,cout:1,cinsitu:1,csurg:1,cchemo:1,crad:1,dislump:1,carelump:1,injury:1,disDeath:1,injHosp:1,dementia:1,cTreat:1,advLump:1};
 ROWS.forEach(function(row){
@@ -3428,6 +3453,7 @@ tb.appendChild(tr);return;}
 var sum=0;
 curPols.forEach(function(p){
 var v=row.g(p)||0;
+if(_chbVis9.indexOf(row.k)>=0&&_isMergePK9(p)){if(v>0)sum+=v;if(row.k===_chbVis9[0])tr.appendChild(_mergedCHB9(p));return;}
 var td=el("td");
 var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;
 var _re=+((p.itemEnd||{})[row.k])||0;

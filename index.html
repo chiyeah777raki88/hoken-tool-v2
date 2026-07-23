@@ -5071,7 +5071,7 @@ try{
   });
 }catch(e){}
 ov.remove();
-var list=listCustomers();saveCustomerList(list);state=loadState();render();
+var list=listCustomers();saveCustomerList(list);state=loadState();try{_migrateInsuredOwner();}catch(e){}render();
 alert("読み込み完了！");
 }catch(e){alert("エラー：正しいデータではありません");}
 });

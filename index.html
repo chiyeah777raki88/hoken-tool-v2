@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0723c(年更新は「更新周期(年)」と「上限年齢」の2欄に分離・旧データ自動移行)";
+var APP_VERSION="v2-0723c2(年数/年齢の判定境界を30に・20年更新も正しく移行)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -738,10 +738,10 @@ function _periodDisp(p){
  if(t==="更新後終身"){return (ry>0?(ry+"年更新→"+(e||"?")+"歳から終身"):"更新後終身")+_ce;}
  if(t.indexOf("終身")>=0)return ("終身")+_ce;
  if(t==="年更新"){
-  if(ry>0&&e>=20)return (ry+"年更新（"+e+"歳まで）")+_ce;
+  if(ry>0&&e>30)return (ry+"年更新（"+e+"歳まで）")+_ce;
   if(ry>0)return (ry+"年更新")+_ce;
-  if(e>0&&e<20)return (e+"年更新")+_ce;
-  if(e>=20)return ("年更新（"+e+"歳まで）")+_ce;
+  if(e>0&&e<=30)return (e+"年更新")+_ce;
+  if(e>30)return ("年更新（"+e+"歳まで）")+_ce;
   return ("年更新")+_ce;
  }
  if(e)return (e+(t==="年満了"?"年":"歳")+"満了")+_ce;
@@ -2033,7 +2033,7 @@ return wrap;
 function _covEndAge(p,def){
  var t=p.dlPeriodType||"";
  if(t.indexOf("終身")>=0)return 120;/*終身・更新後終身(からだエール型:3年更新→70歳から終身)は終身扱い*/
- if(t==="年更新"){var e=+p.dlPeriodEnd||0;if(e>=20)return e;var re=+p.renewalEndAge||0;if(re>=20)return re;return def||100;}
+ if(t==="年更新"){var e=+p.dlPeriodEnd||0;if(e>30)return e;var re=+p.renewalEndAge||0;if(re>30)return re;return def||100;}
  return (+p.dlPeriodEnd>0)?+p.dlPeriodEnd:(def||100);
 }
 function buildGraphTab(){
@@ -5431,7 +5431,7 @@ try{
  ["policies","proposalPolicies"].forEach(function(sk){
   var pols=state[sk];if(!pols)return;
   Object.keys(pols).forEach(function(mid){(pols[mid]||[]).forEach(function(p){
-   if(p&&p.dlPeriodType==="年更新"&&+p.dlPeriodEnd>0&&+p.dlPeriodEnd<20&&!(+p.renewalYears>0)){p.renewalYears=+p.dlPeriodEnd;p.dlPeriodEnd=0;changed=true;}
+   if(p&&p.dlPeriodType==="年更新"&&+p.dlPeriodEnd>0&&+p.dlPeriodEnd<=30&&!(+p.renewalYears>0)){p.renewalYears=+p.dlPeriodEnd;p.dlPeriodEnd=0;changed=true;}
   });});
  });
  if(changed)saveState();

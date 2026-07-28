@@ -332,7 +332,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0723e(期間セルは（〜歳まで）の前で改行・見切れ解消)";
+var APP_VERSION="v2-0728a(契約一覧から一括登録)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1729,6 +1729,114 @@ ta.addEventListener("input",function(){upd("notes",this.value);});
 cont.appendChild(sec("特記事項（自由記述）",null,ta));
 return cont;
 }
+// ===== 契約一覧から一括登録（0728追加） =====
+function _bkWa2(s){if(!s)return "";s=String(s).trim();var m=s.match(/^(H|R|S|平成|令和|昭和)(\d{1,2})[.\/年](\d{1,2})[.\/月]?(\d{1,2})?/);if(m){var g=m[1],y=+m[2];var base=(g==="R"||g==="令和")?2018:((g==="H"||g==="平成")?1988:1925);return (base+y)+"-"+("0"+(m[3]||"1")).slice(-2)+"-"+("0"+(m[4]||"1")).slice(-2);}var m2=s.match(/^(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/);if(m2)return m2[1]+"-"+("0"+m2[2]).slice(-2)+"-"+("0"+m2[3]).slice(-2);return s;}
+function _bkNorm(str){return (str||"").replace(/[ァ-ヶ]/g,function(ch){return String.fromCharCode(ch.charCodeAt(0)-0x60);}).replace(/[\s　・、]+/g,"");}
+function _bkHiraSp(str){return (str||"").replace(/[ァ-ヶ]/g,function(ch){return String.fromCharCode(ch.charCodeAt(0)-0x60);});}
+var BULK_PROMPT="画像は保険代理店システムの「契約一覧」など、複数の契約が行で並ぶリストです。一覧の各行（各契約）を上から順に全て読み取り、JSONのみ返してください。説明文は不要です。\n形式:{\"rows\":[{\"insured\":\"被保険者名（カナまたは氏名。列名は『保険の目的』『被保険者』など）\",\"company\":\"保険会社名\",\"insType\":\"保険種類の一般名称（終身保険/定期保険/医療保険/がん保険/収入保障保険/個人年金保険/養老保険 等。例:生疾病医療→医療保険）\",\"insTypeRaw\":\"一覧の種目表記そのまま\",\"policyNo\":\"証券番号（原文のまま正確に）\",\"start\":\"始期YYYY-MM-DD（和暦は西暦に変換:H=1988+年,R=2018+年,S=1925+年）\",\"end\":\"満期YYYY-MM-DD（空欄・終身ならnull）\",\"premium\":保険料の数値（円・カンマ除去。空欄ならnull）,\"premiumUnit\":\"保険料が年払か月払か一覧から分かれば 年払 または 月払、不明ならnull\"}]}\n注意:数字は1文字ずつ正確に読む（0/6/8、1/7、3/8の混同注意）。読めない項目はnull。行の見落とし禁止。";
+function buildBulkImport(){
+var wrap=el("div");wrap.style.cssText="margin-bottom:12px;";
+var pan=el("div");pan.style.cssText="display:none;background:white;border:1px solid #ddd8cc;border-radius:8px;padding:12px;margin-top:8px;";
+var tg=btn("📋 契約一覧から一括登録","bv",function(){pan.style.display=(pan.style.display==="none")?"block":"none";});
+tg.style.fontSize="12px";wrap.appendChild(tg);
+var desc=el("p");desc.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:8px;";desc.textContent="代理店システムの「契約一覧」画面の写真から、全証券の骨組み（被保険者・会社・種類・証券番号・契約日・保険料）を一気に登録します。保障内容は後から各証券に入力してください。読み取り後に確認画面が出ます。";
+pan.appendChild(desc);
+var corpI=document.createElement("input");corpI.type="text";corpI.placeholder="契約者が法人の場合は法人名（任意・例:医療法人◯◯）";corpI.style.cssText="width:100%;max-width:380px;margin-bottom:8px;font-size:12px;padding:6px;border:1px solid #ddd8cc;border-radius:4px;";
+pan.appendChild(corpI);
+var row=el("div");row.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;";
+var msgEl=el("span");msgEl.style.cssText="font-size:12px;color:#8a8a8a;";
+var lblSel=el("label","btn bg");lblSel.style.cssText="display:inline-block;cursor:pointer;padding:8px 16px;border-radius:6px;font-weight:600;font-size:12px;";lblSel.textContent="一覧の画像を選択（複数可）";
+var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.multiple=true;fi.style.display="none";
+var camLbl=el("label","btn bv");camLbl.style.cssText="display:inline-block;cursor:pointer;padding:8px 16px;border-radius:6px;font-weight:600;font-size:12px;";camLbl.textContent="📷 カメラで撮影";
+var camFi=document.createElement("input");camFi.type="file";camFi.accept="image/*";camFi.setAttribute("capture","environment");camFi.style.display="none";
+function handleBulk(fileList){
+if(!fileList||fileList.length===0)return;
+if(!AI_API_KEY){msgEl.textContent="読み取りには鍵(APIキー)の登録が必要です。上の「🔑鍵」ボタンから登録してください。";msgEl.style.color="#c0392b";return;}
+var files=Array.from(fileList);
+lblSel.textContent="読み取り中...";msgEl.textContent=files.length+"枚を読み取り中...";msgEl.style.color="#8a8a8a";
+Promise.all(files.map(function(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res({b64:r.result.split(",")[1],type:f.type||"image/jpeg"});};r.onerror=rej;r.readAsDataURL(f);});}))
+.then(function(imgs){
+var content=imgs.map(function(im){return{type:"image",source:{type:"base64",media_type:im.type,data:im.b64}};});
+content.push({type:"text",text:BULK_PROMPT});
+return fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4000,messages:[{role:"user",content:content}]})});
+}).then(function(r){return r.json();})
+.then(function(data){
+lblSel.textContent="一覧の画像を選択（複数可）";
+if(data.error){msgEl.textContent="読み取りエラー："+(data.error.message||data.error.type||"不明");msgEl.style.color="#c0392b";return;}
+var txt=(data.content&&data.content[0]&&data.content[0].text)||"";
+txt=txt.replace(/```json|```/g,"").trim();
+var a=txt.indexOf("{"),b=txt.lastIndexOf("}");
+var rows=[];
+try{rows=(JSON.parse(txt.slice(a,b+1)).rows)||[];}catch(e){msgEl.textContent="読み取り結果の解析に失敗しました。もう一度お試しください。";msgEl.style.color="#c0392b";return;}
+if(!rows.length){msgEl.textContent="契約の行が見つかりませんでした。一覧全体が写るように撮り直してください。";msgEl.style.color="#c0392b";return;}
+msgEl.textContent=rows.length+"件を読み取りました。確認してください。";msgEl.style.color="#1e7e34";
+showBulkConfirm(rows,corpI.value.trim());
+})
+.catch(function(e){lblSel.textContent="一覧の画像を選択（複数可）";msgEl.textContent="通信エラー："+e.message;msgEl.style.color="#c0392b";});
+}
+fi.addEventListener("change",function(){handleBulk(this.files);this.value="";});
+camFi.addEventListener("change",function(){handleBulk(this.files);this.value="";});
+lblSel.appendChild(fi);camLbl.appendChild(camFi);
+row.appendChild(lblSel);row.appendChild(camLbl);row.appendChild(msgEl);
+pan.appendChild(row);wrap.appendChild(pan);
+return wrap;
+}
+function showBulkConfirm(rows,corpName){
+var ov=el("div");ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;";
+var box=el("div");box.style.cssText="background:white;border-radius:10px;max-width:860px;width:100%;max-height:85vh;overflow:auto;padding:16px;";
+var h=el("div");h.style.cssText="font-size:14px;font-weight:700;color:#1a2744;margin-bottom:4px;";h.textContent="一括登録の確認（"+rows.length+"件）";box.appendChild(h);
+var d=el("p");d.style.cssText="font-size:12px;color:#8a8a8a;margin-bottom:10px;";d.textContent="登録する行にチェック。被保険者は自動で振り分けます（未登録の名前は新しくメンバー作成。名前は後で家族タブで漢字に直せます）。保障内容は登録後に各証券へ入力してください。";box.appendChild(d);
+var chks=[],sels=[];
+rows.forEach(function(r,i){
+var line=el("div");line.style.cssText="display:flex;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:7px 2px;font-size:12px;flex-wrap:wrap;";
+var c=document.createElement("input");c.type="checkbox";c.checked=true;chks.push(c);line.appendChild(c);
+var info=el("span");info.style.cssText="flex:1;min-width:240px;";
+info.innerHTML="<b>"+(r.company||"会社不明")+"</b>　"+(r.insType||r.insTypeRaw||"種類不明")+"　<span style='color:#8a8a8a;'>"+(r.policyNo||"証券番号不明")+"</span><br><span style='color:#8a8a8a;'>始期:"+(_bkWa2(r.start)||"—")+(r.end?("　満期:"+_bkWa2(r.end)):"")+(r.premium?("　保険料:"+Number(r.premium).toLocaleString()+"円"+(r.premiumUnit?("("+r.premiumUnit+")"):"")):"")+"</span>";
+line.appendChild(info);
+var who=el("span");who.style.cssText="font-weight:600;color:#1a2744;";who.textContent=(r.insured||"名前不明")+" →";line.appendChild(who);
+var sel=document.createElement("select");sel.style.cssText="font-size:12px;padding:4px;border:1px solid #ddd8cc;border-radius:4px;";
+var key=_bkNorm(r.insured);var hit="";
+state.family.forEach(function(m){var mf=_bkNorm(m.furigana||""),mn=_bkNorm(m.name||"");if(key&&(mf===key||mn===key||(mf&&(mf.indexOf(key)>=0||key.indexOf(mf)>=0))))hit=m.id;});
+state.family.forEach(function(m){var o=document.createElement("option");o.value=m.id;o.textContent=m.name||m.relation||m.id;sel.appendChild(o);});
+var oN=document.createElement("option");oN.value="__new__";oN.textContent="新規メンバー作成（"+(r.insured||"名前不明")+"）";sel.appendChild(oN);
+sel.value=hit||"__new__";
+sels.push(sel);line.appendChild(sel);
+box.appendChild(line);
+});
+var btns=el("div");btns.style.cssText="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;";
+btns.appendChild(btn("キャンセル","",function(){ov.remove();}));
+btns.appendChild(btn("チェックした証券を登録","bg",function(){
+var made=0,newIds={},firstMid="";
+rows.forEach(function(r,i){
+if(!chks[i].checked)return;
+var v=sels[i].value,mid;
+if(v==="__new__"){var k=_bkNorm(r.insured)||("row"+i);
+if(newIds[k]){mid=newIds[k];}
+else{mid="m"+Date.now()+"_"+i;state.family.push({id:mid,name:(r.insured||"名前未設定"),relation:"",dob:"",gender:"",furigana:_bkHiraSp(r.insured||"")});if(!state.policies)state.policies={};state.policies[mid]=[];newIds[k]=mid;}
+}else{mid=v;}
+if(!state.policies[mid])state.policies[mid]=[];
+var p=mkP(Date.now()+i*7+Math.floor(Math.random()*1000));
+p.company=r.company||"";p.insType=r.insType||r.insTypeRaw||"";p.policyNo=r.policyNo||"";p.contractDate=_bkWa2(r.start)||"";
+if(+r.premium>0){p.premAmount=+r.premium;p.premUnit=(r.premiumUnit==="月払")?"円/月":"円/年";}
+var nt="契約一覧より一括登録・保障内容は要入力";
+if(r.insTypeRaw&&r.insTypeRaw!==r.insType)nt+="／種目:"+r.insTypeRaw;
+if(r.end)nt+="／満期:"+_bkWa2(r.end);
+if(+r.premium>0&&!r.premiumUnit)nt+="／保険料は年払と仮定・要確認";
+if(corpName){p.isCorp=true;p.corpName=corpName;nt+="／法人契約:"+corpName;}
+p.notes=nt;
+state.policies[mid].push(p);
+if(!firstMid)firstMid=mid;made++;
+});
+saveState();ov.remove();
+if(firstMid){currentMid=firstMid;currentPidx=0;}
+alert(made+"件を登録しました。\n各証券を開いて保障内容を入力してください。\n（保険料が年払でない場合は修正してください）");
+render();
+}));
+box.appendChild(btns);ov.appendChild(box);
+ov.addEventListener("click",function(e){if(e.target===ov)ov.remove();});
+document.body.appendChild(ov);
+}
+
 function buildInputTab(){
 var cont=el("div");
 var ptabs=el("div","ptabs");
@@ -1740,6 +1848,7 @@ b.addEventListener("click",function(){currentMid=m.id;currentPidx=0;render();});
 ptabs.appendChild(b);
 });
 cont.appendChild(ptabs);
+try{cont.appendChild(buildBulkImport());}catch(e){}
 var member=state.family.find(function(m){return m.id===currentMid;})||state.family[0];
 var mPols=state.policies[currentMid]||[];
 var pidx=Math.min(currentPidx,Math.max(0,mPols.length-1));

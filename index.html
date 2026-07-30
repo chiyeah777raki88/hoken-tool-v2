@@ -2333,6 +2333,156 @@ cont.appendChild(sec("使い方メモ",null,um,true));
 return cont;
 }
 
+/* ===== 提案根拠タブ ===== */
+function rzEl(tag,css,txt){var e=document.createElement(tag);if(css)e.style.cssText=css;if(txt!==undefined)e.textContent=txt;return e;}
+function rzYen(n){return "¥"+Math.round(n).toLocaleString();}
+function rzMan(n){return (Math.round(n/1000)/10).toFixed(1)+"万円";}
+function rzSec(title,accent){
+  var s=rzEl("div","margin:20px 0 9px;padding:8px 13px;border-left:6px solid "+accent+";background:"+accent+"14;border-radius:0 5px 5px 0;");
+  s.appendChild(rzEl("div","font-size:17px;font-weight:800;color:"+accent+";letter-spacing:.02em;",title));
+  return s;
+}
+function rzLead(html,accent){
+  var d=rzEl("div","margin:0 0 10px;padding:10px 13px;background:#f7f9fc;border:1.5px solid "+accent+"66;border-radius:7px;font-size:15px;line-height:1.8;color:#1a2744;font-weight:700;");
+  d.innerHTML=html;return d;
+}
+function rzP(html){var p=rzEl("p","margin:7px 0;font-size:13.5px;line-height:1.9;color:#333;");p.innerHTML=html;return p;}
+function rzNote(html){var p=rzEl("p","margin:7px 0;font-size:11.5px;line-height:1.75;color:#787878;");p.innerHTML=html;return p;}
+function rzCards(items){
+  var row=rzEl("div","display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;");
+  items.forEach(function(it){
+    var c=rzEl("div","flex:1 1 158px;min-width:158px;border:2px solid "+it.c+";background:"+it.c+"0d;border-radius:7px;padding:10px 12px;");
+    c.appendChild(rzEl("div","font-size:11.5px;color:#666;margin-bottom:3px;",it.label));
+    c.appendChild(rzEl("div","font-size:23px;font-weight:800;color:"+it.c+";line-height:1.2;",it.value));
+    if(it.sub)c.appendChild(rzEl("div","font-size:11px;color:#888;margin-top:3px;line-height:1.5;",it.sub));
+    row.appendChild(c);
+  });
+  return row;
+}
+function rzTable(head,rows,widths){
+  var t=rzEl("table","width:100%;border-collapse:collapse;margin:9px 0 5px;font-size:13.5px;");
+  var tr=rzEl("tr");
+  head.forEach(function(h,i){
+    var th=rzEl("th","border:1px solid #c9d4e0;background:#eef3f8;color:#1a3a5c;font-weight:800;padding:7px 9px;text-align:left;font-size:13px;"+(widths&&widths[i]?"width:"+widths[i]+";":""));
+    th.innerHTML=h;tr.appendChild(th);
+  });
+  t.appendChild(tr);
+  rows.forEach(function(r){
+    var q=rzEl("tr");
+    r.forEach(function(c,i){
+      var td=rzEl("td","border:1px solid #dde4ec;padding:7px 9px;line-height:1.8;vertical-align:middle;"+(i===0?"font-weight:700;color:#1a3a5c;background:#fafcfe;":""));
+      td.innerHTML=c;q.appendChild(td);
+    });
+    t.appendChild(q);
+  });
+  return t;
+}
+
+function buildRationaleTab(){
+  var NAVY="#1a3a5c",RED="#c0392b",GREEN="#1e7a45",BLUE="#2f5f8f",ORANGE="#b8720d";
+  var wrap=rzEl("div","background:#fff;border:1px solid #ddd8cc;border-radius:8px;padding:16px 18px;");
+
+  var pp=state.proposalPolicies||{};
+  var mids=Object.keys(pp).filter(function(k){return (pp[k]||[]).length;});
+  if(!mids.length){
+    wrap.appendChild(rzP("提案内容が登録されていません。「提案内容」タブで登録すると、ここに根拠資料が自動で作られます。"));
+    return wrap;
+  }
+  var mid=mids[0];
+  var mem=(state.family||[]).find(function(m){return m.id===mid;})||{name:""};
+  var cur=(state.policies&&state.policies[mid])||[];
+  var prop=pp[mid]||[];
+
+  /* --- 金額の計算(登録データから) --- */
+  function perYear(p){var a=+p.premAmount||0,u=p.premUnit||"";
+    if(u.indexOf("一時")>=0)return 0; return (p.payFreq==="年"||u.indexOf("年")>=0)?a:a*12;}
+  function perMonth(p){return perYear(p)/12;}
+  var curMonth=cur.reduce(function(s,p){return s+perMonth(p);},0);
+  var refund=cur.reduce(function(s,p){return s+(+p.refundVal||0);},0); /* 万円 */
+
+  var death=prop.filter(function(p){return (+p.dlAmount||0)>0;});
+  var thirdParty=prop.filter(function(p){return (+p.dlAmount||0)===0;});
+  var prepay=death.reduce(function(s,p){return s+perMonth(p)*120;},0);
+  var yearlyShort=thirdParty.reduce(function(s,p){return s+perYear(p);},0);
+  var afterMonth=death.reduce(function(s,p){
+    var yrs=(+p.dlPayEnd||0)-(getAge(mem.dob)||46);
+    return s+((yrs>10||p.dlPeriodType==="終身"||(+p.dlPeriodEnd||0)>60)?perMonth(p):0);},0);
+  var mainDeath=death.slice().sort(function(a,b){return perMonth(b)*0+((+b.dlPeriodEnd||0)-(+a.dlPeriodEnd||0));})[0]||death[0];
+  var afterMonth2=mainDeath?perMonth(mainDeath):0;
+  var tsunagi=death.filter(function(p){return p!==mainDeath;});
+  var tsunagiYear=tsunagi.reduce(function(s,p){return s+perMonth(p)*12;},0);
+  var deductible=yearlyShort+tsunagiYear;
+  var gain=refund*10000;
+  var taxable=gain-deductible;
+  var OK30=yearlyShort<=300000;
+
+  /* --- 見出し --- */
+  var h=rzEl("div","display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid "+NAVY+";padding-bottom:8px;");
+  h.appendChild(rzEl("div","font-size:20px;font-weight:800;color:"+NAVY+";","提案根拠"));
+  h.appendChild(rzEl("div","font-size:13px;color:#666;",mem.name+" 様（"+(getAge(mem.dob)||"")+"歳）　法人契約"));
+  wrap.appendChild(h);
+  wrap.appendChild(rzNote("このページは、登録されている「現在の加入」と「提案内容」から自動計算しています。データを直すとここも連動します。"));
+
+  /* ===== 1. 問題 ===== */
+  wrap.appendChild(rzSec("1　今の契約の問題点 ― 給付金がご本人に届かない",RED));
+  wrap.appendChild(rzLead("法人契約のため、入院給付金を受け取るのは会社です。<br>ご本人へ渡せるのは<span style='color:"+RED+"'>見舞金として入院１回　￥５万程度まで</span>に限られます。",RED));
+  wrap.appendChild(rzTable(["","今のまま（法人契約）","名義変更後（個人契約）"],[
+    ["給付金の受取人","<span style='color:"+RED+";font-weight:800'>会社</span>（益金に計上→法人税の対象）","<span style='color:"+GREEN+";font-weight:800'>ご本人が直接</span>（全額非課税）"],
+    ["例：成人病で30日入院","給付金 30万円は会社へ。本人へは見舞金 5万円まで","30万円全額がそのまま手元に"],
+    ["差額","<span style='color:"+RED+";font-weight:800'>約25万円が本人に渡らない</span>（超えて渡すと給与課税）","―"]
+  ],["22%","39%","39%"]));
+  wrap.appendChild(rzNote("見舞金は「社会通念上相当と認められる金額」の範囲で非課税（所得税基本通達 9-23、法人税基本通達 9-2-10）。過去の裁決例では入院１回当たり５万円程度が目安とされ、支給には慶弔見舞金規程の整備が必要です。"));
+
+  /* ===== 2. 解決策 ===== */
+  wrap.appendChild(rzSec("2　解決策 ― 短期払い＋30万円特例＋名義変更",GREEN));
+  wrap.appendChild(rzLead("医療とがんを短期払いにすれば、保険料は全額損金にでき、10年で払込完了。<br>その後ご本人へ名義変更すれば、給付金は<span style='color:"+GREEN+"'>全額非課税で受け取れます</span>。",GREEN));
+  wrap.appendChild(rzTable(["手順","内容","効果"],[
+    ["１　会社が<br>10年で払い切る",thirdParty.map(function(p){return cN(p)+"　"+rzYen(perYear(p))+"/年";}).join("<br>")+"<br><b>合計 "+rzYen(yearlyShort)+"/年</b>","１被保険者当たり年30万円以下に収まるため、支払った年に<b>全額を損金算入</b>できる"],
+    ["２　10年で<br>払込完了","11年目以降の保険料負担はゼロ","保険料の支払いは終わるが、医療・がんの保障は<b>一生涯続く</b>"],
+    ["３　ご本人へ<br>名義変更","評価額は解約返戻金相当額<br>（入院日額の10倍程度が一般）","以後は個人契約となり、給付金は<b>全額非課税でご本人が直接</b>受け取れる"]
+  ],["18%","36%","46%"]));
+  var jd=rzEl("div","margin:8px 0;padding:11px 14px;border-radius:7px;font-size:15px;font-weight:800;border:2px solid "+(OK30?GREEN:RED)+";background:"+(OK30?GREEN:RED)+"0d;color:"+(OK30?GREEN:RED)+";");
+  jd.innerHTML="30万円特例の判定：短期払いの年額合計 "+rzYen(yearlyShort)+"　"+(OK30?"○ 収まる（上限 ￥300,000）":"× 上限を超えています");
+  wrap.appendChild(jd);
+  wrap.appendChild(rzNote("根拠：法人税基本通達 9-3-5(2)。保険期間が終身の第三分野保険（医療・がん）を短期払いした場合に、１被保険者につき当該事業年度の支払保険料が30万円以下であれば、支払時の損金算入が認められます。<b>保険会社が異なっても合算して判定</b>し、30万円を超えると特例の対象から外れて按分計算に戻ります。名義変更時の評価は所得税基本通達 36-37。"));
+
+  /* ===== 3. 資金計画 ===== */
+  wrap.appendChild(rzSec("3　資金計画 ― 解約返戻金で死亡保障10年分を先に払う",BLUE));
+  wrap.appendChild(rzCards([
+    {label:"契約時　解約返戻金",value:rzMan(refund*10000),c:GREEN,sub:"現行をまとめて解約"},
+    {label:"契約時　死亡保障10年分を前納",value:rzMan(prepay),c:BLUE,sub:death.map(function(p){return cN(p)+" "+rzMan(perMonth(p)*120);}).join("＋")},
+    {label:"持ち出し",value:rzMan(Math.abs(prepay-refund*10000)),c:(prepay>refund*10000?ORANGE:GREEN),sub:prepay>refund*10000?"返戻金でほぼ賄える":"お釣りが出る"},
+    {label:"1〜10年目　毎年",value:rzYen(yearlyShort),c:BLUE,sub:"医療＋がんのみ"},
+    {label:"11年目以降　毎月",value:rzYen(afterMonth2),c:ORANGE,sub:(mainDeath?cN(mainDeath):"")+"のみ"}
+  ]));
+  wrap.appendChild(rzNote("前納額は単純合計です。前納割引が付けば実額はこれより安くなります。前納と一時払いは税務上別物なので、設計書上「前納」で処理されることの確認をお勧めします。"));
+
+  /* ===== 4. 今年の税務 ===== */
+  wrap.appendChild(rzSec("4　今年の益金と損金",ORANGE));
+  wrap.appendChild(rzTable(["","金額","内訳・根拠"],[
+    ["益金","<span style='color:"+RED+";font-weight:800;font-size:17px'>"+rzYen(gain)+"</span>","解約返戻金。現行が全額損金処理なら帳簿価額0のため全額が益金"],
+    ["損金","<span style='color:"+GREEN+";font-weight:800;font-size:17px'>"+rzYen(deductible)+"</span>",thirdParty.map(function(p){return cN(p)+" "+rzYen(perYear(p));}).join("　")+(tsunagiYear?"　つなぎ定期 "+rzYen(tsunagiYear)+"（前納しても年分のみ）":"")],
+    ["差引","<span style='font-weight:800;font-size:17px'>"+rzYen(taxable)+"</span>","この金額が課税所得に上乗せ"]
+  ],["16%","20%","64%"]));
+  wrap.appendChild(rzP("これは、<b>今の契約のまま給付金を受け取ったときと同じ構造</b>です。法人に入って益金になり、課税される。今回の解約でそれを実際に体験することになるので、名義変更して個人受取にする意味が実感できるタイミングでもあります。"));
+  wrap.appendChild(rzNote("つなぎ定期を前納しても初年度の損金額は変わりません。前払費用に計上して期間按分されるためで、短期前払費用の特例（法基通 2-2-14）は支払った日から１年以内のものに限られます。変額保険本体は資産計上なので、前納による損金算入時期の不利益はありません。"));
+
+  /* ===== 5. 現在と提案 ===== */
+  wrap.appendChild(rzSec("5　現在の加入とご提案の対比",NAVY));
+  var rows=[];
+  rows.push(["現在の加入",cur.map(function(p){return cN(p)+"　"+p.insType+"　"+rzYen(+p.premAmount||0)+(p.payFreq==="年"?"/年":"/月");}).join("<br>"),"<b style='font-size:16px'>月 "+rzYen(curMonth)+"</b>"]);
+  rows.push(["ご提案",prop.map(function(p){return cN(p)+"　"+p.insType+"　"+rzYen(+p.premAmount||0)+(p.payFreq==="年"?"/年":"/月");}).join("<br>"),"前納 "+rzMan(prepay)+"<br>＋年 "+rzYen(yearlyShort)+"<br>⇒11年目以降 月 "+rzYen(afterMonth2)]);
+  wrap.appendChild(rzTable(["","内容","負担"],rows,["14%","56%","30%"]));
+
+  /* ===== 6. 注意 ===== */
+  wrap.appendChild(rzSec("6　正直にお伝えする注意点",RED));
+  wrap.appendChild(rzP("・<b>成人病特約が外れます。</b>がん以外の成人病（心疾患・脳血管疾患・糖尿病など）での入院日額は半額になります。一方でがんは大幅に厚くなります。"));
+  wrap.appendChild(rzP("・<b>変額保険に元本保証はありません。</b>運用実績が下ぶれれば満期時の受取が大きく減ります。設計書には例示の運用実績が下限・上限を示すものではない旨が明記されています。"));
+  wrap.appendChild(rzP("・<b>税務の取扱いは個別事情により異なります。</b>30万円特例の適用可否、名義変更時の評価額、見舞金の相当額は、実行前に必ず顧問税理士にご確認ください。"));
+
+  return wrap;
+}
+
 function buildAssetsTab(){
 var cont=el("div","content");
 var al=state.ansinLine||{};
@@ -5443,7 +5593,7 @@ window.location.href=window.location.href;
 /*削除:草刈復元*/
 hdr.appendChild(ioWrap);hdr.appendChild(custWrap);app.appendChild(hdr);
 var tabs=el("div","tabs");
-[["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案内容"],["propcompare","提案比較"],["compare","比較"],["cmpside","現在⇔提案"],["propsummary","提案一覧"],["assets","資産・老後"],["family","家族設定"],["settings","設定"],["print","印刷"]].forEach(function(t){
+[["input","入力・編集"],["summary","加入一覧"],["graph","保障グラフ"],["proposal","提案内容"],["propcompare","提案比較"],["compare","比較"],["cmpside","現在⇔提案"],["propsummary","提案一覧"],["rationale","提案根拠"],["assets","資産・老後"],["family","家族設定"],["settings","設定"],["print","印刷"]].forEach(function(t){
 var b=el("button","tab-btn"+(currentTab===t[0]?" active":""),t[1]);
 b.addEventListener("click",function(){currentTab=t[0];render();});tabs.appendChild(b);
 });
@@ -5458,6 +5608,7 @@ else if(currentTab==="propcompare")app.appendChild(buildProposalCompareTab());
 else if(currentTab==="compare")app.appendChild(buildCompareTab());
 else if(currentTab==="cmpside")app.appendChild(buildCmpSideTab());
 else if(currentTab==="propsummary")app.appendChild(buildCheckTab({proposal:true}));
+else if(currentTab==="rationale")app.appendChild(buildRationaleTab());
 else if(currentTab==="assets")app.appendChild(buildAssetsTab());
 else if(currentTab==="family")app.appendChild(buildFamilyTab());
 else if(currentTab==="settings")app.appendChild(buildSettingsTab());

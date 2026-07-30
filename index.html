@@ -224,7 +224,34 @@ try{if(window.localStorage){for(var _k in window.localStorage){_cache[_k]=window
 })();
 
 function storageGet(k){if(_cache[k]!==undefined)return _cache[k];try{if(window.localStorage)return window.localStorage.getItem(k);}catch(e){}return null;}
-function storageSet(k,v){_cache[k]=v;try{if(window.localStorage)window.localStorage.setItem(k,v);}catch(e){}try{if(window.storage&&window.storage.set)window.storage.set(k,v).catch(function(){});}catch(e){}
+function _bkTrimAll(keepGen){
+  keepGen=keepGen||3;var freed=0;
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
+    if(k&&k.indexOf("hoken_bk_")===0){
+      try{var a=JSON.parse(localStorage.getItem(k)||"[]");
+        if(a.length>keepGen){var b=(localStorage.getItem(k)||"").length;
+          localStorage.setItem(k,JSON.stringify(a.slice(-keepGen)));
+          freed+=b-(localStorage.getItem(k)||"").length;}}catch(e){}}}}catch(e){}
+  return freed;
+}
+function _storageUsage(){var t=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);t+=(localStorage.getItem(k)||"").length+k.length;}}catch(e){}return t;}
+function _saveWarn(msg){
+  try{var d=document.getElementById("_savewarn");
+    if(!d){d=document.createElement("div");d.id="_savewarn";
+      d.style.cssText="position:fixed;left:0;right:0;top:0;z-index:100000;background:#c0392b;color:#fff;padding:11px 16px;font-size:14px;font-weight:800;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer;line-height:1.6;";
+      d.addEventListener("click",function(){d.remove();});document.body.appendChild(d);}
+    d.textContent="\u26a0 保存できませんでした \u2014 "+msg+"（クリックで閉じる）";
+  }catch(e){}
+}
+function storageSet(k,v){_cache[k]=v;
+try{if(window.localStorage)window.localStorage.setItem(k,v);}
+catch(e){
+  var ok=false;
+  if(_bkTrimAll(3)>0){try{window.localStorage.setItem(k,v);ok=true;}catch(e2){}}
+  if(!ok&&_bkTrimAll(1)>0){try{window.localStorage.setItem(k,v);ok=true;}catch(e3){}}
+  if(!ok)_saveWarn("保存領域が一杯です（"+(_storageUsage()/1048576).toFixed(2)+"MB）。設定タブから書き出して、不要な顧客を削除してください。この状態のまま画面を閉じると入力が失われます");
+}
+try{if(window.storage&&window.storage.set)window.storage.set(k,v).catch(function(){});}catch(e){}
   // サーバー同期：入力が一段落してから(0.8秒後)まとめて1回だけ保存（毎キー入力での連打フリーズを防ぐ）
   try{
     if(SYNC_ON&&sbClient&&sbUser){
@@ -332,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0728a(契約一覧から一括登録)";
+var APP_VERSION="v2-0731a(提案根拠タブ追加)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -697,8 +724,8 @@ try{
 try{var _fresh=(window.localStorage&&window.localStorage.getItem(getCustomerKey()))||null;if(_fresh){var _fp=JSON.parse(_fresh);["polTableMemo","savNotes"].forEach(function(f){var mine=state[f]||{};var old=_fp[f]||{};Object.keys(old).forEach(function(k){if((mine[k]===undefined||mine[k]==="")&&old[k])mine[k]=old[k];});state[f]=mine;});}}catch(e){}
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
 storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
-// 自動バックアップ（世代管理・45秒に1回・最大20世代）
-try{var _now=Date.now();if(!window._lastBk||(_now-window._lastBk)>45000){window._lastBk=_now;var _bkKey="hoken_bk_"+getCustomerKey();var _arr=[];try{_arr=JSON.parse(storageGet(_bkKey)||"[]");}catch(e){}var _cur=storageGet(getCustomerKey());if(_cur){_arr.push({ts:_now,data:_cur});if(_arr.length>20)_arr=_arr.slice(-20);storageSet(_bkKey,JSON.stringify(_arr));}}}catch(e){}
+// 自動バックアップ（世代管理・45秒に1回・最大8世代/800KB。肥大で保存が壊れるのを防ぐ）
+try{var _now=Date.now();if(!window._lastBk||(_now-window._lastBk)>45000){window._lastBk=_now;var _bkKey="hoken_bk_"+getCustomerKey();var _arr=[];try{_arr=JSON.parse(storageGet(_bkKey)||"[]");}catch(e){}var _cur=storageGet(getCustomerKey());if(_cur){_arr.push({ts:_now,data:_cur});if(_arr.length>8)_arr=_arr.slice(-8);while(_arr.length>2&&JSON.stringify(_arr).length>819200){_arr.shift();}try{localStorage.setItem(_bkKey,JSON.stringify(_arr));}catch(e){_bkTrimAll(2);}}}}catch(e){}
 }catch(e){}
 // Save customer list to localStorage first
 try{var cl2=listCustomers();if(cl2.length)saveCustomerList(cl2);}catch(e){}

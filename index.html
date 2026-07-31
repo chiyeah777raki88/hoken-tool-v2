@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731i(健康還付が一覧に出ない不具合を修正)";
+var APP_VERSION="v2-0731j(オリックスCURE世代の給付条件を自動判定)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5070,8 +5070,8 @@ var COLS=[
 function mkCell(text,polIdxs,na){return {text:text||"",polIdxs:polIdxs||[],na:!!na};}
 var ROWS_KYUFU=[
 {id:"cancer",label:"がん",def:{a:"悪性新生物で\n60日の就業不能",b:"悪性新生物と診断",c:"悪性新生物で入院",d:"上皮内癌で入院",e:"上皮内癌と診断",f:"上皮内癌で通院",s1:"無し",s2:"入院",s3:"入院",s4:"外来OK"}},
-{id:"heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n60日の就業不能",c:"急性心筋梗塞で\n入院or手術",d:"心疾患で\n20日入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
-{id:"brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n60日の就業不能",c:"脳卒中で\n入院or手術",d:"脳血管疾患で\n20日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
+{id:"heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n60日の就業不能",c:"急性心筋梗塞で\n入院or手術",d:"心疾患で\n10日入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
+{id:"brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n60日の就業不能",c:"脳卒中で\n入院or手術",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
 {id:"metabo",label:"糖尿病\n高血圧/肝硬変\n腎不全/膵疾患",def:{a:"60日の所定の状態",b:"60日の就業不能",c:"20日入院",d:"10日入院",e:"手術",f:"入院"}},
 {id:"dis",label:"介護・就業不能",def:{a:"5疾病",b:"7疾病",c:"全疾病"}},
 {id:"dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
@@ -5250,6 +5250,29 @@ function _applyAutoRules(K,M,pols,additive){
 var changed=false;
 function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;changed=true;}if(!cd.polIdxs)cd.polIdxs=[];if(additive&&cd.off&&cd.off.indexOf(pi)>=0)return;/*手動で外したポッチは復活させない*/if(cd.na){if(additive)return;cd.na=false;changed=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}}
 function condCol(c){var m={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};return m[c]||"a";}
+/* ===== オリックス生命 CURE(キュア) 世代判定 =====
+   新CURE  : 2013/09/02発売。払込免除は「急性心筋梗塞で60日以上の労働制限」
+             「脳卒中で60日以上の後遺症」= 所定の状態が必要。対象は急性心筋梗塞・脳卒中のみ。
+   CURE Next: 特定三疾病一時金・払込免除とも
+             がん=1回目は診断確定/2回目以降は入院開始(1年に1回)
+             急性心筋梗塞・脳卒中 = 入院または手術(日数要件なし)
+             その他の心疾患・脳血管疾患 = 10日以上の継続入院または手術
+   判定は商品名を最優先。無ければ契約日で補う(境界は下記 CURE_NEXT_FROM)。 */
+var CURE_NEXT_FROM="2022-08-01";
+function orixCureGen(p){
+  if(!p)return "";
+  var co=(p.company||"");
+  if(co.indexOf("オリックス")<0)return "";
+  var t=((p.polName||"")+" "+(p.insType2||"")+" "+(p.notes||"")).toLowerCase();
+  var tz=((p.polName||"")+" "+(p.insType2||"")+" "+(p.notes||""));
+  if(/next|ネクスト/i.test(t)||/ネクスト/.test(tz))return "next";
+  if(/新キュア|新cure/i.test(tz))return "old";
+  if(/キュア|cure/i.test(tz)){
+    if(p.contractDate&&p.contractDate>=CURE_NEXT_FROM)return "next";
+    return "old";
+  }
+  return "";
+}
 function naMark(data,tt,rid,cid,pi,force){/*「この証券は該当なし」を✕で表現。force=trueは「無し」列用(既存色ごと✕化)*/
  var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];
  if(!cd){cd=mkCell("",[],false);cd.na=true;data[ck]=cd;changed=true;}
@@ -5258,6 +5281,37 @@ function naMark(data,tt,rid,cid,pi,force){/*「この証券は該当なし」を
  if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}
 }
 pols.forEach(function(p){
+ /* オリックス CURE 世代別の自動ポッチ */
+ var _cg=orixCureGen(p);
+ if(_cg==="next"){
+   setDot(K,"kyufu","cancer","b",p.id);            /* 1回目:悪性新生物と診断 */
+   setDot(K,"kyufu","cancer","c",p.id);            /* 2回目以降:がんで入院   */
+   setDot(K,"kyufu","heart","c",p.id);             /* 急性心筋梗塞:入院or手術 */
+   setDot(K,"kyufu","heart","d",p.id);             /* その他心疾患:10日入院   */
+   setDot(K,"kyufu","heart","e",p.id);             /* その他心疾患:手術       */
+   setDot(K,"kyufu","brain","c",p.id);
+   setDot(K,"kyufu","brain","d",p.id);
+   setDot(K,"kyufu","brain","e",p.id);
+   if(p.premExempt||p.premExemptType&&p.premExemptType!=="none"){
+     setDot(M,"menjo","m_cancer","b",p.id);
+     setDot(M,"menjo","m_heart","b",p.id);
+     setDot(M,"menjo","m_heart","d",p.id);
+     setDot(M,"menjo","m_heart","e",p.id);
+     setDot(M,"menjo","m_brain","b",p.id);
+     setDot(M,"menjo","m_brain","d",p.id);
+     setDot(M,"menjo","m_brain","e",p.id);
+   }
+ } else if(_cg==="old"){
+   setDot(K,"kyufu","cancer","b",p.id);
+   setDot(K,"kyufu","heart","a",p.id);             /* 急性心筋梗塞:60日の所定の状態 */
+   setDot(K,"kyufu","brain","a",p.id);
+   if(p.premExempt||p.premExemptType&&p.premExemptType!=="none"){
+     setDot(M,"menjo","m_cancer","b",p.id);
+     setDot(M,"menjo","m_heart","a",p.id);
+     setDot(M,"menjo","m_brain","a",p.id);
+   }
+ }
+
 /* からだエール: 3大=年1回・入院要(がん特約付きはがん外来OK・1回目も通院列)、残り5疾病=1回のみ入院、更新型のため免除なし */
 var _isKarada=(((p.polName||"")+(p.company||"")+(p.insType||"")+(p.notes||"")).indexOf("からだエール")>=0);
 if(p.cancerOn||(+p.c1st>0)){if(+p.c1st>0){if(p.cCond==="W"){setDot(K,"kyufu","cancer","a",p.id);}else{setDot(K,"kyufu","cancer","b",p.id);if(p.cCond==="B")setDot(K,"kyufu","cancer","e",p.id);}}if(+p.cancerHosp>0){setDot(K,"kyufu","cancer","f",p.id);}}

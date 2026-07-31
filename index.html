@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731f(給付条件ポッチが戻る不具合を修正)";
+var APP_VERSION="v2-0731g(証券の色を加入一覧の外枠にも連動)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -847,6 +847,24 @@ function sel(opts,val,cb){var e=document.createElement("select");e.style.width="
 function lbl(text,child){var l=el("label","fl");var s=el("span");s.textContent=text;l.appendChild(s);if(child)l.appendChild(child);return l;}
 // 生年月日・契約日 共通入力部品（西暦/和暦切替・自動移動・和暦表示）
 function seireki2wareki(y){y=+y;if(!y||y<1868)return "";if(y>=2019)return "令和"+(y-2018)+"年";if(y>=1989)return "平成"+(y-1988)+"年";if(y>=1926)return "昭和"+(y-1925)+"年";if(y>=1912)return "大正"+(y-1911)+"年";return "明治"+(y-1867)+"年";}
+/* 証券ごとの色。指定色があればそれ、無ければ所属リスト内の並び順で決める。
+   加入内容一覧と給付条件・免除条件の表で同じ色になるよう共通化。 */
+var POLCOL_DEF=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];
+function polColorOf(p){
+  if(p&&p.chartColor&&p.chartColor!=="")return p.chartColor;
+  var idx=-1;
+  try{
+    ["policies","proposalPolicies"].some(function(sk){
+      var st=state[sk]||{};
+      return Object.keys(st).some(function(k){
+        var a=st[k]||[];var i=a.indexOf(p);
+        if(i>=0){idx=i;return true;}return false;
+      });
+    });
+  }catch(e){}
+  if(idx<0)idx=0;
+  return POLCOL_DEF[idx%POLCOL_DEF.length];
+}
 function calcEnrollAge(pol){
   var insuredDob="";
   try{var _mid9=null;["policies","proposalPolicies"].some(function(sk){var st9=state[sk]||{};return Object.keys(st9).some(function(k9){if((st9[k9]||[]).indexOf(pol)>=0){_mid9=k9;return true;}return false;});});
@@ -3931,6 +3949,24 @@ var tds=el("td");tds.style.cssText="background:#f0f7ee;";tr.appendChild(tds);
 tb.appendChild(tr);
 })();
 tbl.appendChild(tb);tw.appendChild(tbl);
+/* 証券ごとの色を列の外枠に反映（給付条件・免除条件の表と連動） */
+try{
+var _tb=tw.querySelector("table");
+if(_tb&&curPols.length){
+ var _n=curPols.length,_exp=_n+3;
+ var _rows=[].slice.call(_tb.querySelectorAll("tr")).filter(function(r){return r.cells.length===_exp;});
+ _rows.forEach(function(tr,ri){
+  for(var _i=0;_i<_n;_i++){
+   var _c=tr.cells[2+_i];if(!_c)continue;
+   var _col=polColorOf(curPols[_i]);
+   _c.style.borderLeft="2px solid "+_col;
+   _c.style.borderRight="2px solid "+_col;
+   if(ri===0)_c.style.borderTop="2.5px solid "+_col;
+   if(ri===_rows.length-1)_c.style.borderBottom="2.5px solid "+_col;
+  }
+ });
+}
+}catch(e){}
 box.appendChild(tw);return box;
 }
 
@@ -5017,7 +5053,7 @@ var wrap=el("div");
 function _pid2idx(pid){for(var _i=0;_i<policies.length;_i++){if(policies[_i].id===pid)return _i;}return -1;}
 function _visIdxs(cd){return ((cd&&cd.polIdxs)||[]).map(_pid2idx).filter(function(i){return i>=0;});}
 var _defCols=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];
-var POL_COLS=policies.map(function(p,i){return p.chartColor&&p.chartColor!==""?p.chartColor:_defCols[i%_defCols.length];});
+var POL_COLS=policies.map(function(p,i){return polColorOf(p);});
 var POL_LIGHT=POL_COLS.map(function(col){return col+"22";});
 function fmtCond(txt){if(!txt)return "";var out=txt.replace(/[&<>]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&gt;";});["悪性新生物","急性心筋梗塞","脳卒中","上皮内","労働制限","診断","入院","手術","通院","所定","一時金","要介護","60日","20日","10日","1泊"].forEach(function(k){out=out.split(k).join("<strong>"+k+"</strong>");});out=out.split("で").join("<span style=\"font-size:.82em;font-weight:600;\">で</span>");out=out.split("と").join("<span style=\"font-size:.82em;font-weight:600;\">と</span>");out=out.split("\n").join("<br>");return out;}
 var _mmid=opts.mid||(typeof currentMid!=="undefined"?currentMid:"")||((state.family[0]||{}).id)||"m1";

@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731n(保存済みセル文言の移行・免除表の1回目を削除)";
+var APP_VERSION="v2-0731p(免除は急性心筋梗塞の手術・2回目も自動判定)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5081,8 +5081,8 @@ var ROWS_KYUFU=[
 // 免除条件 - 3大疾患＋障害・介護
 var ROWS_MENJO=[
 {id:"m_cancer",label:"がん",def:{a:"悪性新生物で60日の労働制限",b:"悪性新生物と診断",c:"上皮内がんを含む診断"}},
-{id:"m_heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n入院or手術",c:"心疾患で\n20日入院",d:"心疾患で\n10日入院",e:"心疾患で手術",f:"心疾患で入院"}},
-{id:"m_brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n入院or手術",c:"脳血管疾患で\n20日入院",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
+{id:"m_heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n入院or手術",c:"急性心筋梗塞で\n手術",d:"心疾患で\n10日入院",e:"心疾患で手術",f:"心疾患で入院"}},
+{id:"m_brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n入院or手術",c:"脳卒中で\n手術",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
 {id:"m_dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"m_welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"m_care",label:"介護",def:{a:"要介護4",b:"要介護3",c:"要介護2",d:"要介護1"}}
@@ -5294,6 +5294,9 @@ pols.forEach(function(p){
    setDot(K,"kyufu","brain","c",p.id);
    setDot(K,"kyufu","brain","d",p.id);
    setDot(K,"kyufu","brain","e",p.id);
+   setDot(K,"kyufu","cancer","s3",p.id);  /* 2回目以降：1年に1度 */
+   setDot(K,"kyufu","heart","s3",p.id);
+   setDot(K,"kyufu","brain","s3",p.id);
    if(p.premExempt||(p.premExemptType&&p.premExemptType!=="none")){
      setDot(M,"menjo","m_cancer","b",p.id);
      setDot(M,"menjo","m_heart","b",p.id);   /* 入院or手術 */
@@ -5310,12 +5313,15 @@ pols.forEach(function(p){
    setDot(K,"kyufu","cancer","c",p.id);   /* 2回目以降:入院開始 */
    setDot(K,"kyufu","heart","c",p.id);    /* 急性心筋梗塞:入院開始のみ */
    setDot(K,"kyufu","brain","c",p.id);
+   setDot(K,"kyufu","cancer","s3",p.id);  /* 2回目以降：1年に1度 */
+   setDot(K,"kyufu","heart","s3",p.id);
+   setDot(K,"kyufu","brain","s3",p.id);
    if(p.premExempt||(p.premExemptType&&p.premExemptType!=="none")){
      setDot(M,"menjo","m_cancer","b",p.id);
      setDot(M,"menjo","m_heart","a",p.id);  /* 所定の状態 */
-     setDot(M,"menjo","m_heart","e",p.id);  /* または手術 */
+     setDot(M,"menjo","m_heart","c",p.id);  /* または急性心筋梗塞の手術 */
      setDot(M,"menjo","m_brain","a",p.id);
-     setDot(M,"menjo","m_brain","e",p.id);
+     setDot(M,"menjo","m_brain","c",p.id);
    }
  }
 
@@ -5390,16 +5396,22 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
  /* v2-0731n: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
- if(BMX.textVer!==2){
+ if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],
              "kyufu|heart|d":["心疾患で\n20日入院","心疾患で\n10日入院"],
              "kyufu|brain|d":["脳血管疾患で\n20日入院","脳血管疾患で\n10日入院"]};
+   var _MIGM={"menjo|m_heart|c":["心疾患で\n20日入院","急性心筋梗塞で\n手術"],
+              "menjo|m_brain|c":["脳血管疾患で\n20日入院","脳卒中で\n手術"]};
    Object.keys(_MIG).forEach(function(ck){
      var cd=(BMX.kyufu||{})[ck];
      if(cd&&cd.text===_MIG[ck][0])cd.text=_MIG[ck][1];
    });
-   BMX.textVer=2;saveState();
+   Object.keys(_MIGM).forEach(function(ck){
+     var cd=(BMX.menjo||{})[ck];
+     if(cd&&cd.text===_MIGM[ck][0])cd.text=_MIGM[ck][1];
+   });
+   BMX.textVer=3;saveState();
  }
 var _anyDot=false;["kyufu","menjo"].forEach(function(tt){var d=BMX[tt]||{};Object.keys(d).forEach(function(ck){if(d[ck]&&d[ck].polIdxs&&d[ck].polIdxs.length>0)_anyDot=true;});});
 if(!_anyDot)autoAssign();

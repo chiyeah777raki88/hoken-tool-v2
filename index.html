@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0801b(免除側の汎用ルールも停止)";
+var APP_VERSION="v2-0801c(CURE免除の自動判定を修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5262,9 +5262,9 @@ var CURE_NEXT_FROM="2022-04-01";
 function orixCureGen(p){
   if(!p)return "";
   var co=(p.company||"");
-  if(co.indexOf("オリックス")<0)return "";
-  var t=((p.polName||"")+" "+(p.insType2||"")+" "+(p.notes||"")).toLowerCase();
-  var tz=((p.polName||"")+" "+(p.insType2||"")+" "+(p.notes||""));
+  if(co.indexOf("オリックス")<0&&!/orix/i.test(co))return "";
+  var tz=((p.polName||"")+" "+(p.insType||"")+" "+(p.insType2||"")+" "+(p.notes||"")+" "+(p.exemptMemo||"")+" "+(p.premExemptDetail||""));
+  var t=tz.toLowerCase();
   if(/next|ネクスト/i.test(t)||/ネクスト/.test(tz))return "next";
   if(/新キュア|新cure/i.test(tz))return "old";
   if(/キュア|cure/i.test(tz)){
@@ -5273,7 +5273,22 @@ function orixCureGen(p){
   }
   return "";
 }
-function naMark(data,tt,rid,cid,pi,force){/*「この証券は該当なし」を✕で表現。force=trueは「無し」列用(既存色ごと✕化)*/
+/* CUREの払込免除特則が付いているか。明示的にaccident/deathを選んだ時だけ「無し」扱い。
+   未入力(初期値)はCUREでは特定三疾病払込免除特則が標準的に付くため「有り」とみなす。 */
+function _cureExempt(p){
+ var t=(p.premExemptType||"");
+ if(t==="accident"||t==="death")return false;
+ if(p.premExempt)return true;
+ if(t===""||t==="none"){
+  var d=((p.premExemptDetail||"")+(p.exemptMemo||""));
+  if(/免除/.test(d))return true;
+  return true;
+ }
+ return true;
+}
+var _naQ=[];
+function naMark(data,tt,rid,cid,pi,force){_naQ.push([data,tt,rid,cid,pi,!!force]);}
+function _naApply(data,tt,rid,cid,pi,force){/*「この証券は該当なし」を✕で表現。force=trueは「無し」列用(既存色ごと✕化)*/
  var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];
  if(!cd){cd=mkCell("",[],false);cd.na=true;data[ck]=cd;changed=true;}
  if(!cd.polIdxs)cd.polIdxs=[];
@@ -5298,7 +5313,7 @@ pols.forEach(function(p){
    setDot(K,"kyufu","cancer","s3",p.id);  /* 2回目以降：1年に1度 */
    setDot(K,"kyufu","heart","s3",p.id);
    setDot(K,"kyufu","brain","s3",p.id);
-   if(p.premExempt||(p.premExemptType&&p.premExemptType!=="none")){
+   if(_cureExempt(p)){
      setDot(M,"menjo","m_cancer","b",p.id);
      setDot(M,"menjo","m_heart","b",p.id);   /* 入院or手術 */
      setDot(M,"menjo","m_heart","d",p.id);
@@ -5306,6 +5321,8 @@ pols.forEach(function(p){
      setDot(M,"menjo","m_brain","b",p.id);
      setDot(M,"menjo","m_brain","d",p.id);
      setDot(M,"menjo","m_brain","e",p.id);
+   } else {
+     ["m_cancer","m_heart","m_brain"].forEach(function(rid){naMark(M,"menjo",rid,"a",p.id);});
    }
  } else if(_cg==="old"){
    /* 新CURE(2013/9〜2022/3)：重度三疾病一時金は「治療で入院を開始したとき」。手術では出ない。
@@ -5317,12 +5334,14 @@ pols.forEach(function(p){
    setDot(K,"kyufu","cancer","s3",p.id);  /* 2回目以降：1年に1度 */
    setDot(K,"kyufu","heart","s3",p.id);
    setDot(K,"kyufu","brain","s3",p.id);
-   if(p.premExempt||(p.premExemptType&&p.premExemptType!=="none")){
+   if(_cureExempt(p)){
      setDot(M,"menjo","m_cancer","b",p.id);
      setDot(M,"menjo","m_heart","a",p.id);  /* 所定の状態 */
      setDot(M,"menjo","m_heart","c",p.id);  /* または急性心筋梗塞の手術 */
      setDot(M,"menjo","m_brain","a",p.id);
      setDot(M,"menjo","m_brain","c",p.id);
+   } else {
+     ["m_cancer","m_heart","m_brain"].forEach(function(rid){naMark(M,"menjo",rid,"a",p.id);});
    }
  }
 
@@ -5367,6 +5386,7 @@ if(_isKarada){
  naMark(K,"kyufu","metabo","s1",p.id,true);/*2回目以降なし=✕で表現(1回ぽっきりと分かる)*/
 }
 });
+_naQ.forEach(function(a){_naApply(a[0],a[1],a[2],a[3],a[4],a[5]);});
 return changed;
 }
 function autoAssign(){

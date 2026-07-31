@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0801c(CURE免除の自動判定を修正)";
+var APP_VERSION="v2-0801d(CURE免除は入力がある時だけ)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5273,18 +5273,14 @@ function orixCureGen(p){
   }
   return "";
 }
-/* CUREの払込免除特則が付いているか。明示的にaccident/deathを選んだ時だけ「無し」扱い。
-   未入力(初期値)はCUREでは特定三疾病払込免除特則が標準的に付くため「有り」とみなす。 */
+/* CUREの払込免除特則が付いているか。CUREは免除特則が任意付帯のため、
+   「免除条件」に実際の免除が入力されている契約だけ有りとみなす（未入力＝無しで✕）。 */
 function _cureExempt(p){
  var t=(p.premExemptType||"");
  if(t==="accident"||t==="death")return false;
+ if(t!==""&&t!=="none")return true;
  if(p.premExempt)return true;
- if(t===""||t==="none"){
-  var d=((p.premExemptDetail||"")+(p.exemptMemo||""));
-  if(/免除/.test(d))return true;
-  return true;
- }
- return true;
+ return false;
 }
 var _naQ=[];
 function naMark(data,tt,rid,cid,pi,force){_naQ.push([data,tt,rid,cid,pi,!!force]);}

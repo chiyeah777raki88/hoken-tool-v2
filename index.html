@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731h(証券色は加入一覧の見出し背景に)";
+var APP_VERSION="v2-0731i(健康還付が一覧に出ない不具合を修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -717,6 +717,7 @@ if(sv.bigMatrixOverrides)base.bigMatrixOverrides=sv.bigMatrixOverrides;
 return base;
 }
 function saveState(){
+try{syncAllHealthRefund();}catch(e){}
 // Show save indicator immediately
 try{var si=document.getElementById("save-ind");if(si){si.textContent="● 保存済";si.style.color="#27ae60";}}catch(e){} window._lastSaved=Date.now();
 try{
@@ -909,6 +910,16 @@ function calcHealthRefund(pol){
   var refundMan=paidMan-claimed;
   if(refundMan<0)refundMan=0;
   return {ok:true,enrollAge:ea,years:years,paidMan:paidMan,claimed:claimed,refundMan:refundMan};
+}
+function syncAllHealthRefund(){
+  try{
+    ["policies","proposalPolicies"].forEach(function(sk){
+      var st=(typeof state!=="undefined"&&state[sk])||{};
+      Object.keys(st).forEach(function(k){
+        (st[k]||[]).forEach(function(p){if(p&&p.hrOn)syncHealthRefund(p);});
+      });
+    });
+  }catch(e){}
 }
 function syncHealthRefund(pol){
   if(!pol.hrOn)return;
@@ -3794,6 +3805,7 @@ function _sideSig(k,pols){var best=null,bv=-1;(pols||[]).forEach(function(p){var
 function _premSplit(pols){var pi=0,co=0;(pols||[]).forEach(function(p){var mm=+toM(p);if(mm&&mm<500000){if(p.isCorp)co+=mm;else pi+=mm;}});return {pi:pi,co:co,total:pi+co};}
 function _premBreakCell(pols){var s=_premSplit(pols);var h="<b>保険料/月</b><br>総 ¥"+s.total.toLocaleString();if(s.co>0&&s.pi>0){h+="<br><span style='color:#33415c;'>個人 ¥"+s.pi.toLocaleString()+"</span><br><span style='color:#9a6b00;background:#fff3d6;border-radius:3px;padding:0 2px;'>法人 ¥"+s.co.toLocaleString()+"</span>";}else if(s.co>0){h+="<br><span style='color:#9a6b00;background:#fff3d6;border-radius:3px;padding:0 2px;'>法人 ¥"+s.co.toLocaleString()+"</span>";}else{h+="<br><span style='color:#33415c;'>個人 ¥"+s.pi.toLocaleString()+"</span>";}return h;}
 function buildKanyuTable(curPols,memOf,visPols){
+try{syncAllHealthRefund();}catch(e){}
 if(!state.ansinCov)state.ansinCov={};
 var _visPols=(visPols&&visPols.length)?visPols:curPols;
 function manFromYen(v){v=+v||0;return v>10000?Math.round(v/10000):v;}

@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731a(提案根拠タブ追加)";
+var APP_VERSION="v2-0731b(確定の上書き対策)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3274,6 +3274,12 @@ var _ag=state.compareGroups.filter(function(g){return g.id===_actId;})[0];
 if(_ag)cont.appendChild(buildCmpGroup(_ag,state.compareGroups.indexOf(_ag)));
 return cont;
 }
+function _cbkKey(){return getCustomerKey()+"__confirm_bk";}
+function _cbkLoad(){try{var r=storageGet(_cbkKey());return r?JSON.parse(r):null;}catch(e){return null;}}
+function _cbkClear(){try{delete _cache[_cbkKey()];}catch(e){}try{localStorage.removeItem(_cbkKey());}catch(e){}}
+function _cbkRestore(){var bk=state._confirmBackup||_cbkLoad();if(!bk)return false;
+state.policies=bk.policies;state.proposalPolicies=bk.proposalPolicies;
+state._confirmBackup=null;_cbkClear();saveState();render();return true;}
 function buildProposalTab(){
 var cont=el("div","content");
 var note=el("div");note.style.cssText="background:#f0f4ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.8;";
@@ -3284,14 +3290,28 @@ var btnRow=el("div");btnRow.style.cssText="display:flex;gap:10px;flex-wrap:wrap;
 var copyBtn=btn("現在の証券をコピーして編集","bg",function(){state.proposalPolicies={};state.family.forEach(function(m){state.proposalPolicies[m.id]=JSON.parse(JSON.stringify(state.policies[m.id]||[]));});saveState();render();});
 var newBtn=btn("白紙から入力","bn",function(){state.proposalPolicies={};state.family.forEach(function(m){state.proposalPolicies[m.id]=[];});saveState();render();});
 btnRow.appendChild(copyBtn);btnRow.appendChild(newBtn);
-if(state._confirmBackup){btnRow.appendChild(btn("↩ 直前の確定を取り消す（現在と提案を元に戻す）","br",function(){if(confirm("直前の確定を取り消して、元の『現在の契約』と『提案』を復元しますか？")){state.policies=state._confirmBackup.policies;state.proposalPolicies=state._confirmBackup.proposalPolicies;state._confirmBackup=null;saveState();render();}}));}
+if(state._confirmBackup||_cbkLoad()){btnRow.appendChild(btn("↩ 直前の確定を取り消す（現在と提案を元に戻す）","br",function(){if(confirm("直前の確定を取り消して、元の『現在の契約』と『提案』を復元しますか？")){_cbkRestore();}}));}
 cont.appendChild(btnRow);return cont;
 }
 var _cfRow=el("div");_cfRow.style.cssText="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;background:#f0fff4;border:1px solid #a7e3bf;border-radius:8px;padding:10px 12px;";
 var _cfL=el("span");_cfL.style.cssText="font-size:12px;color:#1a7a3a;font-weight:700;";_cfL.textContent="契約になったら：";_cfRow.appendChild(_cfL);
-_cfRow.appendChild(btn("✅ この提案を現在の契約にする（確定）","bv",function(){if(!confirm("この提案内容で『現在の契約』を置き換えます（提案がある被保険者のみ）。今の現在の契約はバックアップされ、『取り消す』で戻せます。実行しますか？"))return;state._confirmBackup={ts:Date.now(),policies:JSON.parse(JSON.stringify(state.policies||{})),proposalPolicies:JSON.parse(JSON.stringify(state.proposalPolicies||{}))};state.family.forEach(function(m){var pp=state.proposalPolicies[m.id];if(pp&&pp.length){state.policies[m.id]=JSON.parse(JSON.stringify(pp));}});state.proposalPolicies=null;saveState();currentTab="summary";render();alert("提案を現在の契約にしました。「加入一覧」で確認できます。取り消すには提案タブの『取り消す』を押してください（再読み込み前まで有効）。");}));
-if(state._confirmBackup){_cfRow.appendChild(btn("↩ 取り消す","br",function(){if(confirm("直前の確定を取り消して元に戻しますか？")){state.policies=state._confirmBackup.policies;state.proposalPolicies=state._confirmBackup.proposalPolicies;state._confirmBackup=null;saveState();render();}}));}
-var _cfN=el("span");_cfN.style.cssText="font-size:11px;color:#5a8a6a;";_cfN.textContent="※提案がある人だけ差し替え。提案が空の人の現在契約はそのまま残ります。";_cfRow.appendChild(_cfN);
+_cfRow.appendChild(btn("✅ この提案を現在の契約にする（確定）","bv",function(){
+var mid=currentMid||state.family[0].id;
+var mem=state.family.find(function(m){return m.id===mid;})||{};
+var pp=state.proposalPolicies&&state.proposalPolicies[mid];
+if(!pp||!pp.length){alert("今開いている "+(mem.name||"この方")+" の提案が空です。確定する提案証券を先に入力してください。");return;}
+if(!confirm("【確認】今開いている "+(mem.name||"")+" の提案を『現在の契約』にします。\n\n・"+(mem.name||"この方")+"の今の契約 "+((state.policies[mid]||[]).length)+"件は、提案の内容 "+pp.length+"件に丸ごと置き換わります（追加ではありません）\n・他のご家族の契約・提案には触れません\n・置き換え前の内容は保存され、後からいつでも『取り消す』で戻せます\n\n実行しますか？"))return;
+var _bk={ts:Date.now(),policies:JSON.parse(JSON.stringify(state.policies||{})),proposalPolicies:JSON.parse(JSON.stringify(state.proposalPolicies||{}))};
+state._confirmBackup=_bk;
+try{storageSet(_cbkKey(),JSON.stringify(_bk));}catch(e){}
+state.policies[mid]=JSON.parse(JSON.stringify(pp));
+delete state.proposalPolicies[mid];
+var _left=false;try{_left=Object.keys(state.proposalPolicies).some(function(k){var v=state.proposalPolicies[k];return v&&v.length;});}catch(e){}
+if(!_left)state.proposalPolicies=null;
+saveState();currentTab="summary";render();
+alert((mem.name||"")+" の提案を現在の契約にしました。「加入一覧」で確認できます。\n元に戻すときは提案タブの『取り消す』を押してください。再読み込み後でも戻せます。");}));
+if(state._confirmBackup||_cbkLoad()){_cfRow.appendChild(btn("↩ 取り消す","br",function(){if(confirm("直前の確定を取り消して元に戻しますか？")){_cbkRestore();}}));}
+var _cfN=el("span");_cfN.style.cssText="font-size:11px;color:#5a8a6a;";_cfN.textContent="※確定するのは今開いている方のみ。他のご家族の契約・提案には影響しません。";_cfRow.appendChild(_cfN);
 cont.appendChild(_cfRow);
 // 家族メンバー切替（既契約と同様）
 var ptabsP=el("div","ptabs");

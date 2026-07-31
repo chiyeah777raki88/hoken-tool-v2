@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731k(CURE Nextの境界を2022/4に修正)";
+var APP_VERSION="v2-0731m(新CUREの給付/免除を正しく自動判定)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5070,8 +5070,8 @@ var COLS=[
 function mkCell(text,polIdxs,na){return {text:text||"",polIdxs:polIdxs||[],na:!!na};}
 var ROWS_KYUFU=[
 {id:"cancer",label:"がん",def:{a:"悪性新生物で\n60日の就業不能",b:"悪性新生物と診断",c:"悪性新生物で入院",d:"上皮内癌で入院",e:"上皮内癌と診断",f:"上皮内癌で通院",s1:"無し",s2:"入院",s3:"入院",s4:"外来OK"}},
-{id:"heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n60日の就業不能",c:"急性心筋梗塞で\n入院or手術",d:"心疾患で\n10日入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
-{id:"brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n60日の就業不能",c:"脳卒中で\n入院or手術",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
+{id:"heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n60日の就業不能",c:"急性心筋梗塞で\n入院",d:"心疾患で\n10日入院",e:"心疾患で手術",f:"心疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
+{id:"brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n60日の就業不能",c:"脳卒中で\n入院",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
 {id:"metabo",label:"糖尿病\n高血圧/肝硬変\n腎不全/膵疾患",def:{a:"60日の所定の状態",b:"60日の就業不能",c:"20日入院",d:"10日入院",e:"手術",f:"入院"}},
 {id:"dis",label:"介護・就業不能",def:{a:"5疾病",b:"7疾病",c:"全疾病"}},
 {id:"dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
@@ -5284,17 +5284,19 @@ pols.forEach(function(p){
  /* オリックス CURE 世代別の自動ポッチ */
  var _cg=orixCureGen(p);
  if(_cg==="next"){
-   setDot(K,"kyufu","cancer","b",p.id);            /* 1回目:悪性新生物と診断 */
-   setDot(K,"kyufu","cancer","c",p.id);            /* 2回目以降:がんで入院   */
-   setDot(K,"kyufu","heart","c",p.id);             /* 急性心筋梗塞:入院or手術 */
-   setDot(K,"kyufu","heart","d",p.id);             /* その他心疾患:10日入院   */
-   setDot(K,"kyufu","heart","e",p.id);             /* その他心疾患:手術       */
+   /* CURE Next：一時金=がん診断/2回目入院、急性心筋梗塞・脳卒中は入院or手術、
+      その他の心疾患・脳血管疾患は10日以上入院or手術。免除も同条件。 */
+   setDot(K,"kyufu","cancer","b",p.id);
+   setDot(K,"kyufu","cancer","c",p.id);
+   setDot(K,"kyufu","heart","c",p.id);   /* 急性心筋梗塞:入院 */
+   setDot(K,"kyufu","heart","d",p.id);   /* その他心疾患:10日入院 */
+   setDot(K,"kyufu","heart","e",p.id);   /* 手術 */
    setDot(K,"kyufu","brain","c",p.id);
    setDot(K,"kyufu","brain","d",p.id);
    setDot(K,"kyufu","brain","e",p.id);
-   if(p.premExempt||p.premExemptType&&p.premExemptType!=="none"){
+   if(p.premExempt||(p.premExemptType&&p.premExemptType!=="none")){
      setDot(M,"menjo","m_cancer","b",p.id);
-     setDot(M,"menjo","m_heart","b",p.id);
+     setDot(M,"menjo","m_heart","b",p.id);   /* 入院or手術 */
      setDot(M,"menjo","m_heart","d",p.id);
      setDot(M,"menjo","m_heart","e",p.id);
      setDot(M,"menjo","m_brain","b",p.id);
@@ -5302,13 +5304,18 @@ pols.forEach(function(p){
      setDot(M,"menjo","m_brain","e",p.id);
    }
  } else if(_cg==="old"){
-   setDot(K,"kyufu","cancer","b",p.id);
-   setDot(K,"kyufu","heart","a",p.id);             /* 急性心筋梗塞:60日の所定の状態 */
-   setDot(K,"kyufu","brain","a",p.id);
-   if(p.premExempt||p.premExemptType&&p.premExemptType!=="none"){
+   /* 新CURE(2013/9〜2022/3)：重度三疾病一時金は「治療で入院を開始したとき」。手術では出ない。
+      払込免除は「所定の状態に該当」または「治療を目的とした手術」。入院だけでは出ない。 */
+   setDot(K,"kyufu","cancer","b",p.id);   /* 初回:診断確定 */
+   setDot(K,"kyufu","cancer","c",p.id);   /* 2回目以降:入院開始 */
+   setDot(K,"kyufu","heart","c",p.id);    /* 急性心筋梗塞:入院開始のみ */
+   setDot(K,"kyufu","brain","c",p.id);
+   if(p.premExempt||(p.premExemptType&&p.premExemptType!=="none")){
      setDot(M,"menjo","m_cancer","b",p.id);
-     setDot(M,"menjo","m_heart","a",p.id);
+     setDot(M,"menjo","m_heart","a",p.id);  /* 所定の状態 */
+     setDot(M,"menjo","m_heart","e",p.id);  /* または手術 */
      setDot(M,"menjo","m_brain","a",p.id);
+     setDot(M,"menjo","m_brain","e",p.id);
    }
  }
 

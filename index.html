@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0731e(健康還付の自動計算)";
+var APP_VERSION="v2-0731f(給付条件ポッチが戻る不具合を修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5188,13 +5188,15 @@ pr.appendChild(dot2);pr.appendChild(lbl2);pr.appendChild(chk2);
 pr.addEventListener("click",function(){
 if(!cd.polIdxs)cd.polIdxs=[];
 var idx=cd.polIdxs.indexOf(p.id);
-if(idx>=0)cd.polIdxs.splice(idx,1);else cd.polIdxs.push(p.id);
+if(!cd.off)cd.off=[];
+if(idx>=0){cd.polIdxs.splice(idx,1);if(cd.off.indexOf(p.id)<0)cd.off.push(p.id);}
+else{cd.polIdxs.push(p.id);var _oi=cd.off.indexOf(p.id);if(_oi>=0)cd.off.splice(_oi,1);}
 saveState();pop.remove();rebuild();
 });
 pop.appendChild(pr);
 });
 var allOff=el("div");allOff.style.cssText="padding:3px 0;cursor:pointer;color:#999;font-size:11px;border-top:1px solid #eee;margin-top:3px;";allOff.textContent="× 全て外す";
-allOff.addEventListener("click",function(){cd.polIdxs=[];saveState();pop.remove();rebuild();});
+allOff.addEventListener("click",function(){if(!cd.off)cd.off=[];(cd.polIdxs||[]).forEach(function(_id){if(cd.off.indexOf(_id)<0)cd.off.push(_id);});cd.polIdxs=[];saveState();pop.remove();rebuild();});
 pop.appendChild(allOff);
 document.body.appendChild(pop);
 setTimeout(function(){document.addEventListener("click",function h(ev){if(!pop.contains(ev.target)){pop.remove();document.removeEventListener("click",h);}});},50);
@@ -5216,7 +5218,7 @@ return sec2;
 function _applyAutoRules(K,M,pols,additive){
 /* 入力タブの内容から給付・免除のポッチを判定。additive=trueなら追加のみ(手動ポッチ・✕セルは保持) */
 var changed=false;
-function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;changed=true;}if(!cd.polIdxs)cd.polIdxs=[];if(cd.na){if(additive)return;cd.na=false;changed=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}}
+function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;changed=true;}if(!cd.polIdxs)cd.polIdxs=[];if(additive&&cd.off&&cd.off.indexOf(pi)>=0)return;/*手動で外したポッチは復活させない*/if(cd.na){if(additive)return;cd.na=false;changed=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}}
 function condCol(c){var m={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};return m[c]||"a";}
 function naMark(data,tt,rid,cid,pi,force){/*「この証券は該当なし」を✕で表現。force=trueは「無し」列用(既存色ごと✕化)*/
  var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];
@@ -5274,6 +5276,7 @@ var K=BMX.kyufu,M=BMX.menjo;
 Object.keys(K).forEach(function(ck){K[ck].polIdxs=[];});
 Object.keys(M).forEach(function(ck){M[ck].polIdxs=[];});
 var _allP=opts.pols?opts.pols:((typeof aPs==="function")?aPs().map(function(x){return x.policy;}):policies);
+[K,M].forEach(function(_d){Object.keys(_d||{}).forEach(function(_k){if(_d[_k])_d[_k].off=[];});});/*明示的な再割り当て時は解除*/
 _applyAutoRules(K,M,_allP,false);
 saveState();
 }

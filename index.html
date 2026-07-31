@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0801a(CURE判定時は汎用ルールを打たない)";
+var APP_VERSION="v2-0801b(免除側の汎用ルールも停止)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5338,7 +5338,7 @@ if(+p.big8Amount>0){var b8c=({days60:"a",days20:"c",days10:"d",hospital1:"f",sur
 if(+p.disPensionAmt>0&&p.disPensionGrade){var gco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.disPensionGrade];if(gco)setDot(K,"kyufu","dis_grade",gco,p.id);}
 if(+p.welfareAmt>0&&p.welfareGrade){var wco=({ "1級":"a","2級":"b","3級":"c","4級":"d"})[p.welfareGrade];if(wco)setDot(K,"kyufu","welfare",wco,p.id);}
 var et=p.premExemptType;
-if(!_isKarada&&et&&et!=="none"&&et!==""){var det=p.premExemptDetail||"";
+if(!_cure&&!_isKarada&&et&&et!=="none"&&et!==""){var det=p.premExemptDetail||"";
 function mjCol(){if(det.indexOf("60日")>=0)return "a";if(det.indexOf("20日")>=0)return "c";if(det.indexOf("10日")>=0)return "d";if(det.indexOf("手術")>=0)return "e";return "f";}
 var cCol2=(det.indexOf("上皮内")>=0||p.cCond==="B")?"c":"b";
 if(et==="cancer")setDot(M,"menjo","m_cancer","b",p.id);
@@ -5346,7 +5346,7 @@ else if(et==="cancer_jhi")setDot(M,"menjo","m_cancer","c",p.id);
 else if(et==="3big"||et==="5big"||et==="8big"||et==="multi"){setDot(M,"menjo","m_cancer",cCol2,p.id);setDot(M,"menjo","m_heart",mjCol(),p.id);setDot(M,"menjo","m_brain",mjCol(),p.id);}
 else if(et==="care")setDot(M,"menjo","m_care","c",p.id);}
 /* 免除に該当しない証券(からだエール含む)は免除条件の一番左(①)に自動で✕ */
-if(_isKarada||!et||et==="none"||et===""){
+if(!_cure&&(_isKarada||!et||et==="none"||et==="")){
  ["m_cancer","m_heart","m_brain"].forEach(function(rid){naMark(M,"menjo",rid,"a",p.id);});
 }
 /* 2回目が出ない証券(給付後契約終了・回数1回)は「無し」列に✕=1回ぽっきりと分かる */

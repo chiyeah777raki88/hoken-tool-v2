@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0801e(新CUREの上皮内・ファインセーブ対応)";
+var APP_VERSION="v2-0801f(上皮内は給付のみ・免除は対象外)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5251,8 +5251,14 @@ var changed=false;
 function setDot(data,tt,rid,cid,pi){var ck=tt+"|"+rid+"|"+cid;var cd=data[ck];if(!cd){cd=mkCell("",[],false);data[ck]=cd;changed=true;}if(!cd.polIdxs)cd.polIdxs=[];if(additive&&cd.off&&cd.off.indexOf(pi)>=0)return;/*手動で外したポッチは復活させない*/if(cd.na){if(additive)return;cd.na=false;changed=true;}if(cd.polIdxs.indexOf(pi)<0){cd.polIdxs.push(pi);changed=true;}}
 function condCol(c){var m={A:"a",W:"b",H:"c",T:"d",B:"f",E:"e",C:"f",D:"e"};return m[c]||"a";}
 /* ===== オリックス生命 CURE(キュア) 世代判定 =====
-   新CURE  : 2013/09/02発売。払込免除は「急性心筋梗塞で60日以上の労働制限」
-             「脳卒中で60日以上の後遺症」= 所定の状態が必要。対象は急性心筋梗塞・脳卒中のみ。
+   新CURE  : 設計書(2/3ページ)の記載どおり。
+             [給付] がん一時金 初回=初めて「がん」と診断確定(上皮内新生物も含む)/
+                    2回目以降=1年経過後にがんの治療目的の入院を開始。
+                    急性心筋梗塞一時金・脳卒中一時金=治療で入院を開始したとき(手術は対象外)。いずれも1年に1度。
+             [免除] 特定疾病保険料払込免除特則=
+                    ・初めて悪性新生物(がん)と診断確定されたとき ※上皮内は対象外
+                    ・急性心筋梗塞または脳卒中により所定の状態に該当したとき
+                    ・急性心筋梗塞または脳卒中の治療を直接の目的とした手術を受けたとき
    CURE Next: 特定三疾病一時金・払込免除とも
              がん=1回目は診断確定/2回目以降は入院開始(1年に1回)
              急性心筋梗塞・脳卒中 = 入院または手術(日数要件なし)
@@ -5336,7 +5342,7 @@ pols.forEach(function(p){
    setDot(K,"kyufu","heart","s3",p.id);
    setDot(K,"kyufu","brain","s3",p.id);
    if(_cureExempt(p)){
-     setDot(M,"menjo","m_cancer","c",p.id);  /* 上皮内がんを含む診断 */
+     setDot(M,"menjo","m_cancer","b",p.id);  /* 初めて悪性新生物と診断確定（上皮内は対象外） */
      setDot(M,"menjo","m_heart","b",p.id);   /* 入院or手術 */
      setDot(M,"menjo","m_heart","d",p.id);
      setDot(M,"menjo","m_heart","e",p.id);
@@ -5359,8 +5365,8 @@ pols.forEach(function(p){
    setDot(K,"kyufu","heart","s3",p.id);
    setDot(K,"kyufu","brain","s3",p.id);
    if(_cureExempt(p)){
-     setDot(M,"menjo","m_cancer","c",p.id); /* 上皮内がんを含む診断 */
-     setDot(M,"menjo","m_heart","a",p.id);  /* 所定の状態 */
+     setDot(M,"menjo","m_cancer","b",p.id); /* 初めて悪性新生物(がん)と診断確定。上皮内は免除の対象外 */
+     setDot(M,"menjo","m_heart","a",p.id);  /* 急性心筋梗塞または脳卒中で所定の状態 */
      setDot(M,"menjo","m_heart","c",p.id);  /* または急性心筋梗塞の手術 */
      setDot(M,"menjo","m_brain","a",p.id);
      setDot(M,"menjo","m_brain","c",p.id);

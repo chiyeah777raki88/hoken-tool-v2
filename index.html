@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807d(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807e(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1343,6 +1343,23 @@ accTa.addEventListener("input",function(){upd("corpAccounting",this.value);});
 accLbl.appendChild(accTa);corpBox.appendChild(accLbl);
 cont.appendChild(corpBox);
 }
+// 通貨（上の見やすい場所に）
+var curRow=el("div");curRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;";
+var curL=el("span");curL.style.cssText="color:#9a3412;font-weight:700;white-space:nowrap;";curL.textContent="通貨：";curRow.appendChild(curL);
+var curSel=sel([{v:"JPY",l:"円"},{v:"USD",l:"米ドル(USD)"},{v:"EUR",l:"ユーロ(EUR)"},{v:"AUD",l:"豪ドル(AUD)"}],pol.currency||"JPY",function(v){upd("currency",v);if(v==="JPY")upd("fxAmt",false);render();});
+curSel.style.cssText="font-size:12px;padding:3px 6px;";curRow.appendChild(curSel);
+if(pol.currency&&pol.currency!=="JPY"){
+var rL2=el("span");rL2.textContent="1"+pol.currency+"=";curRow.appendChild(rL2);
+var rI2=inp("number",pol.exchangeRate||150,function(v){upd("exchangeRate",+v);render();});rI2.style.cssText="width:64px;font-size:12px;padding:3px 4px;text-align:right;";curRow.appendChild(rI2);
+var rN2=el("span");rN2.textContent="円";curRow.appendChild(rN2);
+var fxCb2=document.createElement("input");fxCb2.type="checkbox";fxCb2.checked=!!pol.fxAmt;fxCb2.style.cssText="width:16px;height:16px;cursor:pointer;margin-left:8px;";
+fxCb2.addEventListener("change",function(){upd("fxAmt",this.checked);render();});
+var fxLb2=el("label");fxLb2.style.cssText="cursor:pointer;display:flex;align-items:center;gap:5px;color:#9a3412;font-weight:700;";
+fxLb2.appendChild(fxCb2);fxLb2.appendChild(document.createTextNode("保険料・保障額も"+pol.currency+"のまま入力する（設計書どおりの数字）"));
+curRow.appendChild(fxLb2);
+if(pol.fxAmt){var fxN2=el("span");fxN2.style.cssText="font-size:11px;color:#8a5320;width:100%;";fxN2.textContent="例：死亡保険金10万ドルなら 100000、保険料500ドル/月なら 500。一覧やグラフは上のレートで円に直します。";curRow.appendChild(fxN2);}
+}else{var cN2=el("span");cN2.style.cssText="font-size:11px;color:#8a5320;";cN2.textContent="ドル建て・外貨建ての証券はここで通貨を選ぶと、保険料や保障額を外貨のまま入れられます。";curRow.appendChild(cN2);}
+cont.appendChild(curRow);
 // Policy nickname
 var nameRow=el("div");nameRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:#f0f4ff;border:1px solid #c3dafe;border-radius:6px;display:flex;align-items:center;gap:10px;";
 var nameLbl2=el("span");nameLbl2.style.cssText="font-size:12px;color:#1a2744;font-weight:700;white-space:nowrap;";nameLbl2.textContent=pol.isCorp?"屋号／ペットネーム：":"ペットネーム：";
@@ -1801,7 +1818,7 @@ fxCb.addEventListener("change",function(){upd("fxAmt",this.checked);render();});
 var fxLb=el("label");fxLb.style.cssText="cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;color:#9a3412;font-weight:700;";
 fxLb.appendChild(fxCb);fxLb.appendChild(document.createTextNode("保険料・保障額も"+(pol.currency||"USD")+"のまま入力する（設計書どおりの数字を入れる）"));
 var fxNt=el("p");fxNt.style.cssText="font-size:11px;color:#8a5320;margin:4px 0 0;line-height:1.5;";
-fxNt.textContent="オンにすると、保険料は「"+(pol.currency||"USD")+"／回」、保障額は原通貨のままの数字（例：死亡保険金10万ドルなら 100000）として扱い、一覧やグラフでは上のレートで円に直します。オフのままなら今までどおり円・万円で入力します。";
+fxNt.textContent="※この設定は、証券の上の方にある「通貨：」の欄でも同じことができます。";
 fxW.appendChild(fxLb);fxW.appendChild(fxNt);currDiv.appendChild(fxW);
 }
 detailBox.appendChild(sec("変額・年金・還付金（設計書より）",null,[
@@ -5788,7 +5805,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0807d: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807e: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

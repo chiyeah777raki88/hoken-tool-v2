@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806q(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0806r(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1151,7 +1151,7 @@ var content=imgs.map(function(im){return{type:"image",source:{type:"base64",medi
 content.push({type:"text",text:CPROMPT});
 var apiUrl="https://api.anthropic.com/v1/messages";
 if(!AI_API_KEY){msgEl.textContent="読み取りには鍵(APIキー)の登録が必要です。上の「🔑鍵」ボタンから登録してください。";msgEl.style.color="#c0392b";lbl2.textContent="画像を選択（複数可）";return Promise.reject(new Error("no key"));}
-return fetch(apiUrl,{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:8000,messages:[{role:"user",content:content}]})});
+return fetch(apiUrl,{method:"POST",headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true","x-api-key":AI_API_KEY},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:16000,messages:[{role:"user",content:content}]})});
 }).then(function(r){return r.json();})
 .then(function(data){
 lbl2.textContent="画像を選択（複数可）";fi.disabled=false;
@@ -1171,6 +1171,8 @@ if(data.error){
   return;
 }
 if(!data.content||!data.content.length){msgEl.textContent="応答が空でした。";msgEl.style.color="#c0392b";return;}
+var _cut=(data.stop_reason==="max_tokens");
+var _cutMsg="　※表が長すぎて途中で切れました。解約返戻金の表だけを別に撮って、もう一度読み取ってください。";
 var txt=data.content.map(function(x){return x.text||"";}).join("");
 var jsonMatch=txt.match(/\{[\s\S]*\}/);
 var rawJson=jsonMatch?jsonMatch[0]:null;
@@ -1179,7 +1181,7 @@ if(!rawJson){
   var st=txt.indexOf("{");
   if(st>=0)rawJson=txt.slice(st);
 }
-if(!rawJson){msgEl.textContent="JSON解析失敗："+txt.slice(0,60);msgEl.style.color="#c0392b";return;}
+if(!rawJson){msgEl.textContent="JSON解析失敗："+txt.slice(0,60)+(_cut?_cutMsg:"");msgEl.style.color="#c0392b";return;}
 var parsed;
 function repairJson(s){
   var t=s;
@@ -1207,7 +1209,7 @@ function repairJson(s){
 try{parsed=JSON.parse(rawJson);}
 catch(pe){
   try{parsed=JSON.parse(repairJson(rawJson));}
-  catch(pe2){msgEl.textContent="JSONパースエラー："+pe.message;msgEl.style.color="#c0392b";return;}
+  catch(pe2){msgEl.textContent="JSONパースエラー："+pe.message+(_cut?_cutMsg:"");msgEl.style.color="#c0392b";return;}
 }
 if(parsed.renewalRates&&typeof parsed.renewalRates==="string"){
 try{parsed.renewalRates=JSON.parse(parsed.renewalRates);}catch(e){parsed.renewalRates=[];}
@@ -1218,7 +1220,7 @@ try{parsed.futureVals=JSON.parse(parsed.futureVals);}catch(e){parsed.futureVals=
 }
 if(!Array.isArray(parsed.futureVals))parsed.futureVals=[];
 showConfirm(parsed,pol,box,onResult,msgEl);
-msgEl.textContent="読み取り完了！内容を確認してください。";msgEl.style.color="#27ae60";
+if(_cut){msgEl.textContent="読み取りましたが、表が長くて途中で切れています。返戻金表の行が足りないときは、表だけを別に撮って読み取り直してください。";msgEl.style.color="#b9770e";}else{msgEl.textContent="読み取り完了！内容を確認してください。";msgEl.style.color="#27ae60";}
 }).catch(function(e){
 lbl2.textContent="画像を選択（複数可）";fi.disabled=false;
 msgEl.textContent="エラー："+e.message;msgEl.style.color="#c0392b";
@@ -5629,7 +5631,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806q: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0806r: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

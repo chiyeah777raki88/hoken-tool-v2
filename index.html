@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807m(積立額の手入力セルを自動計算にもどせる)";
+var APP_VERSION="v2-0807n(満了年齢の赤表示・返戻金表の年齢直し)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1097,7 +1097,7 @@ if(!(_ea>0&&_ea<110))_ea=0;
 var _rows=[];String(draft.futureValsCsv).split(/\r?\n/).forEach(function(ln){
 var c=ln.split(/[,\t]/).map(function(x){return String(x).replace(/[^0-9.\-]/g,"");});
 if(!c.length||!c[0])return;var n0=parseFloat(c[0]);if(!(n0>0))return;
-var age=_isAge?n0:(_ea>0?(_ea+n0-1):n0);
+var age=_isAge?n0:(_ea>0?(_ea+n0):n0);
 var paid=parseFloat(c[1]);if(isNaN(paid))paid=0;else paid=Math.round(paid/_unit*10)/10;
 var v1,v3,v5,v6;
 if(c.length>=6&&c[2]!==""&&c[3]!==""&&c[4]!==""&&c[5]!==""){v1=parseFloat(c[2])/_unit;v3=parseFloat(c[3])/_unit;v5=parseFloat(c[4])/_unit;v6=parseFloat(c[5])/_unit;}
@@ -1106,9 +1106,9 @@ function _r(x){return isNaN(x)?0:Math.round(x*10)/10;}
 _rows.push({age:age,paid:paid,v1:_r(v1),v3:_r(v3),v5:_r(v5),v6:_r(v6)});});
 if(_rows.length>=2){
 /* 1列目が年齢のはずなのに1,2,3…と並んでいたら経過年数とみなす */
-if(_isAge&&_ea>0&&_rows[0].age<=5)_rows.forEach(function(r,i){r.age=_ea+i;});
+if(_isAge&&_ea>0&&_rows[0].age<=5)_rows.forEach(function(r,i){r.age=_ea+i+1;});
 /* おかしな年齢（0以下・121以上）が混ざっていたら通し番号で振り直す */
-if(_rows.some(function(r){return !(r.age>0&&r.age<121);}))_rows.forEach(function(r,i){r.age=(_ea>0?_ea+i:i+1);});
+if(_rows.some(function(r){return !(r.age>0&&r.age<121);}))_rows.forEach(function(r,i){r.age=(_ea>0?_ea+i+1:i+1);});
 merged.futureVals=_rows;}
 }}catch(e){}
 if((!merged.futureVals||!merged.futureVals.length)&&Array.isArray(draft.futureVals)&&draft.futureVals.length>0)merged.futureVals=draft.futureVals;
@@ -1774,8 +1774,28 @@ var _sb1=btn("解約返戻金を1行上へ","bn",function(){_vpShift(["v1","v3",
 var _sb2=btn("解約返戻金を1行下へ","bn",function(){_vpShift(["v1","v3","v5","v6"],1);});_sb2.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb2);
 var _sb3=btn("払込累計を1行上へ","bn",function(){_vpShift(["paid"],-1);});_sb3.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb3);
 var _sb4=btn("払込累計を1行下へ","bn",function(){_vpShift(["paid"],1);});_sb4.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb4);
+var _sb7=btn("年齢を全部 ＋1歳","bn",function(){(pol.futureVals||[]).forEach(function(r){r.age=(+r.age||0)+1;});upd("futureVals",pol.futureVals);renderVpTable();});_sb7.style.cssText="font-size:11px;padding:3px 8px;background:#fff3d6;";_shRow.appendChild(_sb7);
+var _sb8=btn("年齢を全部 −1歳","bn",function(){(pol.futureVals||[]).forEach(function(r){r.age=(+r.age||0)-1;});upd("futureVals",pol.futureVals);renderVpTable();});_sb8.style.cssText="font-size:11px;padding:3px 8px;background:#fff3d6;";_shRow.appendChild(_sb8);
 var _shN=el("span");_shN.style.cssText="font-size:11px;color:#5a6a8a;";_shN.textContent="※表全体が動きます。途中からズレているときは、各行の右端にある ↑ ↓ を押すと、その行から下だけ動きます。";_shRow.appendChild(_shN);
 vpTableWrap.appendChild(_shRow);
+vpBtns.appendChild(btn("📝 年齢だけをまとめて入れる","bn",function(){
+var _fv=pol.futureVals||[];if(!_fv.length){alert("先に表の行を入れてください。");return;}
+var _cur=_fv.map(function(r){return (+r.age>0)?r.age:"";}).join(" ");
+var _s=prompt("上の行から順に、年齢だけを並べて入れてください。\n（スペース・カンマ・改行のどれで区切ってもOK）\n\n5年おきの抜粋でもかまいません。例: 35 40 45 50 55 60 65 70 80 90\n※入れた年齢の数だけ行を残します。",_cur);
+if(_s===null)return;
+var _ns=String(_s).split(/[^0-9]+/).map(function(x){return parseInt(x,10);}).filter(function(n){return n>0&&n<121;});
+if(!_ns.length){alert("年齢が読み取れませんでした。");return;}
+if(_ns.length<_fv.length)pol.futureVals=_fv.slice(0,_ns.length);
+pol.futureVals.forEach(function(r,i){r.age=_ns[i];});
+upd("futureVals",pol.futureVals);renderVpTable();
+alert(pol.futureVals.length+"行の年齢を入れました（"+_ns[0]+"歳〜"+_ns[Math.min(_ns.length,pol.futureVals.length)-1]+"歳）。");
+}));
+vpBtns.appendChild(btn("＋ 10行まとめて追加","bn",function(){
+if(!pol.futureVals)pol.futureVals=[];
+var _la=pol.futureVals.length?(+pol.futureVals[pol.futureVals.length-1].age||0):0;
+for(var _q=1;_q<=10;_q++)pol.futureVals.push({age:(_la>0?_la+_q:0),paid:0,v1:0,v3:0,v5:0,v6:0});
+upd("futureVals",pol.futureVals);renderVpTable();
+}));
 vpBtns.appendChild(btn("🔢 年齢を順番に入れる","bn",function(){
 if(!pol.futureVals||!pol.futureVals.length){alert("先に表の行を入れてください。");return;}
 var _d0=((+pol.futureVals[0].age)>0)?pol.futureVals[0].age:"";
@@ -3961,6 +3981,7 @@ if(it.indexOf("変額")>=0)return false;return /医療|がん|ガン|介護|就�
 function _scenRateDec(){var m={"1":-0.03,"3":0,"5":0.03,"6":0.06};return (m[scenRate]!==undefined)?m[scenRate]:0;}
 /*変額年金:原資を年金開始年齢から受取年数で取り崩す(受取中も同率で運用)前提の年額(万円)。運用率シナリオに連動。*/
 function _annPay(p){var pr=_accumAtAge(p,(+p.pensionStartAge||70));var n=+p.pensionYears||0;if(!(pr>0)||!(n>0))return 0;var r=_scenRateDec();var pay=(r===0)?(pr/n):(pr*r/(1-Math.pow(1+r,-n)));return Math.round(pay*10)/10;}
+function _waOn(p){var _wa=+((typeof state!=="undefined"&&state.wholeAge)||0);if(!(_wa>0)||!p)return false;if(((p.dlPeriodType||"")+(p.dlPayType||"")).indexOf("更新")>=0)return false;var _pe=+(p.dlPeriodEnd||0);return _pe>=_wa;}
 function _getAccAges(){var a=state.accAges;if(a&&a.length===3&&a.every(function(x){return +x>0;}))return a.map(Number);return [65,70,80];}
 function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
 {k:"death",l:"死亡一時金",u:"万",grp:"保障",g:function(p){if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(!_isFx(p)&&a>10000)a=Math.round(a/10000);s+=a;});if(s>0)return s;}var v=+p.dlAmount||0;var mv=(!_isFx(p)&&v>10000)?Math.round(v/10000):v;return (_hasLump(p))?mv:0;},disp:function(p){var mv=0;if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(!_isFx(p)&&a>10000)a=Math.round(a/10000);s+=a;});mv=s;}if(!(mv>0)){var v=+p.dlAmount||0;mv=((!_isFx(p)&&v>10000)?Math.round(v/10000):v);if(!(_hasLump(p)))mv=0;}if(!(mv>0))return "";if((p.insType||"").indexOf("災害")>=0&&+p.disasterPeriodYears>0){return mv.toLocaleString()+"万("+((+p.disasterPeriodYears)+1)+"年目〜)";}return mv.toLocaleString()+"万";}},
@@ -4035,7 +4056,7 @@ function _kPayTerm(p){if((p.dlPayType||"").indexOf("一時")>=0)return "一時�
 function _kValCell(row,p){var td=el("td");td.style.cssText="text-align:center;font-size:13px;white-space:nowrap;padding:2px 4px;";if(row.isFlag){var fv=row.g(p)||0;td.textContent=fv?"○":"—";td.style.color=fv?"#1f7d56":"#ccc";td.style.fontWeight="700";return td;}
 if(row.isPair){var a=row.g(p)||0,b=row.g2(p)||0;var aT=p.surgInMode==="tier",bT=p.surgOutMode==="tier";function side(val,tier,col){if(tier){return "<span style=\'color:"+col+";font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}if(val>0)return "<span style=\'color:"+col+";font-weight:700;\'>"+val+"万</span>";return "<span style=\'color:#ccc;\'>—</span>";}if(aT&&bT){td.innerHTML="<span style=\'color:#1f7d56;font-weight:700;\'>"+_surgTierTxt(p)+"</span>";}else if(a||b||aT||bT){td.innerHTML=side(a,aT,"#1f7d56")+"<span style=\'color:#bbb;\'>/</span>"+side(b,bT,"#2980b9");}else{td.textContent="—";td.style.color="#ccc";}return td;}
 var v=row.g(p)||0;if(row.grp==="貯蓄"){var sk=row.k+"|"+p.id;if(state.savNotes&&state.savNotes[sk]!==undefined&&state.savNotes[sk]!==""){td.innerHTML=_shrU(state.savNotes[sk]);td.style.color="#1f7d56";td.style.fontWeight="700";return td;}}
-var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;var _re=+((p.itemEnd||{})[row.k])||0;var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));if(_endsEarly)td.style.background="#fdecea";
+var _pWhole=((p.dlPeriodType||"").indexOf("終身")>=0)||_waOn(p);var _re=+((p.itemEnd||{})[row.k])||0;var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));if(_endsEarly)td.style.background="#fdecea";
 if(v>0){var _isCHB=(row.k==="cancer"||row.k==="heart"||row.k==="brain");if(_isCHB){var _cw=_cntWordTxt(row.k,p);var _fc=_firstCondTxt(row.k,p);var _sc=_secondDetailTxt(row.k,p);var _hh=_shrU(v.toLocaleString()+row.u)+(_cw?" <span style='font-size:10px;color:#7a5a9a;font-weight:700;'>"+_cw+"</span>":"");if(_fc)_hh+="<div style='font-size:10px;color:#555;font-weight:600;'>1回目:"+_fc+"</div>";if(_sc)_hh+="<div style='font-size:10px;color:#555;font-weight:600;'>2回目:"+_sc+"</div>";td.innerHTML=_hh;td.style.whiteSpace="normal";}else{td.innerHTML=_shrU(row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u));}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}else{td.textContent="—";td.style.color="#ccc";}return td;}
 function _kSumCell(row,pols){var td=el("td");td.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:13px;padding:2px 4px;border-left:2.5px solid #444;border-right:2.5px solid #444;";if(row.isFlag){td.style.background="#fafafa";return td;}if(row.isPair){var sA=0,sB=0;pols.forEach(function(p){sA+=row.g(p)||0;sB+=row.g2(p)||0;});var _ta=(row.k==="surg"&&_surgHasTier(pols))?"<span style=\'color:#b9770e;\'>＋α</span>":"";td.innerHTML=(sA||sB)?("<span style=\'color:#1f7d56;\'>"+sA+"</span>/<span style=\'color:#2980b9;\'>"+sB+"</span>"+row.u+_ta):(_ta||"—");return td;}if(row.noSum){td.textContent="—";return td;}var s=0;pols.forEach(function(p){s+=row.g(p)||0;});td.innerHTML=s>0?_shrU(s.toLocaleString()+row.u):"—";return td;}
 function _shrU(t){t=String(t==null?"":t);var out="";var i=0;while(i<t.length){var rest=t.slice(i);var m=rest.match(/^[0-9]+日型?/);if(m){out+="<span style=\"font-size:.72em !important;\">"+m[0]+"</span>";i+=m[0].length;continue;}var c=t.charAt(i);var e=(c==="&")?"&amp;":(c==="<")?"&lt;":(c===">")?"&gt;":c;if(/[0-9.,\/〜]/.test(c)){out+=e;}else{out+="<span style=\"font-size:.78em !important;\">"+e+"</span>";}i++;}return out;}
@@ -4067,8 +4088,8 @@ var tb=el("tbody");
 function _lblCell(label,detail){var lb=el("td");lb.textContent=label;lb.style.cssText="text-align:center;font-weight:700;font-size:13px;white-space:nowrap;padding:3px 6px;background:#f0ece6;color:#5b4636;";if(detail){var dc=(detail==="exempt")?"#6b21a8":"#8a5320";lb.style.background=dc;lb.style.color="#fff";}return lb;}
 function infoRow(label,fn){var tr=el("tr");curPols.forEach(function(p){var td=el("td");td.textContent=fn(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});var t1=el("td");t1.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;";tr.appendChild(t1);tr.appendChild(_lblCell(label));var t2=el("td");t2.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;";tr.appendChild(t2);propPols.forEach(function(p){var td=el("td");td.textContent=fn(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tb.appendChild(tr);}
 (function periodRow(){var tr=el("tr");function pc(p){var val=_kPeriod(p);var isWhole=(val==="終身");
-var _wa=+(state.wholeAge||0);var _pe=+(p.dlPeriodEnd||0);var _asWhole=false;
-if(!isWhole&&_wa>0&&_pe>=_wa&&(p.dlPeriodType||"").indexOf("更新")<0){isWhole=true;_asWhole=true;val=_pe+"歳満了";}var isRenew=((p.dlPayType||"").indexOf("更新")>=0)||((p.dlPeriodType||"").indexOf("更新")>=0);var earliest=0;var ie=p.itemEnd||{};Object.keys(ie).forEach(function(k){var ea=+ie[k];if(ea>0&&(isWhole?true:(!(+p.dlPeriodEnd)||ea<+p.dlPeriodEnd))){if(!earliest||ea<earliest)earliest=ea;}});var html=isWhole?("<span style=\'color:#1a7a3a;font-weight:700;\'>"+(_asWhole?(val+"<br><span style=\'font-size:10px;\'>（ほぼ終身）</span>"):"終身")+"</span>"):"<span style=\'color:#c0392b;font-weight:700;white-space:normal;\'>"+String(val).replace("（","<br>（")+"</span>";if(isRenew)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a0特約"+earliest+"歳まで</span>";if(p.contractEndsOnClaim)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a03大特約:給付後満了</span>";var td=el("td");td.style.cssText="text-align:center;font-size:11px;"+PADC+((!isWhole||earliest)?"background:#fdecea;":"");td.style.whiteSpace="normal";td.innerHTML=html;return td;}
+var _asWhole=false;
+if(!isWhole&&_waOn(p)){isWhole=true;_asWhole=true;val=(+p.dlPeriodEnd)+"歳満了";}var isRenew=((p.dlPayType||"").indexOf("更新")>=0)||((p.dlPeriodType||"").indexOf("更新")>=0);var earliest=0;var ie=p.itemEnd||{};Object.keys(ie).forEach(function(k){var ea=+ie[k];if(ea>0&&(isWhole?true:(!(+p.dlPeriodEnd)||ea<+p.dlPeriodEnd))){if(!earliest||ea<earliest)earliest=ea;}});var html=isWhole?("<span style=\'color:#1a7a3a;font-weight:700;\'>"+(_asWhole?(val+"<br><span style=\'font-size:10px;\'>（ほぼ終身）</span>"):"終身")+"</span>"):"<span style=\'color:#c0392b;font-weight:700;white-space:normal;\'>"+String(val).replace("（","<br>（")+"</span>";if(isRenew)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a0特約"+earliest+"歳まで</span>";if(p.contractEndsOnClaim)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a03大特約:給付後満了</span>";var td=el("td");td.style.cssText="text-align:center;font-size:11px;"+PADC+((!isWhole||earliest)?"background:#fdecea;":"");td.style.whiteSpace="normal";td.innerHTML=html;return td;}
 curPols.forEach(function(p){tr.appendChild(pc(p));});var t1=el("td");t1.rowSpan=3;t1.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;font-size:10px;font-weight:700;color:#8a6d1a;line-height:1.5;text-align:center;vertical-align:middle;padding:2px 3px;";t1.innerHTML=_premBreakCell(curPols);tr.appendChild(t1);tr.appendChild(_lblCell("保険期間"));var t2=el("td");t2.rowSpan=3;t2.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;font-size:10px;font-weight:700;color:#8a6d1a;line-height:1.5;text-align:center;vertical-align:middle;padding:2px 3px;";t2.innerHTML=_premBreakCell(propPols);tr.appendChild(t2);propPols.forEach(function(p){tr.appendChild(pc(p));});tb.appendChild(tr);})();
 (function payRow(){var tr=el("tr");curPols.forEach(function(p){var td=el("td");td.textContent=_kPayTerm(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tr.appendChild(_lblCell("払込期間"));propPols.forEach(function(p){var td=el("td");td.textContent=_kPayTerm(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tb.appendChild(tr);})();
 (function premRow(){var tr=el("tr");tr.style.background="#fffdf5";function pc(p){var raw=+(p.premAmount||0)||0;var u=(p.premUnit||"").trim();var isOne=(p.payFreq==="一時"||u.indexOf("一時")>=0);var isYr=(!isOne)&&(u==="円/年");var td=el("td");td.style.cssText="text-align:center;font-size:11px;font-weight:700;white-space:nowrap;"+PADC+"color:"+(isYr?"#c0392b":"#8a6d1a")+";"+(p.isCorp?"background:#fff3d6;":"");td.innerHTML=raw>0?_shrU(isOne?("一時"+raw.toLocaleString()):("¥"+raw.toLocaleString()+(isYr?"/年":"/月"))):"—";
@@ -4189,13 +4210,11 @@ _pkBox.appendChild(_pkR);
 _pkWrap.appendChild(_pkBtn);_pkWrap.appendChild(_pkBox);box.appendChild(_pkWrap);
 var _waRow=el("div");_waRow.className="no-print";_waRow.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;margin:6px 0 8px;padding:6px 10px;background:#f6f8fb;border:1px solid #ddd8cc;border-radius:6px;";
 var _waL=el("span");_waL.style.cssText="font-weight:700;color:#1a2744;";_waL.textContent="満了年齢の赤表示：";_waRow.appendChild(_waL);
-var _waCb=document.createElement("input");_waCb.type="checkbox";_waCb.checked=((+state.wholeAge||0)>0);_waCb.style.cssText="width:15px;height:15px;cursor:pointer;";
-_waCb.addEventListener("change",function(){state.wholeAge=this.checked?((+state.wholeAge>0)?+state.wholeAge:95):0;saveState();render();});
-var _waLb=el("label");_waLb.style.cssText="cursor:pointer;display:flex;align-items:center;gap:5px;";_waLb.appendChild(_waCb);_waLb.appendChild(document.createTextNode("この年齢以上の満了は終身あつかい（赤くしない）"));_waRow.appendChild(_waLb);
-var _waIn=inp("number",(+state.wholeAge||95),function(v){var n=+v||0;state.wholeAge=(n>0&&_waCb.checked)?n:(n>0?n:0);saveState();render();});
-_waIn.style.cssText="width:58px;font-size:12px;padding:2px 4px;text-align:right;";_waRow.appendChild(_waIn);
-var _waU=el("span");_waU.textContent="歳";_waRow.appendChild(_waU);
-var _waN=el("span");_waN.style.cssText="font-size:11px;color:#8a8a8a;";_waN.textContent="例：95歳にすると、98歳満了は緑で「98歳満了（ほぼ終身）」と出ます。";_waRow.appendChild(_waN);
+var _waIn=inp("number",(+state.wholeAge||0),function(v){state.wholeAge=(+v||0);saveState();render();});
+_waIn.style.cssText="width:62px;font-size:13px;font-weight:700;padding:3px 5px;text-align:right;";_waRow.appendChild(_waIn);
+var _waU=el("span");_waU.style.cssText="font-weight:700;color:#1a2744;";_waU.textContent="歳以上の満了は終身あつかい（赤くしない）";_waRow.appendChild(_waU);
+[["95歳以上",95],["90歳以上",90],["全部赤くする",0]].forEach(function(_x){var _b=btn(_x[0],((+state.wholeAge||0)===_x[1])?"bv":"bn",function(){state.wholeAge=_x[1];saveState();render();});_b.style.cssText="font-size:11px;padding:3px 8px;";_waRow.appendChild(_b);});
+var _waN=el("div");_waN.style.cssText="font-size:11px;color:#8a8a8a;width:100%;";_waN.textContent=((+state.wholeAge||0)>0)?("いま "+(+state.wholeAge)+"歳以上の満了は緑で「○○歳満了（ほぼ終身）」と出ます。0にすると全部赤にもどります。"):"いまは満了のある証券をすべて赤くしています。95などを入れると、98歳満了は赤くなくなります。";_waRow.appendChild(_waN);
 box.appendChild(_waRow);
 var _aaRow=el("div");_aaRow.className="no-print";_aaRow.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;margin:0 0 8px;padding:6px 10px;background:#f0f7ee;border:1px solid #cfe3cb;border-radius:6px;";
 var _aaL=el("span");_aaL.style.cssText="font-weight:700;color:#2f6b35;";_aaL.textContent="積立額を出す年齢：";_aaRow.appendChild(_aaL);
@@ -4346,7 +4365,7 @@ curPols.forEach(function(p){
 var v=row.g(p)||0;
 if(_chbVis9.indexOf(row.k)>=0&&_isMergePK9(p)){if(v>0)sum+=v;if(row.k===_chbVis9[0])tr.appendChild(_mergedCHB9(p));return;}
 var td=el("td");
-var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;
+var _pWhole=((p.dlPeriodType||"").indexOf("終身")>=0)||_waOn(p);
 var _re=+((p.itemEnd||{})[row.k])||0;
 var _endsEarly=(v>0)&&((!_pWhole&&(+p.dlPeriodEnd>0))||(_re>0&&(_pWhole||_re<(+p.dlPeriodEnd||999))));
 td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;"+(_endsEarly?"background:#fdecea;":"");

@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807e(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807f(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1528,7 +1528,7 @@ dtb.appendChild(ctr);});
 var _ctr2=el("tr");var _ctd2=el("td");_ctd2.colSpan=5;_ctd2.style.cssText="padding:2px 5px;text-align:left;";var _cadd=btn("＋ 保障項目を自分で追加（一覧にない保障）","bg",function(){if(!pol.customCov)pol.customCov=[];pol.customCov.push({l:"",v:0,u:"万",e:0,p:0,c:""});saveState();render();});_cadd.style.cssText="font-size:11px;padding:2px 10px;";_ctd2.appendChild(_cadd);_ctr2.appendChild(_ctd2);dtb.appendChild(_ctr2);
 dtbl.appendChild(dtb);dtw.appendChild(dtbl);
 var dWrap=el("div");
-var dExp=el("p");dExp.style.cssText="font-size:11px;color:#8a8a8a;margin:0 0 4px;";dExp.textContent="金額を入れた項目が有効に。満了は特約ごとに違う時だけ入力（空欄=主契約と同じ）。条件は条件比較表に対応。細目は下の「詳細設定」。";
+var dExp=el("p");dExp.style.cssText="font-size:11px;color:#8a8a8a;margin:0 0 4px;";dExp.textContent="金額を入れた項目が有効に。満了は特約ごとに違う時だけ入力（空欄=主契約と同じ）。条件は条件比較表に対応。解約返戻金・年金・祝金は下の「💰」の欄へ。";
 var dtgl=el("button","btn");dtgl.style.cssText="font-size:12px;padding:3px 10px;margin-bottom:6px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";dtgl.textContent=detShowAll?"\u25be マイナー特約を隠す":"\u25b8 その他の特約も表示（女性/災害/認知症/がん治療/障害/8大疾病等）";dtgl.addEventListener("click",function(){detShowAll=!detShowAll;render();});dWrap.appendChild(dtgl);
 dWrap.appendChild(dExp);dWrap.appendChild(dtw);
 var exRow=el("div");exRow.style.cssText="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;";
@@ -2016,9 +2016,19 @@ lbl("終了年齢",inp("number",pol.celebEndAge||"",function(v){upd("celebEndAge
 detailBox.appendChild(sec("祝金（〇年毎の生存給付金）",null,celebDiv));
 var detWrap=el("div");detWrap.style.cssText="margin:8px 0;";
 var detHdr=el("button","btn");detHdr.style.cssText="width:100%;text-align:left;padding:11px 14px;background:#fff4d6;border:2px solid #e0a83a;border-radius:6px;cursor:pointer;font-size:14px;font-weight:800;color:#8a5a0a;";
-detHdr.textContent="\u25b8 ⚙ 詳細設定（変額の将来予測表・年金受取期間・祝金間隔など）— ここを開く";
+detHdr.textContent="\u25b8 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定 — ここを開く";
 detailBox.style.display="none";
-detHdr.addEventListener("click",function(){var op=(detailBox.style.display==="none");detailBox.style.display=op?"block":"none";detHdr.textContent=(op?"\u25be ⚙ 詳細設定（開いています）":"\u25b8 ⚙ 詳細設定（変額の将来予測表・年金受取期間・祝金間隔など）— ここを開く");detHdr.style.background=op?"#fde9bf":"#fff4d6";});
+detHdr.addEventListener("click",function(){var op=(detailBox.style.display==="none");detailBox.style.display=op?"block":"none";detHdr.textContent=(op?"\u25be 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定（開いています）":"\u25b8 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定 — ここを開く");detHdr.style.background=op?"#fde9bf":"#fff4d6";});
+try{
+var _savT=["変額・年金・還付金","祝金（","保険料内訳"];
+_savT.slice().reverse().forEach(function(t){var nodes=Array.prototype.slice.call(detailBox.children);
+for(var i=0;i<nodes.length;i++){var h=nodes[i].querySelector?nodes[i].querySelector(".sec-hdr"):null;
+if(h&&(h.textContent||"").indexOf(t)===0){detailBox.insertBefore(nodes[i],detailBox.firstChild);break;}}});
+var _hA=el("div");_hA.style.cssText="font-size:13px;font-weight:800;color:#2f6b35;background:#f0f7ee;border-left:4px solid #2f6b35;padding:6px 10px;margin:2px 0 6px;";_hA.textContent="■ 貯まる・戻ってくるお金（解約返戻金・年金・祝金・保険料内訳）";
+detailBox.insertBefore(_hA,detailBox.firstChild);
+var _n2=detailBox.children[4];
+if(_n2){var _hB=el("div");_hB.style.cssText="font-size:13px;font-weight:800;color:#1a2744;background:#eef3fb;border-left:4px solid #1a2744;padding:6px 10px;margin:14px 0 6px;";_hB.textContent="■ 給付条件の細かい設定（ふだんは使いません）";detailBox.insertBefore(_hB,_n2);}
+}catch(e){}
 detWrap.appendChild(detHdr);detWrap.appendChild(detailBox);cont.appendChild(detWrap);
 
 var ta=document.createElement("textarea");ta.value=pol.notes||"";ta.placeholder="担当者・告知内容・メモ等（自由記述）";ta.style.width="100%";
@@ -3158,7 +3168,7 @@ var sum=0;
 _fxp.forEach(function(p){var v=(polCurVal(p).val||0)*rt/_fxRate(p);sum+=v;var td=el("td",null,Math.round(v).toLocaleString()+"万");td.style.cssText="border:1px solid #eee;padding:4px 6px;text-align:right;";tr.appendChild(td);});
 var tdS=el("td",null,Math.round(sum).toLocaleString()+"万");tdS.style.cssText="border:1px solid #eee;padding:4px 6px;text-align:right;font-weight:700;background:#fdf6ec;";tr.appendChild(tdS);
 _ft.appendChild(tr);});
-var _fn3=el("p");_fn3.style.cssText="font-size:11px;color:#8a8a8a;margin:6px 0 0;";_fn3.textContent="外貨建ての証券の現在価値を、レートを変えて見たものです。レートそのものは各証券の詳細設定で変えられます。";
+var _fn3=el("p");_fn3.style.cssText="font-size:11px;color:#8a8a8a;margin:6px 0 0;";_fn3.textContent="外貨建ての証券の現在価値を、レートを変えて見たものです。レートそのものは各証券の上にある「通貨：」の欄で変えられます。";
 _fbox.appendChild(_ft);_fbox.appendChild(_fn3);
 cont.appendChild(sec("為替が変わったら（外貨建ての証券）",null,_fbox));
 }}catch(e){}
@@ -5805,7 +5815,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0807e: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807f: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

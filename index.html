@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807h(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807i(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -691,7 +691,7 @@ if(sv.comparisonRows)base.comparisonRows=sv.comparisonRows;
 if(sv.comparisonMemos)base.comparisonMemos=sv.comparisonMemos;
 if(sv.polTableMemo)base.polTableMemo=sv.polTableMemo;
 if(sv.savNotes)base.savNotes=sv.savNotes;
-if(sv.accAges)base.accAges=sv.accAges;if(sv.projAges)base.projAges=sv.projAges;if(sv.khColors)base.khColors=sv.khColors;if(sv.fxPatterns)base.fxPatterns=sv.fxPatterns;if(sv.fxStep)base.fxStep=sv.fxStep;
+if(sv.accAges)base.accAges=sv.accAges;if(sv.projAges)base.projAges=sv.projAges;if(sv.kanyuHide)base.kanyuHide=sv.kanyuHide;if(sv.khColors)base.khColors=sv.khColors;if(sv.fxPatterns)base.fxPatterns=sv.fxPatterns;if(sv.fxStep)base.fxStep=sv.fxStep;
 if(sv.summaryMemo)base.summaryMemo=sv.summaryMemo;
 if(sv.pcItemW!==undefined)base.pcItemW=sv.pcItemW;
 if(sv.pcFontPx!==undefined)base.pcFontPx=sv.pcFontPx;
@@ -737,7 +737,7 @@ try{
 /*マージ保存：別窓や古い状態で保存しても、手入力の備考(polTableMemo)・貯蓄性手入力(savNotes)を消さない。保存直前に最新のlocalStorageを読み、自分が持っていない(空の)セルは最新側を残す。*/
 try{var _fresh=(window.localStorage&&window.localStorage.getItem(getCustomerKey()))||null;if(_fresh){var _fp=JSON.parse(_fresh);["polTableMemo","savNotes"].forEach(function(f){var mine=state[f]||{};var old=_fp[f]||{};Object.keys(old).forEach(function(k){if((mine[k]===undefined||mine[k]==="")&&old[k])mine[k]=old[k];});state[f]=mine;});}}catch(e){}
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,projAges:state.projAges||null,khColors:state.khColors||null,fxPatterns:state.fxPatterns||null,fxStep:state.fxStep||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
+storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,projAges:state.projAges||null,kanyuHide:state.kanyuHide||null,khColors:state.khColors||null,fxPatterns:state.fxPatterns||null,fxStep:state.fxStep||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
 // 自動バックアップ（世代管理・45秒に1回・最大8世代/800KB。肥大で保存が壊れるのを防ぐ）
 try{var _now=Date.now();if(!window._lastBk||(_now-window._lastBk)>45000){window._lastBk=_now;var _bkKey="hoken_bk_"+getCustomerKey();var _arr=[];try{_arr=JSON.parse(storageGet(_bkKey)||"[]");}catch(e){}var _cur=storageGet(getCustomerKey());if(_cur){_arr.push({ts:_now,data:_cur});if(_arr.length>8)_arr=_arr.slice(-8);while(_arr.length>2&&JSON.stringify(_arr).length>819200){_arr.shift();}try{localStorage.setItem(_bkKey,JSON.stringify(_arr));}catch(e){_bkTrimAll(2);}}}}catch(e){}
 }catch(e){}
@@ -3971,6 +3971,7 @@ function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
 {k:"cancer",l:"がん一時金",u:"万",grp:"保障",detail:true,g:function(p){return (p.cancerOn?(+p.c1st||0):0)+((p.cancerContinue&&p.cancerContinueType==="annual")?(+p.cancerContinueAmount||0):0);}},
 {k:"heart",l:"心疾患",u:"万",grp:"保障",detail:true,g:function(p){return p.bigOn?(+p.h1st||0):0;}},
 {k:"brain",l:"脳血管疾患",u:"万",grp:"保障",detail:true,g:function(p){return p.bigOn?(+p.b1st||0):0;}},
+{k:"big8",l:"8大疾病等",u:"万",grp:"保障",detail:true,g:function(p){return +p.big8Amount||0;}},
 {k:"cout",l:"がん通院/治療",u:"",grp:"保障",detail:true,noSum:true,g:function(p){return (+p.cancerMonthly||0)||(+p.cancerOut2||0);},disp:function(p){if(+p.cancerMonthly>0)return (+p.cancerMonthly).toLocaleString()+"万/月";if(+p.cancerOut2>0)return (+p.cancerOut2).toLocaleString()+"円/日";return "";}},
 {k:"cinsitu",l:"がん診断(上皮内)",u:"万",grp:"保障",g:function(p){return +p.cInSitu||0;}},
 {k:"chosp",l:"がん入院",u:"円",grp:"保障",g:function(p){return +p.cancerHosp||0;}},
@@ -4000,6 +4001,11 @@ function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
 {k:"acc1",l:_accAges[1]+"歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[1]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[1]);}},
 {k:"acc2",l:_accAges[2]+"歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[2]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[2]);}}
 ];
+try{var _ORD=["death","dann","disDeath","accid","cancer","cinsitu","heart","brain","big8","dislump","dis","disability","carelump","caremon","dementia","hosp","lshosp","chosp","injHosp","fhosp","hospin","hospout","surg","csurg","fsurg","flump","out","cout","cchemo","crad","adv","advLump","injury","exempt"];
+var _ix={};_ORD.forEach(function(k,i){_ix[k]=i;});
+var _hs=_KR.filter(function(r){return r.grp==="保障";});var _ot=_KR.filter(function(r){return r.grp!=="保障";});
+_hs.sort(function(a,b){var ai=(_ix[a.k]===undefined?900:_ix[a.k]);var bi=(_ix[b.k]===undefined?900:_ix[b.k]);return ai-bi;});
+_KR=_hs.concat(_ot);}catch(e){}
 try{var _cn=[];["policies","proposalPolicies"].forEach(function(sk){var st=state[sk]||{};Object.keys(st).forEach(function(mk){(st[mk]||[]).forEach(function(p){((p&&p.customCov)||[]).forEach(function(cv){if(cv&&cv.l&&_cn.indexOf(cv.l)<0)_cn.push(cv.l);});});});});
 var _si=_KR.length;for(var _i=0;_i<_KR.length;_i++){if(_KR[_i].grp==="貯蓄"){_si=_i;break;}}
 _cn.forEach(function(nm){_KR.splice(_si++,0,{k:"cc_"+nm,l:nm,u:"",grp:"保障",noSum:true,
@@ -4145,13 +4151,34 @@ function shortCo(p){var n=cN(p);var m={"SOMPOひまわり生命":"ひまわり",
 function periodTxt(p){return _periodDisp(p);}
 function payTermTxt(p){if((p.dlPayType||"").indexOf("一時")>=0)return "一時払";if(p.dlPayType&&p.dlPayType!=="")return p.dlPayType;if(p.dlPayEnd)return p.dlPayEnd+"歳払済";return "—";}
 function payRouteTxt(p){return p.payRoute||"—";}
-var ROWS=kanyuRowDefs();
+var ALLROWS=kanyuRowDefs();
+var ROWS=ALLROWS.filter(function(r){return !(state.kanyuHide&&state.kanyuHide[r.k]);});
 var box=el("div");
 var intro=el("div");intro.style.cssText="font-size:12px;color:#475067;background:#f6f8fb;border-radius:6px;padding:8px 12px;margin-bottom:10px;";
 intro.className="no-print";intro.textContent="各証券の保障内容を縦並びで比較します（上＝保障性／下＝貯蓄性）。列の見出しに保険料内訳・払込方法も表示。安心ライン（目標額）を入れると合計との過不足が出ます。下に給付条件・免除条件の比較表があります。";
 box.appendChild(intro);
 var ktgl=el("button","btn");ktgl.style.cssText="font-size:12px;padding:3px 10px;margin-bottom:8px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";ktgl.textContent=kanyuShowAll?"\u25be マイナー項目を隠す":"\u25b8 その他の特約も表示";ktgl.addEventListener("click",function(){kanyuShowAll=!kanyuShowAll;render();});box.appendChild(ktgl);
 var kjtgl=el("button","btn");kjtgl.style.cssText="font-size:12px;padding:3px 10px;margin:0 0 8px 6px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";kjtgl.textContent=kanyuShowKojin?"「個人」表示を隠す":"「個人」も表示";kjtgl.addEventListener("click",function(){kanyuShowKojin=!kanyuShowKojin;render();});box.appendChild(kjtgl);
+// 表に出す項目のレ点
+var _pkWrap=el("div");_pkWrap.className="no-print";_pkWrap.style.cssText="margin-bottom:8px;";
+var _pkBtn=el("button","btn");_pkBtn.style.cssText="font-size:12px;padding:3px 10px;border:1px solid #ddd8cc;border-radius:4px;background:#fff;cursor:pointer;";
+var _pkHid=0;try{Object.keys(state.kanyuHide||{}).forEach(function(k){if(state.kanyuHide[k])_pkHid++;});}catch(e){}
+_pkBtn.textContent="\u25b8 表に出す項目を選ぶ"+(_pkHid>0?("（"+_pkHid+"項目を外しています）"):"");
+var _pkBox=el("div");_pkBox.style.cssText="display:none;margin-top:6px;padding:8px 10px;background:#f6f8fb;border:1px solid #ddd8cc;border-radius:6px;";
+_pkBtn.addEventListener("click",function(){var op=(_pkBox.style.display==="none");_pkBox.style.display=op?"block":"none";_pkBtn.textContent=(op?"\u25be 表に出す項目を選ぶ":"\u25b8 表に出す項目を選ぶ"+(_pkHid>0?("（"+_pkHid+"項目を外しています）"):""));});
+var _pkNote=el("p");_pkNote.style.cssText="font-size:11px;color:#8a8a8a;margin:0 0 6px;";_pkNote.textContent="レ点を外した項目は加入一覧と印刷から消えます（入力した数字は消えません）。項目を減らすと文字が大きく見やすくなります。";_pkBox.appendChild(_pkNote);
+var _pkG=el("div");_pkG.style.cssText="display:flex;flex-wrap:wrap;gap:4px 12px;";
+ALLROWS.forEach(function(r){
+var lb=el("label");lb.style.cssText="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;white-space:nowrap;color:"+(r.grp==="貯蓄"?"#2f6b35":"#1a2744")+";";
+var cb=document.createElement("input");cb.type="checkbox";cb.checked=!(state.kanyuHide&&state.kanyuHide[r.k]);cb.style.cssText="width:15px;height:15px;cursor:pointer;";
+cb.addEventListener("change",function(){if(!state.kanyuHide)state.kanyuHide={};if(this.checked)delete state.kanyuHide[r.k];else state.kanyuHide[r.k]=true;saveState();render();});
+lb.appendChild(cb);lb.appendChild(document.createTextNode(r.l));_pkG.appendChild(lb);});
+_pkBox.appendChild(_pkG);
+var _pkR=el("div");_pkR.style.cssText="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;";
+_pkR.appendChild(btn("全部に付ける","bn",function(){state.kanyuHide=null;saveState();render();}));
+_pkR.appendChild(btn("災害死亡・傷害給付・ケガを外す","bn",function(){if(!state.kanyuHide)state.kanyuHide={};["disDeath","accid","injury","injHosp"].forEach(function(k){state.kanyuHide[k]=true;});saveState();render();}));
+_pkBox.appendChild(_pkR);
+_pkWrap.appendChild(_pkBtn);_pkWrap.appendChild(_pkBox);box.appendChild(_pkWrap);
 var tw=el("div","tw");
 var tbl=el("table");tbl.className="kanyu";
 var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="24px";cg.appendChild(cm);var c0=document.createElement("col");c0.style.width="104px";cg.appendChild(c0);
@@ -5815,7 +5842,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0807h: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807i: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

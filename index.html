@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806z(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807a(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -848,6 +848,20 @@ function fxConv(p,v,u){if(!_isFx(p)||!v)return v;var r=_fxRate(p);return (u==="�
 function fxNote(pols){try{var m={};(pols||[]).forEach(function(p){if(_isFx(p))m[_fxCode(p)+"="+_fxRate(p)]=1;});var k=Object.keys(m);if(!k.length)return "";return "※外貨建ては 1"+k.map(function(x){return x.replace("=","＝")+"円";}).join("、1")+" で円に換算しています";}catch(e){return "";}}
 function khCol(kind,which){var d={corp:{bg:"#9a3412",fg:"#ffffff"},pers:{bg:"#e8eefb",fg:"#33415c"}};
 var v=(state.khColors&&state.khColors[kind]&&state.khColors[kind][which])||"";return v||d[kind][which];}
+function khColorRow(){var r=el("div");r.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;background:#f6f8fb;border:1px solid #ddd8cc;border-radius:6px;padding:6px 10px;margin:0 0 8px;";
+var t=el("span");t.textContent="「法人／個人」の色：";t.style.cssText="font-weight:700;color:#1a2744;";r.appendChild(t);
+[["corp","法人"],["pers","個人"]].forEach(function(kk){
+var w=el("span");w.style.cssText="display:flex;align-items:center;gap:4px;";
+var pv=el("span");pv.innerHTML=khChip(kk[0]==="corp");w.appendChild(pv);
+[["bg","地"],["fg","字"]].forEach(function(ww){
+var lb=el("span");lb.textContent=ww[1];lb.style.cssText="font-size:11px;color:#8a8a8a;";w.appendChild(lb);
+var ci=document.createElement("input");ci.type="color";ci.value=khCol(kk[0],ww[0]);ci.style.cssText="width:28px;height:24px;padding:1px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;";
+ci.addEventListener("input",function(){if(!state.khColors)state.khColors={};if(!state.khColors[kk[0]])state.khColors[kk[0]]={};state.khColors[kk[0]][ww[0]]=this.value;saveState();pv.innerHTML=khChip(kk[0]==="corp");});
+ci.addEventListener("change",function(){render();});
+w.appendChild(ci);});
+r.appendChild(w);});
+r.appendChild(btn("既定に戻す","bn",function(){state.khColors=null;saveState();render();}));
+return r;}
 function khChip(isCorp){var k=isCorp?"corp":"pers";return "<span style='display:inline-block;background:"+khCol(k,"bg")+";color:"+khCol(k,"fg")+";font-weight:700;font-size:11px;border-radius:3px;padding:0 6px;'>"+(isCorp?"法人":"個人")+"</span>";}
 function toJPY(p,amt){
 if(!amt)return 0;
@@ -2126,6 +2140,7 @@ function buildSummaryTab(){
 var cont=el("div","content");
 try{var _fxa=[];["policies","proposalPolicies"].forEach(function(sk){var st=state[sk]||{};Object.keys(st).forEach(function(k){(st[k]||[]).forEach(function(p){_fxa.push(p);});});});
 var _fn=fxNote(_fxa);if(_fn){var _fd=el("p");_fd.style.cssText="font-size:12px;color:#8a5320;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:5px 10px;margin:0 0 8px;";_fd.textContent=_fn;cont.appendChild(_fd);}}catch(e){}
+try{cont.appendChild(khColorRow());}catch(e){}
 var al=state.ansinLine||{};
 function uAl(f,v){state.ansinLine[f]=+v;saveState();}
 if(summaryMember!=="all"&&!state.family.some(function(fm){return fm.id===summaryMember;}))summaryMember="all";
@@ -3888,7 +3903,10 @@ function _accAnn(p,age){if(_isAnnuity(p)&&(+p.pensionStartAge>0)&&age>(+p.pensio
 function _accDisp(p,age){if(_isAnnuity(p)&&(+p.pensionStartAge>0)&&age>(+p.pensionStartAge))return "年金受取中";var v=_accumAtAge(p,age);return v>0?(v.toLocaleString()+"万"):"";}
 function _isVarAnnuity(p){return _isAnnuity(p)&&(((p.insType||"").indexOf("変額")>=0)||(p.futureVals&&p.futureVals.some&&p.futureVals.some(function(r){return (+r.v3||+r.v1||+r.v5||+r.v6)>0;})));}
 /*保障性の商品(医療・がん・介護・就業不能・純定期など)は積立額行を出さない。変額系は貯蓄性として表示。*/
-function _accHide(p){var it=(p&&p.insType)||"";if(it.indexOf("変額")>=0)return false;return /医療|がん|ガン|介護|就業不能|収入保障|逓減|災害定期|定期保険/.test(it);}
+function _accHide(p){var it=(p&&p.insType)||"";
+try{if(p&&p.futureVals&&p.futureVals.some(function(r){return (+r.age>0)&&((+r.v3||+r.v1||+r.v5||+r.v6)>0);}))return false;}catch(e){}
+if((+((p&&p.currentVal)||0))>0||(+((p&&p.refundVal)||0))>0)return false;
+if(it.indexOf("変額")>=0)return false;return /医療|がん|ガン|介護|就業不能|収入保障|逓減|災害定期|定期保険/.test(it);}
 function _scenRateDec(){var m={"1":-0.03,"3":0,"5":0.03,"6":0.06};return (m[scenRate]!==undefined)?m[scenRate]:0;}
 /*変額年金:原資を年金開始年齢から受取年数で取り崩す(受取中も同率で運用)前提の年額(万円)。運用率シナリオに連動。*/
 function _annPay(p){var pr=_accumAtAge(p,(+p.pensionStartAge||70));var n=+p.pensionYears||0;if(!(pr>0)||!(n>0))return 0;var r=_scenRateDec();var pay=(r===0)?(pr/n):(pr*r/(1-Math.pow(1+r,-n)));return Math.round(pay*10)/10;}
@@ -5302,16 +5320,7 @@ khCb.addEventListener("change",function(){state.showKH=this.checked;saveState();
 var khLb=el("label");khLb.style.cssText="cursor:pointer;font-weight:700;";khLb.textContent="証券に「個人／法人」の区別を表示する";
 khLb.addEventListener("click",function(){khCb.checked=!khCb.checked;state.showKH=khCb.checked;saveState();});
 khRow.appendChild(khCb);khRow.appendChild(khLb);
-[["corp","法人"],["pers","個人"]].forEach(function(kk){
-var w=el("span");w.style.cssText="display:flex;align-items:center;gap:4px;font-size:12px;margin-left:6px;";
-var nm=el("span");nm.textContent=kk[1];nm.style.cssText="font-weight:700;";w.appendChild(nm);
-[["bg","地"],["fg","字"]].forEach(function(ww){
-var lb=el("span");lb.textContent=ww[1];lb.style.cssText="font-size:11px;color:#8a8a8a;";w.appendChild(lb);
-var ci=document.createElement("input");ci.type="color";ci.value=khCol(kk[0],ww[0]);ci.style.cssText="width:28px;height:24px;padding:1px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;";
-ci.addEventListener("input",function(){if(!state.khColors)state.khColors={};if(!state.khColors[kk[0]])state.khColors[kk[0]]={};state.khColors[kk[0]][ww[0]]=this.value;saveState();});
-w.appendChild(ci);});
-khRow.appendChild(w);});
-khRow.appendChild(btn("色を既定に戻す","bn",function(){state.khColors=null;saveState();render();}));
+var _khN=el("span");_khN.style.cssText="font-size:11px;color:#8a8a8a;margin-left:8px;";_khN.textContent="※色の変更は加入一覧タブの上にあります";khRow.appendChild(_khN);
 cont.appendChild(khRow);
 var sp=el("div");sp.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:8px 0 4px;";sp.textContent="① 加入一覧・給付条件比較（各A4横1枚）";cont.appendChild(sp);
 var bw1=el("div");bw1.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;";
@@ -5761,7 +5770,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806z: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807a: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

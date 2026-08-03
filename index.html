@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807r(一覧の見出しに保険会社＋ペットネーム)";
+var APP_VERSION="v2-0807s(一覧の見出しに保険会社＋ペットネーム)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4234,7 +4234,7 @@ curPols.forEach(function(){var c=document.createElement("col");c.style.width="92
 tbl.appendChild(cg);
 var thead=el("thead"),hr=el("tr");
 var thM=el("th");thM.style.cssText="border:none;background:transparent;";hr.appendChild(thM);
-(function(){var _c=el("th");_c.style.lineHeight="1.35";_c.innerHTML="<span style='font-size:12px;'>保険会社</span><br><span style='font-size:11px;font-weight:400;color:#dfe9ff;'>／商品名（ペットネーム）</span>";hr.appendChild(_c);})();
+(function(){var _c=el("th");_c.style.lineHeight="1.35";_c.innerHTML="<span style='font-size:12px;'>保険会社</span><br><span style='font-size:11px;font-weight:400;color:#dfe9ff;'>／商品名</span>";hr.appendChild(_c);})();
 var totPrem=0;
 var _mmSet={};(memOf||[]).forEach(function(mm){if(mm)_mmSet[(mm.relation||mm.name||"")]=1;});var _multiMem=Object.keys(_mmSet).length>1;
 curPols.forEach(function(p,pi){

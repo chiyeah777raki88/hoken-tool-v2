@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806m(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0806n(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1238,6 +1238,23 @@ for(var ii2=0;ii2<IP.length;ii2++){
 if(pol.policyNo&&IP[ii2].policyNo&&pol.policyNo===IP[ii2].policyNo){initPol2=IP[ii2];break;}
 if(pol.company&&IP[ii2].company&&pol.company===IP[ii2].company&&pol.insType===IP[ii2].insType&&!initPol2){initPol2=IP[ii2];}
 }
+// 被保険者（＝タブの人）。変更すると相手のタブへ移す
+var _insStore=(state.policies&&state.policies[mid]===srcArr)?"policies":((state.proposalPolicies&&state.proposalPolicies[mid]===srcArr)?"proposalPolicies":null);
+if(_insStore&&state.family&&state.family.length){
+var insRow=el("div");insRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:#eef3fb;border:1px solid #c3dafe;border-radius:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
+var insLbl=el("span");insLbl.style.cssText="font-size:12px;color:#1a2744;font-weight:700;white-space:nowrap;";insLbl.textContent="被保険者（保障の対象の方）：";insRow.appendChild(insLbl);
+var insSel=sel(state.family.map(function(fm){return{v:fm.id,l:(fm.name||fm.relation)};}),mid,function(v){
+if(v===mid){return;}
+var tn=(state.family.filter(function(x){return x.id===v;})[0]||{});var tnm=(tn.name||tn.relation||"");
+if(!confirm("この証券の被保険者を「"+tnm+"」に変更します。\n証券は "+tnm+" のタブへ移ります。よろしいですか？")){render();return;}
+var st=state[_insStore];if(!st[v])st[v]=[];
+var _i=srcArr.indexOf(pol);if(_i>=0)srcArr.splice(_i,1);
+st[v].push(pol);currentMid=v;currentPidx=st[v].length-1;saveState();render();
+});
+insSel.style.cssText="font-size:13px;padding:4px 8px;min-width:140px;";insRow.appendChild(insSel);
+var insNote=el("span");insNote.style.cssText="font-size:11px;color:#5a6a8a;line-height:1.5;";insNote.textContent="※タブの人＝被保険者です。法人契約でも、ここは人のお名前にしてください（法人名は下の「屋号（法人名）」へ）。";insRow.appendChild(insNote);
+cont.appendChild(insRow);
+}
 // 個人 / 法人 切替
 var corpRow=el("div");corpRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
 var corpLbl=el("span");corpLbl.style.cssText="font-size:12px;color:#9a3412;font-weight:700;white-space:nowrap;";corpLbl.textContent="契約区分：";
@@ -1984,6 +2001,7 @@ document.body.appendChild(ov);
 
 function buildInputTab(){
 var cont=el("div");
+var _ptHd=el("div");_ptHd.style.cssText="font-size:12px;color:#9a3412;font-weight:700;margin:0 0 4px 2px;";_ptHd.textContent="被保険者（保障の対象になる方）を選んでください　※法人契約でも人のお名前で作ります";cont.appendChild(_ptHd);
 var ptabs=el("div","ptabs");
 state.family.forEach(function(m){
 var a=getAge(m.dob);
@@ -3392,7 +3410,7 @@ row.appendChild(lbl("性別",sel([{v:"男性",l:"男性"},{v:"女性",l:"女性"
 var db=btn("削除","br",function(){if(state.family.length<=1)return;state.family=state.family.filter(function(f){return f.id!==m.id;});delete state.policies[m.id];saveState();render();});
 db.style.cssText="height:32px;margin-top:16px;";db.disabled=state.family.length<=1;row.appendChild(db);return row;
 });
-cont.appendChild(sec("家族メンバー",addBtn2,rows2));
+cont.appendChild(sec("家族メンバー（＝被保険者。ここの名前が各タブの名前になります）",addBtn2,rows2));
 if(!state.corpByMember)state.corpByMember={};
 (function(){try{if(state.corpMaster&&state.corpMaster.corpName&&Object.keys(state.corpByMember).length===0){var self0=state.family.filter(function(x){return x.relation==="本人";})[0]||state.family[0];if(self0)state.corpByMember[self0.id]=Object.assign({},state.corpMaster);}}catch(e){}})();
 var cmMid=state._corpEditMid;if(!cmMid||!state.family.some(function(m){return m.id===cmMid;})){var s0=state.family.filter(function(x){return x.relation==="本人";})[0]||state.family[0];cmMid=s0?s0.id:null;state._corpEditMid=cmMid;}
@@ -5590,7 +5608,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806m: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0806n: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

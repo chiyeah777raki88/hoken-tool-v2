@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806u(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0806v(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1635,8 +1635,8 @@ var sp=!!pol.showPaid;
 var tbl=document.createElement("table");tbl.style.cssText="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;";
 var thead=el("thead"),hr=el("tr");
 var cols;
-if(isVar){cols=["年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["-3%("+unit+")","0%("+unit+")","3%("+unit+")","6%("+unit+")",""]);}
-else{cols=["年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["解約返戻金("+unit+")"]).concat(sp?["返戻率"]:[]).concat([""]);}
+if(isVar){cols=["年度","年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["-3%("+unit+")","0%("+unit+")","3%("+unit+")","6%("+unit+")",""]);}
+else{cols=["年度","年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["解約返戻金("+unit+")"]).concat(sp?["返戻率"]:[]).concat([""]);}
 cols.forEach(function(h){
 var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:5px 6px;text-align:center;font-size:11px;";hr.appendChild(th);
 });
@@ -1645,6 +1645,7 @@ var tbody=el("tbody");
 (pol.futureVals||[]).forEach(function(row,ri){
 var tr=el("tr");
 var ageI=inp("number",row.age||"",function(v){pol.futureVals[ri].age=+v;upd("futureVals",pol.futureVals);});ageI.style.textAlign="right";ageI.placeholder="歳";
+var yrC=el("div");yrC.textContent=(ri+1);yrC.style.cssText="font-size:12px;font-weight:700;text-align:center;color:#8a5320;background:#fdf6ec;border-radius:3px;padding:4px 2px;";yrC.title="設計書の「保険年度」「経過年数」に対応する行番号です";
 var db=el("button","btn br");db.style.cssText="padding:2px 6px;font-size:11px;";db.textContent="×";
 db.addEventListener("click",function(){pol.futureVals.splice(ri,1);upd("futureVals",pol.futureVals);renderVpTable();});
 var paidI=null;
@@ -1654,7 +1655,7 @@ if(isVar){
   var v3I=inp("number",row.v3||"",function(v){pol.futureVals[ri].v3=+v;upd("futureVals",pol.futureVals);});v3I.style.background="#fffde7";
   var v5I=inp("number",row.v5||"",function(v){pol.futureVals[ri].v5=+v;upd("futureVals",pol.futureVals);});
   var v6I=inp("number",row.v6||"",function(v){pol.futureVals[ri].v6=+v;upd("futureVals",pol.futureVals);});v6I.style.background="#fff0e6";
-  var cells=[ageI].concat(sp?[paidI]:[]).concat([v1I,v3I,v5I,v6I,db]);
+  var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([v1I,v3I,v5I,v6I,db]);
   cells.forEach(function(x){var td=el("td");td.style.padding="2px 3px";td.appendChild(x);tr.appendChild(td);});
 }else{
   var rvVal=row.v3||row.v1||row.v5||row.v6||"";
@@ -1665,7 +1666,7 @@ if(isVar){
     rate.textContent=(paidN>0&&rvN>0)?Math.round(rvN/paidN*1000)/10+"%":"—";
     rate.style.cssText="font-size:12px;font-weight:700;text-align:center;color:"+((paidN>0&&rvN>=paidN)?"#1a7a3a":"#1a2744")+";padding:4px;";
   }
-  var cells=[ageI].concat(sp?[paidI]:[]).concat([rI]).concat(sp?[rate]:[]).concat([db]);
+  var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([rI]).concat(sp?[rate]:[]).concat([db]);
   cells.forEach(function(x){var td=el("td");td.style.padding="2px 3px";td.appendChild(x);tr.appendChild(td);});
 }
 tbody.appendChild(tr);
@@ -5658,7 +5659,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806u: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0806v: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

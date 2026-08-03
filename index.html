@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807p(満了年齢の赤表示・返戻金表の年齢直し)";
+var APP_VERSION="v2-0807q(貯まる系は返戻金表を最初から開く)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2043,7 +2043,9 @@ detailBox.appendChild(sec("祝金（〇年毎の生存給付金）",null,celebDi
 var detWrap=el("div");detWrap.style.cssText="margin:8px 0;";
 var detHdr=el("button","btn");detHdr.style.cssText="width:100%;text-align:left;padding:11px 14px;background:#fff4d6;border:2px solid #e0a83a;border-radius:6px;cursor:pointer;font-size:14px;font-weight:800;color:#8a5a0a;";
 detHdr.textContent="\u25b8 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定 — ここを開く";
-detailBox.style.display="none";
+var _autoOpen=false;try{_autoOpen=(pol.futureVals&&pol.futureVals.length>0)||((+pol.currentVal)>0)||((+pol.refundVal)>0)||((+pol.refundAge)>0)||(!!pol.showVp)||/変額|年金|終身|養老|学資|総合保険|低解約|外貨建て|ドル建て/.test(pol.insType||"");}catch(e){}
+detailBox.style.display=_autoOpen?"block":"none";
+if(_autoOpen){detHdr.textContent="\u25be 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定（開いています）";detHdr.style.background="#fde9bf";}
 detHdr.addEventListener("click",function(){var op=(detailBox.style.display==="none");detailBox.style.display=op?"block":"none";detHdr.textContent=(op?"\u25be 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定（開いています）":"\u25b8 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定 — ここを開く");detHdr.style.background=op?"#fde9bf":"#fff4d6";});
 try{
 var _savT=["変額・年金・還付金","祝金（","保険料内訳"];

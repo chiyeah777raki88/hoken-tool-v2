@@ -356,10 +356,23 @@ async function sbSaveList(){
 <body>
 <div id="print-area"></div>
 <div id="app"></div>
+<style>#topBtn{position:fixed;right:16px;bottom:76px;z-index:9000;display:none;width:48px;height:48px;border-radius:50%;border:0;background:#1a2744;color:#fff;font-size:11px;font-weight:700;line-height:1.2;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3);}
+#botBtn{position:fixed;right:16px;bottom:20px;z-index:9000;width:48px;height:48px;border-radius:50%;border:0;background:#5a6a8a;color:#fff;font-size:11px;font-weight:700;line-height:1.2;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3);}
+@media print{#topBtn,#botBtn{display:none!important}}</style>
+<button id="topBtn" title="ページの一番上へ">▲<br>上へ</button>
+<button id="botBtn" title="ページの一番下へ">▼<br>下へ</button>
+<script>(function(){
+var tb=document.getElementById("topBtn"),bb=document.getElementById("botBtn");
+tb.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"});});
+bb.addEventListener("click",function(){window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});});
+function sync(){var y=window.pageYOffset||document.documentElement.scrollTop||0;tb.style.display=(y>250)?"block":"none";
+var near=(y+window.innerHeight)>=(document.body.scrollHeight-40);bb.style.display=near?"none":"block";}
+window.addEventListener("scroll",sync,{passive:true});window.addEventListener("resize",sync);setInterval(sync,600);sync();
+})();</script>
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806x(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0806y(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1654,8 +1667,13 @@ var tbody=el("tbody");
 var tr=el("tr");
 var ageI=inp("number",row.age||"",function(v){pol.futureVals[ri].age=+v;upd("futureVals",pol.futureVals);});ageI.style.textAlign="right";ageI.placeholder="歳";
 var yrC=el("div");yrC.textContent=(ri+1);yrC.style.cssText="font-size:12px;font-weight:700;text-align:center;color:#8a5320;background:#fdf6ec;border-radius:3px;padding:4px 2px;";yrC.title="設計書の「保険年度」「経過年数」に対応する行番号です";
-var db=el("button","btn br");db.style.cssText="padding:2px 6px;font-size:11px;";db.textContent="×";
+var db=el("button","btn br");db.style.cssText="padding:2px 6px;font-size:11px;";db.textContent="×";db.title="この行を消す";
 db.addEventListener("click",function(){pol.futureVals.splice(ri,1);upd("futureVals",pol.futureVals);renderVpTable();});
+var _su=el("button","btn bn");_su.textContent="↑";_su.title="この行から下の金額だけ1つ上へずらす（年齢はそのまま）";_su.style.cssText="padding:2px 5px;font-size:11px;margin-right:2px;";
+_su.addEventListener("click",function(){_vpShift(["v1","v3","v5","v6","paid"],-1,ri);});
+var _sd=el("button","btn bn");_sd.textContent="↓";_sd.title="この行から下の金額だけ1つ下へずらす（年齢はそのまま）";_sd.style.cssText="padding:2px 5px;font-size:11px;margin-right:2px;";
+_sd.addEventListener("click",function(){_vpShift(["v1","v3","v5","v6","paid"],1,ri);});
+var _dw=el("div");_dw.style.cssText="display:flex;align-items:center;white-space:nowrap;";_dw.appendChild(_su);_dw.appendChild(_sd);_dw.appendChild(db);
 var paidI=null;
 if(sp){paidI=inp("number",row.paid||"",function(v){pol.futureVals[ri].paid=+v;upd("futureVals",pol.futureVals);renderVpTable();});}
 if(isVar){
@@ -1663,7 +1681,7 @@ if(isVar){
   var v3I=inp("number",row.v3||"",function(v){pol.futureVals[ri].v3=+v;upd("futureVals",pol.futureVals);});v3I.style.background="#fffde7";
   var v5I=inp("number",row.v5||"",function(v){pol.futureVals[ri].v5=+v;upd("futureVals",pol.futureVals);});
   var v6I=inp("number",row.v6||"",function(v){pol.futureVals[ri].v6=+v;upd("futureVals",pol.futureVals);});v6I.style.background="#fff0e6";
-  var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([v1I,v3I,v5I,v6I,db]);
+  var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([v1I,v3I,v5I,v6I,_dw]);
   cells.forEach(function(x){var td=el("td");td.style.padding="2px 3px";td.appendChild(x);tr.appendChild(td);});
 }else{
   var rvVal=row.v3||row.v1||row.v5||row.v6||"";
@@ -1674,7 +1692,7 @@ if(isVar){
     rate.textContent=(paidN>0&&rvN>0)?Math.round(rvN/paidN*1000)/10+"%":"—";
     rate.style.cssText="font-size:12px;font-weight:700;text-align:center;color:"+((paidN>0&&rvN>=paidN)?"#1a7a3a":"#1a2744")+";padding:4px;";
   }
-  var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([rI]).concat(sp?[rate]:[]).concat([db]);
+  var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([rI]).concat(sp?[rate]:[]).concat([_dw]);
   cells.forEach(function(x){var td=el("td");td.style.padding="2px 3px";td.appendChild(x);tr.appendChild(td);});
 }
 tbody.appendChild(tr);
@@ -1688,9 +1706,9 @@ var lastAge=pol.futureVals.length>0?pol.futureVals[pol.futureVals.length-1].age|
 pol.futureVals.push({age:lastAge+5,paid:0,v1:0,v3:0,v5:0,v6:0});
 upd("futureVals",pol.futureVals);renderVpTable();
 }));
-function _vpShift(keys,dir){var fv=pol.futureVals||[];if(!fv.length)return;
+function _vpShift(keys,dir,from){var fv=pol.futureVals||[];if(!fv.length)return;var _st=(from>0)?from:0;
 var vals=fv.map(function(r){var o={};keys.forEach(function(k){o[k]=r[k];});return o;});
-fv.forEach(function(r,i){var src=(dir>0)?(i-1):(i+1);keys.forEach(function(k){r[k]=(src>=0&&src<vals.length)?vals[src][k]:0;});});
+fv.forEach(function(r,i){if(i<_st)return;var src=(dir>0)?(i-1):(i+1);if(src<_st||src<0||src>=vals.length){keys.forEach(function(k){r[k]=0;});return;}keys.forEach(function(k){r[k]=vals[src][k];});});
 upd("futureVals",pol.futureVals);renderVpTable();}
 var _shRow=el("div");_shRow.style.cssText="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0;padding:5px 8px;background:#f7f9ff;border:1px solid #c3dafe;border-radius:6px;";
 var _shL=el("span");_shL.textContent="行がズレているとき：";_shL.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";_shRow.appendChild(_shL);
@@ -1698,7 +1716,7 @@ var _sb1=btn("解約返戻金を1行上へ","bn",function(){_vpShift(["v1","v3",
 var _sb2=btn("解約返戻金を1行下へ","bn",function(){_vpShift(["v1","v3","v5","v6"],1);});_sb2.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb2);
 var _sb3=btn("払込累計を1行上へ","bn",function(){_vpShift(["paid"],-1);});_sb3.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb3);
 var _sb4=btn("払込累計を1行下へ","bn",function(){_vpShift(["paid"],1);});_sb4.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb4);
-var _shN=el("span");_shN.style.cssText="font-size:11px;color:#5a6a8a;";_shN.textContent="※押すたびに1行ずつ動きます。行き過ぎたら反対を押して戻せます。";_shRow.appendChild(_shN);
+var _shN=el("span");_shN.style.cssText="font-size:11px;color:#5a6a8a;";_shN.textContent="※表全体が動きます。途中からズレているときは、各行の右端にある ↑ ↓ を押すと、その行から下だけ動きます。";_shRow.appendChild(_shN);
 vpTableWrap.appendChild(_shRow);
 vpBtns.appendChild(btn("🔢 年齢を順番に入れる","bn",function(){
 if(!pol.futureVals||!pol.futureVals.length){alert("先に表の行を入れてください。");return;}
@@ -5728,7 +5746,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806x: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0806y: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806y(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0806z(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -691,7 +691,7 @@ if(sv.comparisonRows)base.comparisonRows=sv.comparisonRows;
 if(sv.comparisonMemos)base.comparisonMemos=sv.comparisonMemos;
 if(sv.polTableMemo)base.polTableMemo=sv.polTableMemo;
 if(sv.savNotes)base.savNotes=sv.savNotes;
-if(sv.accAges)base.accAges=sv.accAges;if(sv.projAges)base.projAges=sv.projAges;if(sv.fxPatterns)base.fxPatterns=sv.fxPatterns;if(sv.fxStep)base.fxStep=sv.fxStep;
+if(sv.accAges)base.accAges=sv.accAges;if(sv.projAges)base.projAges=sv.projAges;if(sv.khColors)base.khColors=sv.khColors;if(sv.fxPatterns)base.fxPatterns=sv.fxPatterns;if(sv.fxStep)base.fxStep=sv.fxStep;
 if(sv.summaryMemo)base.summaryMemo=sv.summaryMemo;
 if(sv.pcItemW!==undefined)base.pcItemW=sv.pcItemW;
 if(sv.pcFontPx!==undefined)base.pcFontPx=sv.pcFontPx;
@@ -737,7 +737,7 @@ try{
 /*マージ保存：別窓や古い状態で保存しても、手入力の備考(polTableMemo)・貯蓄性手入力(savNotes)を消さない。保存直前に最新のlocalStorageを読み、自分が持っていない(空の)セルは最新側を残す。*/
 try{var _fresh=(window.localStorage&&window.localStorage.getItem(getCustomerKey()))||null;if(_fresh){var _fp=JSON.parse(_fresh);["polTableMemo","savNotes"].forEach(function(f){var mine=state[f]||{};var old=_fp[f]||{};Object.keys(old).forEach(function(k){if((mine[k]===undefined||mine[k]==="")&&old[k])mine[k]=old[k];});state[f]=mine;});}}catch(e){}
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,projAges:state.projAges||null,fxPatterns:state.fxPatterns||null,fxStep:state.fxStep||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
+storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,projAges:state.projAges||null,khColors:state.khColors||null,fxPatterns:state.fxPatterns||null,fxStep:state.fxStep||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
 // 自動バックアップ（世代管理・45秒に1回・最大8世代/800KB。肥大で保存が壊れるのを防ぐ）
 try{var _now=Date.now();if(!window._lastBk||(_now-window._lastBk)>45000){window._lastBk=_now;var _bkKey="hoken_bk_"+getCustomerKey();var _arr=[];try{_arr=JSON.parse(storageGet(_bkKey)||"[]");}catch(e){}var _cur=storageGet(getCustomerKey());if(_cur){_arr.push({ts:_now,data:_cur});if(_arr.length>8)_arr=_arr.slice(-8);while(_arr.length>2&&JSON.stringify(_arr).length>819200){_arr.shift();}try{localStorage.setItem(_bkKey,JSON.stringify(_arr));}catch(e){_bkTrimAll(2);}}}}catch(e){}
 }catch(e){}
@@ -846,6 +846,9 @@ function _fxSym(p){var c=_fxCode(p);return c==="USD"?"$":c==="EUR"?"€":c==="AU
 /* 外貨入力の証券：保障額は原通貨の実数（例 100000ドル）。単位「万」の項目は 万円 に、単位「円」の項目は 円 に直す */
 function fxConv(p,v,u){if(!_isFx(p)||!v)return v;var r=_fxRate(p);return (u==="円")?Math.round(v*r):(Math.round(v*r/10000*100)/100);}
 function fxNote(pols){try{var m={};(pols||[]).forEach(function(p){if(_isFx(p))m[_fxCode(p)+"="+_fxRate(p)]=1;});var k=Object.keys(m);if(!k.length)return "";return "※外貨建ては 1"+k.map(function(x){return x.replace("=","＝")+"円";}).join("、1")+" で円に換算しています";}catch(e){return "";}}
+function khCol(kind,which){var d={corp:{bg:"#9a3412",fg:"#ffffff"},pers:{bg:"#e8eefb",fg:"#33415c"}};
+var v=(state.khColors&&state.khColors[kind]&&state.khColors[kind][which])||"";return v||d[kind][which];}
+function khChip(isCorp){var k=isCorp?"corp":"pers";return "<span style='display:inline-block;background:"+khCol(k,"bg")+";color:"+khCol(k,"fg")+";font-weight:700;font-size:11px;border-radius:3px;padding:0 6px;'>"+(isCorp?"法人":"個人")+"</span>";}
 function toJPY(p,amt){
 if(!amt)return 0;
 if(p.currency&&p.currency!=="JPY")return Math.round(amt*(p.exchangeRate||150)/10000*100)/100;
@@ -3961,7 +3964,8 @@ var _pWhole=(p.dlPeriodType||"").indexOf("終身")>=0;var _re=+((p.itemEnd||{})[
 if(v>0){var _isCHB=(row.k==="cancer"||row.k==="heart"||row.k==="brain");if(_isCHB){var _cw=_cntWordTxt(row.k,p);var _fc=_firstCondTxt(row.k,p);var _sc=_secondDetailTxt(row.k,p);var _hh=_shrU(v.toLocaleString()+row.u)+(_cw?" <span style='font-size:10px;color:#7a5a9a;font-weight:700;'>"+_cw+"</span>":"");if(_fc)_hh+="<div style='font-size:10px;color:#555;font-weight:600;'>1回目:"+_fc+"</div>";if(_sc)_hh+="<div style='font-size:10px;color:#555;font-weight:600;'>2回目:"+_sc+"</div>";td.innerHTML=_hh;td.style.whiteSpace="normal";}else{td.innerHTML=_shrU(row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u));}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}else{td.textContent="—";td.style.color="#ccc";}return td;}
 function _kSumCell(row,pols){var td=el("td");td.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:13px;padding:2px 4px;border-left:2.5px solid #444;border-right:2.5px solid #444;";if(row.isFlag){td.style.background="#fafafa";return td;}if(row.isPair){var sA=0,sB=0;pols.forEach(function(p){sA+=row.g(p)||0;sB+=row.g2(p)||0;});var _ta=(row.k==="surg"&&_surgHasTier(pols))?"<span style=\'color:#b9770e;\'>＋α</span>":"";td.innerHTML=(sA||sB)?("<span style=\'color:#1f7d56;\'>"+sA+"</span>/<span style=\'color:#2980b9;\'>"+sB+"</span>"+row.u+_ta):(_ta||"—");return td;}if(row.noSum){td.textContent="—";return td;}var s=0;pols.forEach(function(p){s+=row.g(p)||0;});td.innerHTML=s>0?_shrU(s.toLocaleString()+row.u):"—";return td;}
 function _shrU(t){t=String(t==null?"":t);var out="";var i=0;while(i<t.length){var rest=t.slice(i);var m=rest.match(/^[0-9]+日型?/);if(m){out+="<span style=\"font-size:.72em !important;\">"+m[0]+"</span>";i+=m[0].length;continue;}var c=t.charAt(i);var e=(c==="&")?"&amp;":(c==="<")?"&lt;":(c===">")?"&gt;":c;if(/[0-9.,\/〜]/.test(c)){out+=e;}else{out+="<span style=\"font-size:.78em !important;\">"+e+"</span>";}i++;}return out;}
-function _khBadge(p){if(state.showKH===false)return "";return p.isCorp?"<div style=\"margin-top:2px;\"><span style=\"background:#ffd24d;color:#1a2744;font-weight:700;font-size:11px;padding:0 6px;border-radius:3px;\">法人</span></div>":"<div style=\"margin-top:2px;\"><span style=\"background:#dfe6f0;color:#33415c;font-weight:700;font-size:11px;padding:0 6px;border-radius:3px;\">個人</span></div>";}
+function _khBadge(p){if(state.showKH===false)return "";return "<div style=\"margin-top:2px;\">"+khChip(!!p.isCorp)+"</div>";}
+function _khBadgeOld(p){if(state.showKH===false)return "";return p.isCorp?"<div style=\"margin-top:2px;\"><span style=\"background:#ffd24d;color:#1a2744;font-weight:700;font-size:11px;padding:0 6px;border-radius:3px;\">法人</span></div>":"<div style=\"margin-top:2px;\"><span style=\"background:#dfe6f0;color:#33415c;font-weight:700;font-size:11px;padding:0 6px;border-radius:3px;\">個人</span></div>";}
 function buildCmpKanyu(curPols,curMem,propPols,propMem){
 var box=el("div");var allP=curPols.concat(propPols);
 var rows=kanyuRowDefs().filter(function(row){if(row.isFlag)return true;return allP.some(function(p){return _kRowActive(row,p);});});
@@ -4102,7 +4106,7 @@ var prem=toM(p);totPrem+=prem;
 var coNm=shortCo(p);
 var who=(memOf[pi]&&(memOf[pi].name||memOf[pi].relation))||"";
 var whoRel=(memOf[pi]&&memOf[pi].relation)||"";
-var _showKH=(state.showKH!==false);var _corp=_showKH?(p.isCorp?" <span style='color:#d4960a;font-weight:700;'>法人</span>":" <span style='color:#8a97b3;'>個人</span>"):(p.isCorp?" <span style='color:#f0c068;font-weight:700;'>法人</span>":(kanyuShowKojin?" <span style='color:#aebbd4;'>個人</span>":""));
+var _showKH=(state.showKH!==false);var _corp=(_showKH||p.isCorp||kanyuShowKojin)?(" "+khChip(!!p.isCorp)):"";
 var _whoG=who?String(who).replace(/[\s　]+/g," ").trim().split(" ").pop():"";
 var _whoT=(_multiMem&&_whoG)?("<br><span style='display:inline-block;margin-top:2px;background:#c9a84c;color:#1a2744;font-weight:700;font-size:11px;border-radius:3px;padding:0 6px;'>"+_whoG+"</span>"):"";
 th.style.lineHeight="1.4";th.style.padding="6px 8px";th.style.background=polColorOf(p);/*証券色を見出し背景に（条件比較表と連動）*/
@@ -5297,7 +5301,18 @@ var khCb=document.createElement("input");khCb.type="checkbox";khCb.checked=(stat
 khCb.addEventListener("change",function(){state.showKH=this.checked;saveState();});
 var khLb=el("label");khLb.style.cssText="cursor:pointer;font-weight:700;";khLb.textContent="証券に「個人／法人」の区別を表示する";
 khLb.addEventListener("click",function(){khCb.checked=!khCb.checked;state.showKH=khCb.checked;saveState();});
-khRow.appendChild(khCb);khRow.appendChild(khLb);cont.appendChild(khRow);
+khRow.appendChild(khCb);khRow.appendChild(khLb);
+[["corp","法人"],["pers","個人"]].forEach(function(kk){
+var w=el("span");w.style.cssText="display:flex;align-items:center;gap:4px;font-size:12px;margin-left:6px;";
+var nm=el("span");nm.textContent=kk[1];nm.style.cssText="font-weight:700;";w.appendChild(nm);
+[["bg","地"],["fg","字"]].forEach(function(ww){
+var lb=el("span");lb.textContent=ww[1];lb.style.cssText="font-size:11px;color:#8a8a8a;";w.appendChild(lb);
+var ci=document.createElement("input");ci.type="color";ci.value=khCol(kk[0],ww[0]);ci.style.cssText="width:28px;height:24px;padding:1px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;";
+ci.addEventListener("input",function(){if(!state.khColors)state.khColors={};if(!state.khColors[kk[0]])state.khColors[kk[0]]={};state.khColors[kk[0]][ww[0]]=this.value;saveState();});
+w.appendChild(ci);});
+khRow.appendChild(w);});
+khRow.appendChild(btn("色を既定に戻す","bn",function(){state.khColors=null;saveState();render();}));
+cont.appendChild(khRow);
 var sp=el("div");sp.style.cssText="font-size:13px;font-weight:700;color:#1a2744;margin:8px 0 4px;";sp.textContent="① 加入一覧・給付条件比較（各A4横1枚）";cont.appendChild(sp);
 var bw1=el("div");bw1.style.cssText="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;";
 var bAll=btn("加入一覧を印刷(横1枚)","bn",function(){printKanyuAll();});bAll.style.cssText="padding:12px 18px;font-size:14px;background:#1a2744;color:#fff;border-radius:6px;font-weight:700;";
@@ -5746,7 +5761,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806y: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0806z: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

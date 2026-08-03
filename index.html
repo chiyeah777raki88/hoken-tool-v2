@@ -359,7 +359,7 @@ async function sbSaveList(){
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0806w(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0806x(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1688,6 +1688,18 @@ var lastAge=pol.futureVals.length>0?pol.futureVals[pol.futureVals.length-1].age|
 pol.futureVals.push({age:lastAge+5,paid:0,v1:0,v3:0,v5:0,v6:0});
 upd("futureVals",pol.futureVals);renderVpTable();
 }));
+function _vpShift(keys,dir){var fv=pol.futureVals||[];if(!fv.length)return;
+var vals=fv.map(function(r){var o={};keys.forEach(function(k){o[k]=r[k];});return o;});
+fv.forEach(function(r,i){var src=(dir>0)?(i-1):(i+1);keys.forEach(function(k){r[k]=(src>=0&&src<vals.length)?vals[src][k]:0;});});
+upd("futureVals",pol.futureVals);renderVpTable();}
+var _shRow=el("div");_shRow.style.cssText="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0;padding:5px 8px;background:#f7f9ff;border:1px solid #c3dafe;border-radius:6px;";
+var _shL=el("span");_shL.textContent="行がズレているとき：";_shL.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";_shRow.appendChild(_shL);
+var _sb1=btn("解約返戻金を1行上へ","bn",function(){_vpShift(["v1","v3","v5","v6"],-1);});_sb1.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb1);
+var _sb2=btn("解約返戻金を1行下へ","bn",function(){_vpShift(["v1","v3","v5","v6"],1);});_sb2.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb2);
+var _sb3=btn("払込累計を1行上へ","bn",function(){_vpShift(["paid"],-1);});_sb3.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb3);
+var _sb4=btn("払込累計を1行下へ","bn",function(){_vpShift(["paid"],1);});_sb4.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb4);
+var _shN=el("span");_shN.style.cssText="font-size:11px;color:#5a6a8a;";_shN.textContent="※押すたびに1行ずつ動きます。行き過ぎたら反対を押して戻せます。";_shRow.appendChild(_shN);
+vpTableWrap.appendChild(_shRow);
 vpBtns.appendChild(btn("🔢 年齢を順番に入れる","bn",function(){
 if(!pol.futureVals||!pol.futureVals.length){alert("先に表の行を入れてください。");return;}
 var _d0=((+pol.futureVals[0].age)>0)?pol.futureVals[0].age:"";
@@ -5716,7 +5728,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0806w: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0806x: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807i(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807j(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1092,18 +1092,24 @@ if(merged.insuredName&&!merged.insuredId){merged.insuredId="other";}
 // 将来予測テーブル（返戻金表）：新情報なので、読み取れたら反映（追記モードでも更新）
 try{if(draft.futureValsCsv&&String(draft.futureValsCsv).trim()){
 var _unit=(draft.futureValsUnit==="万円")?1:10000;var _isAge=(draft.futureValsFirstCol==="年齢");
-var _ea=(typeof calcEnrollAge==="function")?parseInt(String(calcEnrollAge(merged)).replace(/[^0-9]/g,""),10):0;if(!(_ea>0))_ea=0;
+var _ea=0;try{var _em=String((typeof calcEnrollAge==="function")?calcEnrollAge(merged):"").match(/\d{1,3}/);if(_em)_ea=parseInt(_em[0],10);}catch(e){}
+if(!(_ea>0&&_ea<110))_ea=0;
 var _rows=[];String(draft.futureValsCsv).split(/\r?\n/).forEach(function(ln){
 var c=ln.split(/[,\t]/).map(function(x){return String(x).replace(/[^0-9.\-]/g,"");});
 if(!c.length||!c[0])return;var n0=parseFloat(c[0]);if(!(n0>0))return;
-var age=_isAge?n0:(_ea>0?(_ea+n0):n0);
+var age=_isAge?n0:(_ea>0?(_ea+n0-1):n0);
 var paid=parseFloat(c[1]);if(isNaN(paid))paid=0;else paid=Math.round(paid/_unit*10)/10;
 var v1,v3,v5,v6;
 if(c.length>=6&&c[2]!==""&&c[3]!==""&&c[4]!==""&&c[5]!==""){v1=parseFloat(c[2])/_unit;v3=parseFloat(c[3])/_unit;v5=parseFloat(c[4])/_unit;v6=parseFloat(c[5])/_unit;}
 else{var v=parseFloat(c[2]);if(isNaN(v))return;v=v/_unit;v1=v3=v5=v6=v;}
 function _r(x){return isNaN(x)?0:Math.round(x*10)/10;}
 _rows.push({age:age,paid:paid,v1:_r(v1),v3:_r(v3),v5:_r(v5),v6:_r(v6)});});
-if(_rows.length>=2)merged.futureVals=_rows;
+if(_rows.length>=2){
+/* 1列目が年齢のはずなのに1,2,3…と並んでいたら経過年数とみなす */
+if(_isAge&&_ea>0&&_rows[0].age<=5)_rows.forEach(function(r,i){r.age=_ea+i;});
+/* おかしな年齢（0以下・121以上）が混ざっていたら通し番号で振り直す */
+if(_rows.some(function(r){return !(r.age>0&&r.age<121);}))_rows.forEach(function(r,i){r.age=(_ea>0?_ea+i:i+1);});
+merged.futureVals=_rows;}
 }}catch(e){}
 if((!merged.futureVals||!merged.futureVals.length)&&Array.isArray(draft.futureVals)&&draft.futureVals.length>0)merged.futureVals=draft.futureVals;
 else if(Array.isArray(draft.futureVals)&&draft.futureVals.length>0&&!draft.futureValsCsv)merged.futureVals=draft.futureVals;
@@ -5842,7 +5848,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0807i: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807j: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

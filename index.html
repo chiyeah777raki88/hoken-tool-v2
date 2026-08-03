@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807j(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807k(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -691,7 +691,7 @@ if(sv.comparisonRows)base.comparisonRows=sv.comparisonRows;
 if(sv.comparisonMemos)base.comparisonMemos=sv.comparisonMemos;
 if(sv.polTableMemo)base.polTableMemo=sv.polTableMemo;
 if(sv.savNotes)base.savNotes=sv.savNotes;
-if(sv.accAges)base.accAges=sv.accAges;if(sv.projAges)base.projAges=sv.projAges;if(sv.kanyuHide)base.kanyuHide=sv.kanyuHide;if(sv.khColors)base.khColors=sv.khColors;if(sv.fxPatterns)base.fxPatterns=sv.fxPatterns;if(sv.fxStep)base.fxStep=sv.fxStep;
+if(sv.accAges)base.accAges=sv.accAges;if(sv.projAges)base.projAges=sv.projAges;if(sv.kanyuHide)base.kanyuHide=sv.kanyuHide;if(sv.wholeAge)base.wholeAge=sv.wholeAge;if(sv.khColors)base.khColors=sv.khColors;if(sv.fxPatterns)base.fxPatterns=sv.fxPatterns;if(sv.fxStep)base.fxStep=sv.fxStep;
 if(sv.summaryMemo)base.summaryMemo=sv.summaryMemo;
 if(sv.pcItemW!==undefined)base.pcItemW=sv.pcItemW;
 if(sv.pcFontPx!==undefined)base.pcFontPx=sv.pcFontPx;
@@ -737,7 +737,7 @@ try{
 /*マージ保存：別窓や古い状態で保存しても、手入力の備考(polTableMemo)・貯蓄性手入力(savNotes)を消さない。保存直前に最新のlocalStorageを読み、自分が持っていない(空の)セルは最新側を残す。*/
 try{var _fresh=(window.localStorage&&window.localStorage.getItem(getCustomerKey()))||null;if(_fresh){var _fp=JSON.parse(_fresh);["polTableMemo","savNotes"].forEach(function(f){var mine=state[f]||{};var old=_fp[f]||{};Object.keys(old).forEach(function(k){if((mine[k]===undefined||mine[k]==="")&&old[k])mine[k]=old[k];});state[f]=mine;});}}catch(e){}
 var ps={};state.family.forEach(function(m){ps[m.id]=(state.policies[m.id]||[]).map(function(p){return JSON.parse(JSON.stringify(p));});});
-storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,projAges:state.projAges||null,kanyuHide:state.kanyuHide||null,khColors:state.khColors||null,fxPatterns:state.fxPatterns||null,fxStep:state.fxStep||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
+storageSet(getCustomerKey(),JSON.stringify({ansinLine:state.ansinLine,goals:state.goals||[],proposalPolicies:state.proposalPolicies,comparisonRows:state.comparisonRows,comparisonMemos:state.comparisonMemos||{},assets:assetsData,nisaAccounts:nisaAccounts,idecoAccounts:idecoAccounts,extraRows:extraRows,evalAge:evalAge,drawRate:drawRate,drawEvents:drawEvents,scenRate:scenRate,rateByType:rateByType,feeRate:feeRate,feeRateAfter:feeRateAfter,compareGroups:state.compareGroups||[],corpMaster:state.corpMaster||{},corpByMember:state.corpByMember||{},polSave:ps,famSave:state.family,radarScores:state.radarScores||{},premScores:state.premScores||{},bigMatrixData:state.bigMatrixData||{},bigMatrixDataProp:state.bigMatrixDataProp||{},bigMatrixRowLabels:state.bigMatrixRowLabels||{},bigMatrixCells:state.bigMatrixCells||{},bigMatrixExemptCells:state.bigMatrixExemptCells||{},bigMatrixOverrides:state.bigMatrixOverrides||{},polTableMemo:state.polTableMemo||{},savNotes:state.savNotes||{},accAges:state.accAges||null,projAges:state.projAges||null,kanyuHide:state.kanyuHide||null,wholeAge:state.wholeAge||null,khColors:state.khColors||null,fxPatterns:state.fxPatterns||null,fxStep:state.fxStep||null,summaryMemo:state.summaryMemo||"",pcItemW:(state.pcItemW===undefined?"":state.pcItemW),pcFontPx:(state.pcFontPx===undefined?"":state.pcFontPx)}));
 // 自動バックアップ（世代管理・45秒に1回・最大8世代/800KB。肥大で保存が壊れるのを防ぐ）
 try{var _now=Date.now();if(!window._lastBk||(_now-window._lastBk)>45000){window._lastBk=_now;var _bkKey="hoken_bk_"+getCustomerKey();var _arr=[];try{_arr=JSON.parse(storageGet(_bkKey)||"[]");}catch(e){}var _cur=storageGet(getCustomerKey());if(_cur){_arr.push({ts:_now,data:_cur});if(_arr.length>8)_arr=_arr.slice(-8);while(_arr.length>2&&JSON.stringify(_arr).length>819200){_arr.shift();}try{localStorage.setItem(_bkKey,JSON.stringify(_arr));}catch(e){_bkTrimAll(2);}}}}catch(e){}
 }catch(e){}
@@ -3998,14 +3998,14 @@ function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
 
 {k:"advLump",l:"先進医療一時金",u:"万",grp:"保障",g:function(p){return +p.advancedMedicalLump||0;}},
 {k:"exempt",l:"保険料免除",u:"",grp:"保障",detail:true,g:function(p){return isPracticalExempt(p)?1:0;},isFlag:true},
-{k:"pension",l:"年金 年額",u:"万",grp:"貯蓄",noSum:true,g:function(p){if(!_isAnnuity(p))return 0;if(+p.annuityAnnualMax>0)return +p.annuityAnnualMax;if(+p.annuityAnnualMin>0)return +p.annuityAnnualMin;return +p.annualPension||0;},disp:function(p){if(!_isAnnuity(p))return "";var mn=+p.annuityAnnualMin||0,mx=+p.annuityAnnualMax||0;if(mn>0&&mx>0)return mn+"〜"+mx+"万";if(mx>0)return mx+"万";if(mn>0)return mn+"万";var a=+p.annualPension||0;return a>0?(a+"万"):"";}},
+{k:"pension",l:"年金 年額",u:"万",grp:"貯蓄",g:function(p){if(!_isAnnuity(p))return 0;if(+p.annuityAnnualMax>0)return +p.annuityAnnualMax;if(+p.annuityAnnualMin>0)return +p.annuityAnnualMin;return +p.annualPension||0;},disp:function(p){if(!_isAnnuity(p))return "";var mn=+p.annuityAnnualMin||0,mx=+p.annuityAnnualMax||0;if(mn>0&&mx>0)return mn+"〜"+mx+"万";if(mx>0)return mx+"万";if(mn>0)return mn+"万";var a=+p.annualPension||0;return a>0?(a+"万"):"";}},
 {k:"pgenshi",l:"年金原資(開始時積立)",u:"万",grp:"貯蓄",g:function(p){return _isAnnuity(p)?_accumAtAge(p,(+p.pensionStartAge||70)):0;}},
 {k:"pgtotal",l:"年金 受取総額",u:"万",grp:"貯蓄",g:function(p){if(!_isAnnuity(p))return 0;var pt=p.pensionTotals;if(pt){var key=scenRate==="1"?"v1":scenRate==="5"?"v5":scenRate==="6"?"v6":"v3";var pv=+pt[key]||0;if(pv>0)return pv;}return Math.round((+p.annualPension||0)*(+p.pensionYears||0));}},
 {k:"celeb",l:"祝金・生存給付",u:"万",grp:"貯蓄",g:function(p){return +p.celebAmount||0;}},
 {k:"cash",l:"解約返戻金/積立",u:"万",grp:"貯蓄",g:function(p){return _isAnnuity(p)?0:((+p.refundVal||0)||(+p.currentVal||0));}},
-{k:"acc0",l:_accAges[0]+"歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[0]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[0]);}},
-{k:"acc1",l:_accAges[1]+"歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[1]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[1]);}},
-{k:"acc2",l:_accAges[2]+"歳時の積立額",u:"万",grp:"貯蓄",noSum:true,g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[2]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[2]);}}
+{k:"acc0",l:_accAges[0]+"歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[0]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[0]);}},
+{k:"acc1",l:_accAges[1]+"歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[1]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[1]);}},
+{k:"acc2",l:_accAges[2]+"歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[2]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[2]);}}
 ];
 try{var _ORD=["death","dann","disDeath","accid","cancer","cinsitu","heart","brain","big8","dislump","dis","disability","carelump","caremon","dementia","hosp","lshosp","chosp","injHosp","fhosp","hospin","hospout","surg","csurg","fsurg","flump","out","cout","cchemo","crad","adv","advLump","injury","exempt"];
 var _ix={};_ORD.forEach(function(k,i){_ix[k]=i;});
@@ -4066,7 +4066,9 @@ var tb=el("tbody");
 (function(){var gr=el("tr");var gtd=el("td");gtd.colSpan=nc+np+3;gtd.textContent="■ 契約条件（保険期間・払込・保険料）";gtd.style.cssText="background:#f3eee6;color:#5b4636;font-weight:700;font-size:12px;padding:4px 6px;text-align:left;";gr.appendChild(gtd);tb.appendChild(gr);})();
 function _lblCell(label,detail){var lb=el("td");lb.textContent=label;lb.style.cssText="text-align:center;font-weight:700;font-size:13px;white-space:nowrap;padding:3px 6px;background:#f0ece6;color:#5b4636;";if(detail){var dc=(detail==="exempt")?"#6b21a8":"#8a5320";lb.style.background=dc;lb.style.color="#fff";}return lb;}
 function infoRow(label,fn){var tr=el("tr");curPols.forEach(function(p){var td=el("td");td.textContent=fn(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});var t1=el("td");t1.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;";tr.appendChild(t1);tr.appendChild(_lblCell(label));var t2=el("td");t2.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;";tr.appendChild(t2);propPols.forEach(function(p){var td=el("td");td.textContent=fn(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tb.appendChild(tr);}
-(function periodRow(){var tr=el("tr");function pc(p){var val=_kPeriod(p);var isWhole=(val==="終身");var isRenew=((p.dlPayType||"").indexOf("更新")>=0)||((p.dlPeriodType||"").indexOf("更新")>=0);var earliest=0;var ie=p.itemEnd||{};Object.keys(ie).forEach(function(k){var ea=+ie[k];if(ea>0&&(isWhole?true:(!(+p.dlPeriodEnd)||ea<+p.dlPeriodEnd))){if(!earliest||ea<earliest)earliest=ea;}});var html=isWhole?"<span style=\'color:#1a7a3a;font-weight:700;\'>終身</span>":"<span style=\'color:#c0392b;font-weight:700;white-space:normal;\'>"+String(val).replace("（","<br>（")+"</span>";if(isRenew)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a0特約"+earliest+"歳まで</span>";if(p.contractEndsOnClaim)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a03大特約:給付後満了</span>";var td=el("td");td.style.cssText="text-align:center;font-size:11px;"+PADC+((!isWhole||earliest)?"background:#fdecea;":"");td.style.whiteSpace="normal";td.innerHTML=html;return td;}
+(function periodRow(){var tr=el("tr");function pc(p){var val=_kPeriod(p);var isWhole=(val==="終身");
+var _wa=+(state.wholeAge||0);var _pe=+(p.dlPeriodEnd||0);var _asWhole=false;
+if(!isWhole&&_wa>0&&_pe>=_wa&&(p.dlPeriodType||"").indexOf("更新")<0){isWhole=true;_asWhole=true;val=_pe+"歳満了";}var isRenew=((p.dlPayType||"").indexOf("更新")>=0)||((p.dlPeriodType||"").indexOf("更新")>=0);var earliest=0;var ie=p.itemEnd||{};Object.keys(ie).forEach(function(k){var ea=+ie[k];if(ea>0&&(isWhole?true:(!(+p.dlPeriodEnd)||ea<+p.dlPeriodEnd))){if(!earliest||ea<earliest)earliest=ea;}});var html=isWhole?("<span style=\'color:#1a7a3a;font-weight:700;\'>"+(_asWhole?(val+"<br><span style=\'font-size:10px;\'>（ほぼ終身）</span>"):"終身")+"</span>"):"<span style=\'color:#c0392b;font-weight:700;white-space:normal;\'>"+String(val).replace("（","<br>（")+"</span>";if(isRenew)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";if(earliest)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a0特約"+earliest+"歳まで</span>";if(p.contractEndsOnClaim)html+="<br><span style=\'font-size:10px;color:#c0392b;font-weight:700;\'>\u26a03大特約:給付後満了</span>";var td=el("td");td.style.cssText="text-align:center;font-size:11px;"+PADC+((!isWhole||earliest)?"background:#fdecea;":"");td.style.whiteSpace="normal";td.innerHTML=html;return td;}
 curPols.forEach(function(p){tr.appendChild(pc(p));});var t1=el("td");t1.rowSpan=3;t1.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;font-size:10px;font-weight:700;color:#8a6d1a;line-height:1.5;text-align:center;vertical-align:middle;padding:2px 3px;";t1.innerHTML=_premBreakCell(curPols);tr.appendChild(t1);tr.appendChild(_lblCell("保険期間"));var t2=el("td");t2.rowSpan=3;t2.style.cssText="background:#fdf8ec;border-left:2.5px solid #444;border-right:2.5px solid #444;font-size:10px;font-weight:700;color:#8a6d1a;line-height:1.5;text-align:center;vertical-align:middle;padding:2px 3px;";t2.innerHTML=_premBreakCell(propPols);tr.appendChild(t2);propPols.forEach(function(p){tr.appendChild(pc(p));});tb.appendChild(tr);})();
 (function payRow(){var tr=el("tr");curPols.forEach(function(p){var td=el("td");td.textContent=_kPayTerm(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tr.appendChild(_lblCell("払込期間"));propPols.forEach(function(p){var td=el("td");td.textContent=_kPayTerm(p);td.style.cssText="text-align:center;font-size:11px;"+PADC+"white-space:nowrap;";tr.appendChild(td);});tb.appendChild(tr);})();
 (function premRow(){var tr=el("tr");tr.style.background="#fffdf5";function pc(p){var raw=+(p.premAmount||0)||0;var u=(p.premUnit||"").trim();var isOne=(p.payFreq==="一時"||u.indexOf("一時")>=0);var isYr=(!isOne)&&(u==="円/年");var td=el("td");td.style.cssText="text-align:center;font-size:11px;font-weight:700;white-space:nowrap;"+PADC+"color:"+(isYr?"#c0392b":"#8a6d1a")+";"+(p.isCorp?"background:#fff3d6;":"");td.innerHTML=raw>0?_shrU(isOne?("一時"+raw.toLocaleString()):("¥"+raw.toLocaleString()+(isYr?"/年":"/月"))):"—";
@@ -4185,6 +4187,24 @@ _pkR.appendChild(btn("全部に付ける","bn",function(){state.kanyuHide=null;s
 _pkR.appendChild(btn("災害死亡・傷害給付・ケガを外す","bn",function(){if(!state.kanyuHide)state.kanyuHide={};["disDeath","accid","injury","injHosp"].forEach(function(k){state.kanyuHide[k]=true;});saveState();render();}));
 _pkBox.appendChild(_pkR);
 _pkWrap.appendChild(_pkBtn);_pkWrap.appendChild(_pkBox);box.appendChild(_pkWrap);
+var _waRow=el("div");_waRow.className="no-print";_waRow.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;margin:6px 0 8px;padding:6px 10px;background:#f6f8fb;border:1px solid #ddd8cc;border-radius:6px;";
+var _waL=el("span");_waL.style.cssText="font-weight:700;color:#1a2744;";_waL.textContent="満了年齢の赤表示：";_waRow.appendChild(_waL);
+var _waCb=document.createElement("input");_waCb.type="checkbox";_waCb.checked=((+state.wholeAge||0)>0);_waCb.style.cssText="width:15px;height:15px;cursor:pointer;";
+_waCb.addEventListener("change",function(){state.wholeAge=this.checked?((+state.wholeAge>0)?+state.wholeAge:95):0;saveState();render();});
+var _waLb=el("label");_waLb.style.cssText="cursor:pointer;display:flex;align-items:center;gap:5px;";_waLb.appendChild(_waCb);_waLb.appendChild(document.createTextNode("この年齢以上の満了は終身あつかい（赤くしない）"));_waRow.appendChild(_waLb);
+var _waIn=inp("number",(+state.wholeAge||95),function(v){var n=+v||0;state.wholeAge=(n>0&&_waCb.checked)?n:(n>0?n:0);saveState();render();});
+_waIn.style.cssText="width:58px;font-size:12px;padding:2px 4px;text-align:right;";_waRow.appendChild(_waIn);
+var _waU=el("span");_waU.textContent="歳";_waRow.appendChild(_waU);
+var _waN=el("span");_waN.style.cssText="font-size:11px;color:#8a8a8a;";_waN.textContent="例：95歳にすると、98歳満了は緑で「98歳満了（ほぼ終身）」と出ます。";_waRow.appendChild(_waN);
+box.appendChild(_waRow);
+var _aaRow=el("div");_aaRow.className="no-print";_aaRow.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;margin:0 0 8px;padding:6px 10px;background:#f0f7ee;border:1px solid #cfe3cb;border-radius:6px;";
+var _aaL=el("span");_aaL.style.cssText="font-weight:700;color:#2f6b35;";_aaL.textContent="積立額を出す年齢：";_aaRow.appendChild(_aaL);
+var _aaNow=_getAccAges();
+[0,1,2].forEach(function(ii){var ai=inp("number",_aaNow[ii],function(v){var a2=_getAccAges().slice();a2[ii]=(+v||0);if(a2.every(function(x){return x>0;})){state.accAges=a2;saveState();render();}});ai.style.cssText="width:52px;font-size:12px;padding:2px 4px;text-align:right;";_aaRow.appendChild(ai);var u=el("span");u.textContent="歳";_aaRow.appendChild(u);});
+_aaRow.appendChild(btn("既定(65・70・80)に戻す","bn",function(){state.accAges=null;saveState();render();}));
+var _aaN=el("span");_aaN.style.cssText="font-size:11px;color:#8a8a8a;width:100%;";_aaN.textContent="※その年齢が返戻金表の範囲外の証券は「—」になります（表に無い年齢は推測しません）。";_aaRow.appendChild(_aaN);
+box.appendChild(_aaRow);
+
 var tw=el("div","tw");
 var tbl=el("table");tbl.className="kanyu";
 var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="24px";cg.appendChild(cm);var c0=document.createElement("col");c0.style.width="104px";cg.appendChild(c0);
@@ -5848,7 +5868,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0807j: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807k: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

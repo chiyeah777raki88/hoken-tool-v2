@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807g(提案書 色見本・行列まとめて選択)";
+var APP_VERSION="v2-0807h(提案書 色見本・行列まとめて選択)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1066,7 +1066,7 @@ var CGROUPS=[
 {t:"変額・年金・還付金 ★要確認",fs:["currentVal","futureVals","annualPension","pensionStartAge","pensionYears","currency","exchangeRate","refundVal","refundAge","celebAmount","celebInterval","celebStartAge","celebEndAge","renewalRates"],hi:["currentVal","futureVals","annualPension","pensionStartAge","refundVal","refundAge","celebAmount"]},
 {t:"特記事項",fs:["contractEndsOnClaim","notes"],hi:[]}
 ];
-var FLBLS={company:"保険会社",insType:"保険種類",policyNo:"証券番号",contractDate:"契約日",deathType:"死亡保障タイプ",dlAmount:"死亡保険金(万円)",dlPeriodType:"保険期間",dlPeriodEnd:"満了年齢",dlPayType:"払込期間",dlPayEnd:"払込満了年齢",hospDaily:"入院日額(円)",hospLimit:"入院支払限度",hospLimitEx:"支払限度の拡張(特定疾病無制限等)",lsHospDaily:"疾病限定入院日額(円)",lsHospScope:"疾病限定入院の対象",lsHospLimit:"疾病限定入院の支払限度",hospLumpIn:"★入院一時金(万円)",hospLumpOut:"★退院一時金(万円)",surgInp:"手術給付金(万円)",surgOut:"外来手術給付金(万円)",outType:"通院タイプ",outAmount:"通院給付額(円)",injuryAmount:"ケガ一時金・骨折等(万円)",accidentAmount:"傷害給付の基準額(万円)",accidentScale:"障害給付の割合",disabilityLump:"特定障害状態一時金(万円)",disabilityCond:"特定障害状態の要件",advancedMedical:"★先進医療特約",advancedMedicalAmount:"★先進医療給付上限(万円)",cancerTimes:"がん給付回数",cancerInterval:"がんインターバル",cancerSecondReq:"2回目受診要件",cancerHosp:"がん入院日額(円)",cancerOut2:"がん通院日額(円)",heartType:"心疾患名称",heartTimes:"心疾患給付回数",heartInterval:"心疾患インターバル",brainType:"脳血管名称",brainTimes:"脳血管給付回数",brainInterval:"脳血管インターバル",careMonthly:"介護月額(万円)",cancerOn:"がん特約",c1st:"がん診断1回目(万円)",c2nd:"がん診断2回目以降(万円)",cCond:"がん要件",bigOn:"大病特約",bigCount:"大病種類",h1st:"心疾患(万円)",hCond:"心疾患要件A:60日/B:10日/C:1泊",b1st:"脳血管(万円)",bCond:"脳血管要件",disType:"就業不能",disMonthly:"就業不能月額(万円)",careType:"介護",careLump:"介護一時金(万円)",premUnit:"払込方法",premAmount:"保険料",premExemptType:"免除条件",premExemptDetail:"免除条件詳細",currentVal:"★現在の積立金額(万円)",futureVals:"★将来予測テーブル",annualPension:"★年金年額(原通貨)",pensionStartAge:"★年金開始年齢",pensionYears:"年金受取期間(年)",currency:"通貨",exchangeRate:"為替レート",refundVal:"★還付金(万円)",refundAge:"★還付金受取年齢",celebAmount:"祝金額(万円)",celebInterval:"祝金:何年毎",celebStartAge:"祝金:開始年齢",celebEndAge:"祝金:終了年齢",renewalRates:"更新保険料テーブル",contractEndsOnClaim:"給付後に契約終了",notes:"特記事項"};
+var FLBLS={company:"保険会社",insType:"保険種類",policyNo:"証券番号",contractDate:"契約日",deathType:"死亡保障タイプ",dlAmount:"死亡保険金(万円)",dlPeriodType:"保険期間",dlPeriodEnd:"満了年齢",dlPayType:"払込期間",dlPayEnd:"払込満了年齢",hospDaily:"入院日額(円)",hospLimit:"入院支払限度",hospLimitEx:"支払限度の拡張(特定疾病無制限等)",lsHospDaily:"疾病限定入院日額(円)",lsHospScope:"疾病限定入院の対象",lsHospLimit:"疾病限定入院の支払限度",hospLumpIn:"★入院一時金(万円)",hospLumpOut:"★退院一時金(万円)",surgInp:"手術給付金(万円)",surgOut:"外来手術給付金(万円)",outType:"通院タイプ",outAmount:"通院給付額(円)",injuryAmount:"ケガ一時金・骨折等(万円)",accidentAmount:"傷害給付の基準額(万円)",accidentScale:"障害給付の割合",disabilityLump:"特定障害状態一時金（LB型・万円）",disabilityCond:"特定障害状態の要件",advancedMedical:"★先進医療特約",advancedMedicalAmount:"★先進医療給付上限(万円)",cancerTimes:"がん給付回数",cancerInterval:"がんインターバル",cancerSecondReq:"2回目受診要件",cancerHosp:"がん入院日額(円)",cancerOut2:"がん通院日額(円)",heartType:"心疾患名称",heartTimes:"心疾患給付回数",heartInterval:"心疾患インターバル",brainType:"脳血管名称",brainTimes:"脳血管給付回数",brainInterval:"脳血管インターバル",careMonthly:"介護月額(万円)",cancerOn:"がん特約",c1st:"がん診断1回目(万円)",c2nd:"がん診断2回目以降(万円)",cCond:"がん要件",bigOn:"大病特約",bigCount:"大病種類",h1st:"心疾患(万円)",hCond:"心疾患要件A:60日/B:10日/C:1泊",b1st:"脳血管(万円)",bCond:"脳血管要件",disType:"就業不能",disMonthly:"就業不能月額(万円)",careType:"介護",careLump:"介護一時金(万円)",premUnit:"払込方法",premAmount:"保険料",premExemptType:"免除条件",premExemptDetail:"免除条件詳細",currentVal:"★現在の積立金額(万円)",futureVals:"★将来予測テーブル",annualPension:"★年金年額(原通貨)",pensionStartAge:"★年金開始年齢",pensionYears:"年金受取期間(年)",currency:"通貨",exchangeRate:"為替レート",refundVal:"★還付金(万円)",refundAge:"★還付金受取年齢",celebAmount:"祝金額(万円)",celebInterval:"祝金:何年毎",celebStartAge:"祝金:開始年齢",celebEndAge:"祝金:終了年齢",renewalRates:"更新保険料テーブル",contractEndsOnClaim:"給付後に契約終了",notes:"特記事項"};
 function showConfirm(draft,pol,box,onResult,msgEl){
 var ex=box.querySelector(".cbox");if(ex)ex.remove();
 var cb=el("div","cbox");
@@ -1472,10 +1472,10 @@ var DET=[
 {k:"big8",l:"8大疾病(糖尿/高血圧/肝/腎/膵)",f:"big8Amount",grp:"保障",conds:[{f:"big8Cond",o:BIG8C}]},
 {k:"dislump",l:"就業不能一時金",f:"disLump",grp:"保障"},
 {k:"dis",l:"就業不能(月額)",f:"disMonthly",grp:"保障",conds:[{f:"disScope",o:[{v:"3big",l:"3大"},{v:"5big",l:"5疾病"},{v:"7big",l:"7大"},{v:"all",l:"全疾病/障害3級"},{v:"grade2",l:"障害2級"}]}]},
-{k:"dpen",l:"障害年金",f:"disPensionAmt",grp:"保障",conds:[{f:"disPensionGrade",o:GRADE}]},
-{k:"welf",l:"障害福祉",f:"welfareAmt",grp:"保障",conds:[{f:"welfareGrade",o:GRADE}]},
+{k:"dpen",l:"障害年金(公的◯級)",f:"disPensionAmt",grp:"保障",conds:[{f:"disPensionGrade",o:GRADE}]},
+{k:"welf",l:"障害福祉(手帳◯級)",f:"welfareAmt",grp:"保障",conds:[{f:"welfareGrade",o:GRADE}]},
 {k:"accid",l:"傷害給付(基準額)",f:"accidentAmount",grp:"保障",conds:[{f:"accidentScale",o:["","死亡100%・障害は程度により10〜100%","死亡100%・障害は程度により20〜100%","死亡100%・障害は第1〜3級のみ","障害給付のみ(死亡なし)"]}]},
-{k:"disability",l:"特定障害状態一時金",f:"disabilityLump",grp:"保障",conds:[{f:"disabilityCond",o:["","身体障害者手帳3級以上","身体障害者手帳2級以上","身体障害者手帳1級","所定の身体障害状態"]}]},
+{k:"disability",l:"特定障害状態一時金（LB型）",f:"disabilityLump",grp:"保障",conds:[{f:"disabilityCond",o:["","身体障害者手帳3級以上（LB生活保障型）","身体障害者手帳2級以上","身体障害者手帳1級","所定の身体障害状態","公的介護 要介護2以上"]}]},
 {k:"carelump",l:"介護一時金",f:"careLump",grp:"保障",conds:[{f:"careLevel",o:["要介護1以上","要介護2以上","要介護3以上","所定の介護状態"]}]},
 {k:"caremon",l:"介護(月額)",f:"careMonthly",grp:"保障",conds:[{f:"careLevel",o:["要介護1以上","要介護2以上","要介護3以上","所定の介護状態"]},{f:"careMonthlyUnit",o:[{v:"",l:"月額で入力"},{v:"年",l:"年額で入力(÷12で保存)"}]}]},
 {k:"pension",l:"個人年金(年額)",f:"annualPension",grp:"貯蓄",ageF:"pensionStartAge"},
@@ -3983,7 +3983,7 @@ function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
 {k:"carelump",l:"介護一時金",u:"万",grp:"保障",detail:true,g:function(p){return +p.careLump||0;}},
 {k:"caremon",l:"介護(月/年)",u:"万/月",grp:"保障",detail:true,g:function(p){return +p.careMonthly||0;},disp:function(p){var m=+p.careMonthly||0;if(!(m>0))return "";return (p.careMonthlyUnit==="年")?((Math.round(m*12*10)/10)+"万/年"):(m+"万/月");}},
 {k:"accid",l:"傷害給付(基準額)",u:"万",grp:"保障",g:function(p){return +p.accidentAmount||0;},disp:function(p){var a=+p.accidentAmount||0;if(!(a>0))return "";return a+"万"+(p.accidentScale?"（"+p.accidentScale+"）":"（死亡100%・障害10〜100%）");}},
-{k:"disability",l:"特定障害状態一時金",u:"万",grp:"保障",detail:true,g:function(p){return +p.disabilityLump||0;}},
+{k:"disability",l:"特定障害状態一時金（LB型）",u:"万",grp:"保障",detail:true,g:function(p){return +p.disabilityLump||0;}},
 {k:"injury",l:"ケガ(骨折等)",u:"万",grp:"保障",g:function(p){return +p.injuryAmount||0;}},
 {k:"disDeath",l:"災害死亡",u:"万",grp:"保障",g:function(p){return +p.disasterDeath||0;}},
 {k:"injHosp",l:"災害入院",u:"円",grp:"保障",g:function(p){return +p.injuryHospDaily||0;}},
@@ -5443,8 +5443,8 @@ var ROWS_KYUFU=[
 {id:"brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n60日の就業不能",c:"脳卒中で\n入院",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院",s1:"無し",s2:"入院",s3:"入院",s4:"入院"}},
 {id:"metabo",label:"糖尿病\n高血圧/肝硬変\n腎不全/膵疾患",def:{a:"60日の所定の状態",b:"60日の就業不能",c:"20日入院",d:"10日入院",e:"手術",f:"入院"}},
 {id:"dis",label:"介護・就業不能",def:{a:"5疾病",b:"7疾病",c:"全疾病"}},
-{id:"dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
-{id:"welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+{id:"dis_grade",label:"障害年金(公的◯級)",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+{id:"welfare",label:"障害福祉(手帳◯級)",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"care",label:"介護",def:{a:"要介護4",b:"要介護3",c:"要介護2",d:"要介護1"}}
 ];
 // 免除条件 - 3大疾患＋障害・介護
@@ -5452,7 +5452,7 @@ var ROWS_MENJO=[
 {id:"m_cancer",label:"がん",def:{a:"悪性新生物で60日の労働制限",b:"悪性新生物と診断",c:"上皮内がんを含む診断"}},
 {id:"m_heart",label:"心臓",def:{a:"急性心筋梗塞で\n60日の所定の状態",b:"急性心筋梗塞で\n入院or手術",c:"急性心筋梗塞で\n手術",d:"心疾患で\n10日入院",e:"心疾患で手術",f:"心疾患で入院"}},
 {id:"m_brain",label:"脳",def:{a:"脳卒中で\n60日の所定の状態",b:"脳卒中で\n入院or手術",c:"脳卒中で\n手術",d:"脳血管疾患で\n10日入院",e:"脳血管疾患で手術",f:"脳血管疾患で入院"}},
-{id:"m_dis_grade",label:"障害年金",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
+{id:"m_dis_grade",label:"障害年金(公的◯級)",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"m_welfare",label:"障害福祉",def:{a:"1級",b:"2級",c:"3級",d:"4級"}},
 {id:"m_care",label:"介護",def:{a:"要介護4",b:"要介護3",c:"要介護2",d:"要介護1"}}
 ];
@@ -5815,7 +5815,7 @@ wrap.appendChild(buildTable("menjo",ROWS_MENJO,"免除条件","#6b21a8",true));
 }
 try{
 if(BMX.layoutVer!==14){BMX.kyufu={};BMX.menjo={};BMX.layoutVer=14;BMX.idBased=true;saveState();}
- /* v2-0807g: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
+ /* v2-0807h: 給付側の旧既定文言を新既定へ移行（手で書き換えた文字はそのまま残す） */
  if(BMX.textVer!==3){
    var _MIG={"kyufu|heart|c":["急性心筋梗塞で\n入院or手術","急性心筋梗塞で\n入院"],
              "kyufu|brain|c":["脳卒中で\n入院or手術","脳卒中で\n入院"],

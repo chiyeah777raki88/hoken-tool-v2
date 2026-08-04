@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0807t(一覧の見出しを白地に・外貨の積立額を円換算)";
+var APP_VERSION="v2-0807u(一覧の見出しを会社名と商品名の2段に)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4232,13 +4232,15 @@ var cg=el("colgroup");var cm=document.createElement("col");cm.style.width="24px"
 curPols.forEach(function(){var c=document.createElement("col");c.style.width="92px";cg.appendChild(c);});
 ["120px"].forEach(function(w){var c=document.createElement("col");c.style.width=w;cg.appendChild(c);});
 tbl.appendChild(cg);
-var thead=el("thead"),hr=el("tr");
+var thead=el("thead"),hr=el("tr"),hr2=el("tr");
 var thM=el("th");thM.style.cssText="border:none;background:transparent;";hr.appendChild(thM);
-(function(){var _c=el("th");_c.style.cssText="background:#fff;color:#1a2744;line-height:1.35;font-weight:700;";_c.innerHTML="<span style='font-size:12px;'>保険会社</span><br><span style='font-size:11px;font-weight:400;color:#5a6a8a;'>／商品名</span>";hr.appendChild(_c);})();
+var thM2=el("th");thM2.style.cssText="border:none;background:transparent;";hr2.appendChild(thM2);
+(function(){var _c=el("th");_c.style.cssText="background:#fff;color:#1a2744;font-weight:700;font-size:12px;";_c.textContent="保険会社";hr.appendChild(_c);
+var _c2=el("th");_c2.style.cssText="background:#fff;color:#1a2744;font-weight:700;font-size:12px;";_c2.textContent="商品名";hr2.appendChild(_c2);})();
 var totPrem=0;
 var _mmSet={};(memOf||[]).forEach(function(mm){if(mm)_mmSet[(mm.relation||mm.name||"")]=1;});var _multiMem=Object.keys(_mmSet).length>1;
 curPols.forEach(function(p,pi){
-var th=el("th");th.style.cssText="text-align:center;white-space:normal;background:#fff;color:#1a2744;";
+var th=el("th");th.style.cssText="text-align:center;white-space:normal;background:#fff;color:#1a2744;line-height:1.35;padding:5px 5px;";
 var prem=toM(p);totPrem+=prem;
 var coNm=shortCo(p);
 var who=(memOf[pi]&&(memOf[pi].name||memOf[pi].relation))||"";
@@ -4246,18 +4248,18 @@ var whoRel=(memOf[pi]&&memOf[pi].relation)||"";
 var _showKH=(state.showKH!==false);var _corp=(_showKH||p.isCorp||kanyuShowKojin)?(" "+khChip(!!p.isCorp)):"";
 var _whoG=who?String(who).replace(/[\s　]+/g," ").trim().split(" ").pop():"";
 var _whoT=(_multiMem&&_whoG)?("<br><span style='display:inline-block;margin-top:2px;background:#c9a84c;color:#1a2744;font-weight:700;font-size:11px;border-radius:3px;padding:0 6px;'>"+_whoG+"</span>"):"";
-th.style.lineHeight="1.35";th.style.padding="5px 5px";th.style.background="#fff";th.style.color="#1a2744";/*見出しは白地。色はペットネームの札だけ*/
-var _pn=String((p.polName||p.insType||"")).trim();
-var _pnT=_pn?("<br><span style='display:inline-block;margin-top:3px;background:"+polColorOf(p)+";color:#fff;font-weight:800;font-size:12px;border-radius:4px;padding:1px 6px;line-height:1.3;'>"+_pn+"</span>"):"";
-var _pn=String((p.polName||p.insType||"")).trim();
-var _pnT=_pn?("<br><span style='display:inline-block;margin-top:2px;background:"+polColorOf(p)+";color:#fff;font-weight:800;font-size:12px;border-radius:4px;padding:1px 6px;line-height:1.3;'>"+_pn+"</span>"):"";
-th.innerHTML="<span style='color:#8a8a8a;font-weight:700;'>"+String.fromCharCode(65+pi)+"</span> <span style='font-weight:700;font-size:12px;color:#1a2744;'>"+coNm+"</span>"+_corp+_pnT+_whoT;
+th.innerHTML="<span style='color:#8a8a8a;font-weight:700;'>"+String.fromCharCode(65+pi)+"</span> <span style='font-weight:700;font-size:12px;color:#1a2744;'>"+coNm+"</span>"+_corp+_whoT;
 hr.appendChild(th);
+var th2=el("th");var _pn=String((p.polName||p.insType||"")).trim();
+th2.style.cssText="text-align:center;white-space:normal;line-height:1.3;padding:4px 5px;font-size:12px;font-weight:800;background:"+polColorOf(p)+";color:#fff;";
+th2.textContent=_pn||"—";
+hr2.appendChild(th2);
 });
 var _thSum=el("th",null,"合計");_thSum.style.cssText="background:#fff;color:#1a2744;font-weight:700;line-height:1.35;";
 if(_multiMem){_thSum.innerHTML="合計<br><span style='font-size:10px;font-weight:400;color:#5a6a8a;'>保険料のみ世帯計<br>保障は被保険者ごと</span>";}
 hr.appendChild(_thSum);
-thead.appendChild(hr);tbl.appendChild(thead);
+var _thSum2=el("th",null,"");_thSum2.style.cssText="background:#fff;";hr2.appendChild(_thSum2);
+thead.appendChild(hr);thead.appendChild(hr2);tbl.appendChild(thead);
 var tb=el("tbody");
 function infoRow(label,color,bg,valFn,sumText,bold){
 var tr=el("tr");if(bg)tr.style.background=bg;

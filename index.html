@@ -372,7 +372,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0808e(印刷で行の高さを入るギリギリまで広げる)";
+var APP_VERSION="v2-0808f(印刷の実寸に合わせて行の高さを決める)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4554,7 +4554,7 @@ var _ksa=kanyuShowAll;kanyuShowAll=false;var _box=buildKanyuTable(pols,mem);kany
 try{_box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});}catch(e){}
 pw.appendChild(_box);
 var _t=pw.querySelector(".kanyu")||_box;
-_fitFillKanyu(pw,_t,1058,730);
+_fitFillKanyu(pw,_t,1092,752);
 pa.appendChild(pw);
 document.body.classList.add("psplit");setPageOrient("landscape",4);var _ot=document.title;document.title=printName((isProp?"提案_":"")+"加入一覧");
 setTimeout(function(){window.print();setTimeout(function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";document.title=_ot;},400);},250);

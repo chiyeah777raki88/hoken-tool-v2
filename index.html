@@ -91,7 +91,7 @@ body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body.psplit #app{ display:none !important; }
 body.psplit #print-area{ display:block !important; }
 body.psplit .hdr{ display:none !important; }
-body.psplit .pkflex{ height:100vh !important; box-sizing:border-box; display:flex !important; flex-direction:column; }
+body.psplit .pkflex{ height:calc(100vh / var(--pkz,1)) !important; box-sizing:border-box; display:flex !important; flex-direction:column; }
 body.psplit .pkflex > *{ flex:0 0 auto; }
 body.psplit .pkgrow{ flex:1 0 auto; min-height:0; display:flex !important; flex-direction:column; }
 body.psplit .pkgrowf{ flex:1 0 auto; min-height:0; }
@@ -379,7 +379,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0808h(印刷はどの画面も用紙の高さいっぱいに)";
+var APP_VERSION="v2-0808i(縮小がかかる面でも下いっぱいに)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -5080,6 +5080,7 @@ function _compactify(node){try{node.querySelectorAll("td,th").forEach(function(c
 function _clearOv(pw){try{pw.querySelectorAll("*").forEach(function(e2){try{var ox=getComputedStyle(e2).overflowX;if(ox==="auto"||ox==="scroll"){e2.style.overflow="visible";e2.style.overflowX="visible";}}catch(_e){}});}catch(e){}}
 function _tallenKanyu(node,pad){try{var p=pad||12;node.querySelectorAll(".kanyu td,.kanyu th").forEach(function(c){c.style.paddingTop=p+"px";c.style.paddingBottom=p+"px";c.style.lineHeight="1.5";});}catch(e){}}
 function _pageFill(pw){try{if(!pw||!pw.classList)return pw;pw.classList.add("pkflex");
+try{var _z=parseFloat(pw.style.zoom);if(_z>0&&_z!==1)pw.style.setProperty("--pkz",_z);}catch(_ez){}
 var tbs=pw.querySelectorAll?pw.querySelectorAll("table"):null;if(!tbs||!tbs.length)return pw;
 Array.prototype.forEach.call(tbs,function(tb){tb.classList.add("pkfilltbl");var n=tb.parentNode;
 while(n&&n!==pw&&n.classList){var st=(n.getAttribute&&n.getAttribute("style"))||"";n.classList.add(/display\s*:\s*flex/.test(st)?"pkgrowf":"pkgrow");n=n.parentNode;}});

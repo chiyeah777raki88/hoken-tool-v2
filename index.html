@@ -379,7 +379,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0808j(入力欄を一覧と同じ順に・3大疾病をまとめて入力)";
+var APP_VERSION="v2-0808k(特定疾病保障型に「どれか1回」表示)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1435,6 +1435,7 @@ lbl("保険期間",sel([{v:"終身",l:"終身"},{v:"歳満了",l:"歳満了"},{v
 pol.dlPeriodType==="更新後終身"?lbl("更新終了→終身切替年齢",inp("number",pol.dlPeriodEnd||"",function(v){upd("dlPeriodEnd",+v);})):null,
 pol.dlPeriodType==="更新後終身"?lbl("更新期間（年）",inp("number",pol.renewalYears||"",function(v){upd("renewalYears",+v);})):null,
 lbl("給付後に契約終了(3大いずれか1回で終了)",(function(){var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!pol.contractEndsOnClaim;cb.style.cssText="width:18px;height:18px;cursor:pointer;";cb.addEventListener("change",function(){upd("contractEndsOnClaim",this.checked);});return cb;})()),
+lbl("死亡も含めて どれか1回で終了（特定疾病保障型）",(function(){var cb2=document.createElement("input");cb2.type="checkbox";cb2.checked=!!pol.oneOfDeath;cb2.style.cssText="width:18px;height:18px;cursor:pointer;";cb2.addEventListener("change",function(){upd("oneOfDeath",this.checked);if(this.checked)upd("contractEndsOnClaim",true);render();});return cb2;})()),
 lbl("払込期間",sel(["終身払","保険期間と同じ","60歳払済","65歳払済","70歳払済","80歳払済","更新型","短期払","一時払"].map(function(v){return{v:v,l:v};}),pol.dlPayType||"終身払",function(v){upd("dlPayType",v);render();})),
 (pol.dlPayType!=="保険期間と同じ"&&pol.dlPayType!=="終身払"&&pol.dlPayType!=="一時払"&&pol.dlPayType!=="更新型")?lbl("払込満了年齢",inp("number",pol.dlPayEnd||"",function(v){upd("dlPayEnd",+v);})):null,
 (/災害/.test(pol.insType||""))?lbl("災害保障期間(年)",inp("number",pol.disasterPeriodYears||"",function(v){upd("disasterPeriodYears",+v);})):null
@@ -2068,15 +2069,15 @@ detailBox.style.display=_autoOpen?"block":"none";
 if(_autoOpen){detHdr.textContent="\u25be 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定（開いています）";detHdr.style.background="#fde9bf";}
 detHdr.addEventListener("click",function(){var op=(detailBox.style.display==="none");detailBox.style.display=op?"block":"none";detHdr.textContent=(op?"\u25be 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定（開いています）":"\u25b8 💰 解約返戻金・年金・祝金の入力 ／ 給付条件の細かい設定 — ここを開く");detHdr.style.background=op?"#fde9bf":"#fff4d6";});
 try{
-var _ordT=["変額・年金・還付金","祝金（","保険料内訳","死亡保障","がん特約","がん継続保障","がん月額給付","3大疾病","8大疾病","就業不能・介護","入院・手術・通院","保険料免除"];
+var _ordT=["変額・年金・還付金","保険料内訳","死亡保障","就業不能・介護","がん特約","がん継続保障","がん月額給付","3大疾病","保険料免除","8大疾病","入院・手術・通院","祝金（"];
 function _secHdrTxt(n){var h=(n&&n.querySelector)?n.querySelector(".sec-hdr"):null;return h?(h.textContent||""):"";}
 function _secRank(n){var t=_secHdrTxt(n);for(var _i=0;_i<_ordT.length;_i++){if(t.indexOf(_ordT[_i])===0)return _i;}return 900;}
 Array.prototype.slice.call(detailBox.children).map(function(n,idx){return {n:n,r:_secRank(n),i:idx};})
 .sort(function(a,b){return (a.r-b.r)||(a.i-b.i);}).forEach(function(x){detailBox.appendChild(x.n);});
-var _hA=el("div");_hA.style.cssText="font-size:13px;font-weight:800;color:#2f6b35;background:#f0f7ee;border-left:4px solid #2f6b35;padding:6px 10px;margin:2px 0 6px;";_hA.textContent="■ 貯まる・戻ってくるお金（解約返戻金・年金・祝金・保険料内訳）";
+var _hA=el("div");_hA.style.cssText="font-size:13px;font-weight:800;color:#2f6b35;background:#f0f7ee;border-left:4px solid #2f6b35;padding:6px 10px;margin:2px 0 6px;";_hA.textContent="■ 貯まる・戻ってくるお金（解約返戻金・年金・保険料内訳）";
 detailBox.insertBefore(_hA,detailBox.firstChild);
-var _n2=detailBox.children[4];
-if(_n2){var _hB=el("div");_hB.style.cssText="font-size:13px;font-weight:800;color:#1a2744;background:#eef3fb;border-left:4px solid #1a2744;padding:6px 10px;margin:14px 0 6px;";_hB.textContent="■ 給付条件の細かい設定（ふだんは使いません）";detailBox.insertBefore(_hB,_n2);}
+var _n2=null;Array.prototype.slice.call(detailBox.children).forEach(function(n){if(!_n2&&_secHdrTxt(n).indexOf("死亡保障")===0)_n2=n;});
+if(_n2){var _hB=el("div");_hB.style.cssText="font-size:13px;font-weight:800;color:#1a2744;background:#eef3fb;border-left:4px solid #1a2744;padding:6px 10px;margin:14px 0 6px;";_hB.textContent="■ 保障の細かい設定";detailBox.insertBefore(_hB,_n2);}
 }catch(e){}
 detWrap.appendChild(detHdr);detWrap.appendChild(detailBox);cont.appendChild(detWrap);
 
@@ -4004,6 +4005,8 @@ if(it.indexOf("変額")>=0)return false;return /医療|がん|ガン|介護|就�
 function _scenRateDec(){var m={"1":-0.03,"3":0,"5":0.03,"6":0.06};return (m[scenRate]!==undefined)?m[scenRate]:0;}
 /*変額年金:原資を年金開始年齢から受取年数で取り崩す(受取中も同率で運用)前提の年額(万円)。運用率シナリオに連動。*/
 function _annPay(p){var pr=_accumAtAge(p,(+p.pensionStartAge||70));var n=+p.pensionYears||0;if(!(pr>0)||!(n>0))return 0;var r=_scenRateDec();var pay=(r===0)?(pr/n):(pr*r/(1-Math.pow(1+r,-n)));return Math.round(pay*10)/10;}
+var _ONEOF_KEYS=["death","dann","cancer","cinsitu","big3","big8","disability","dislump","dis","carelump","caremon","dementia"];
+function _isOneOf(p){if(!p)return false;if(p.oneOfDeath)return true;return !!p.contractEndsOnClaim&&/特定疾病保障/.test(p.insType||"");}
 function _waOn(p){var _wa=+((typeof state!=="undefined"&&state.wholeAge)||0);if(!(_wa>0)||!p)return false;if(((p.dlPeriodType||"")+(p.dlPayType||"")).indexOf("更新")>=0)return false;var _pe=+(p.dlPeriodEnd||0);return _pe>=_wa;}
 function _getAccAges(){var a=state.accAges;if(a&&a.length===3&&a.every(function(x){return +x>0;}))return a.map(Number);return [65,70,80];}
 function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
@@ -4297,7 +4300,7 @@ curPols.forEach(function(p){var td=el("td");var val=periodTxt(p);var isWhole=(va
 var html=isWhole?("<span style=\'color:#1a7a3a;font-weight:700;\'>"+(_asWhole?(val+"<br><span style=\'font-size:10px;\'>（ほぼ終身）</span>"):"終身")+"</span>"):"<span style=\'color:#c0392b;font-weight:700;white-space:normal;\'>"+String(val).replace("（","<br>（")+"</span>";
 if(isRenew&&String(val).indexOf("更新")<0)html+=" <span style=\'font-size:9px;background:#e67e22;color:#fff;border-radius:3px;padding:0 3px;\'>更新</span>";
 if(earliest)html+="<div style=\'font-size:10px;color:#c0392b;font-weight:700;text-align:center;white-space:nowrap;\'>⚠特約"+earliest+"歳まで</div>";
-if(p.contractEndsOnClaim)html+="<div style=\'font-size:10px;color:#c0392b;font-weight:700;text-align:center;white-space:nowrap;\'>⚠3大給付で満了</div>";
+if(p.contractEndsOnClaim)html+="<div style=\'font-size:10px;color:#c0392b;font-weight:700;text-align:center;white-space:nowrap;\'>⚠"+(_isOneOf(p)?"どれか1回で満了":"3大給付で満了")+"</div>";
 try{var _pt=payTermTxt(p);if(isRenew&&(String(_pt).indexOf("更新")>=0||_pt==="保険期間と同じ"))_pt="";if(_pt&&_pt!=="—")html+="<div style='margin-top:3px;padding-top:2px;border-top:1px dotted #c8c8c8;font-size:11px;color:#1a2744;font-weight:700;text-align:center;white-space:nowrap;'>"+_pt+"</div>";}catch(_e2){}
 td.style.cssText="font-size:11px;text-align:center;padding:3px 4px;"+((!isWhole||earliest)?"background:#fdecea;":"");td.style.whiteSpace="normal";td.innerHTML=html;tr.appendChild(td);});
 var ts=el("td",null,"");ts.style.cssText="background:#fdf8ec;";tr.appendChild(ts);tb.appendChild(tr);})();
@@ -4406,6 +4409,7 @@ td.style.cssText="text-align:center;font-size:12px;white-space:nowrap;"+(_endsEa
 if(row.isFlag){td.textContent=v?"○":"—";td.style.color=v?"#1f7d56":"#ccc";td.style.fontWeight="700";td.style.textAlign="center";}
 else if(v>0){sum+=v;var _mainTxt=row.disp?(row.disp(p)||"—"):(v.toLocaleString()+row.u);var _isCHB=(row.k==="cancer"||row.k==="big3"||row.k==="heart"||row.k==="brain");if(_isCHB){var _cw=_cntWordTxt(row.k,p);var _fc=_firstCondTxt(row.k,p);var _sc=_secondDetailTxt(row.k,p);var _h=_shrU(_mainTxt)+(_cw?" <span style='font-size:10px;color:#7a5a9a;font-weight:700;'>"+_cw+"</span>":"");if(_fc)_h+="<div style='font-size:10px;color:#555;font-weight:600;white-space:nowrap;'>1回目:"+_fc+"</div>";if(_sc)_h+="<div style='font-size:10px;color:#555;font-weight:600;white-space:nowrap;'>2回目:"+_sc+"</div>";td.innerHTML=_h;}else{td.textContent=_mainTxt;}td.style.color=_endsEarly?"#c0392b":"#1f7d56";td.style.fontWeight="700";}
 else{td.textContent="—";td.style.color="#ccc";}
+try{if(v>0&&!row.isFlag&&_isOneOf(p)&&_ONEOF_KEYS.indexOf(row.k)>=0){td.innerHTML=td.innerHTML+"<div style='font-size:11px;color:#b9770e;font-weight:800;line-height:1.25;'>どれか1回</div>";td.style.whiteSpace="normal";}}catch(_e6){}
 try{var _icM=p.itemCond||{};var _icR=_icM[row.k];if(!_icR&&row.k==="big3")_icR=_icM.heart||_icM.brain;var _ic=String(_icR||"").replace(/[\s\u3000]+/g," ").trim();
 if(v>0&&_ic&&!row.isFlag){td.innerHTML=td.innerHTML+"<div style='font-size:11px;color:#41506b;font-weight:600;line-height:1.3;margin-top:2px;white-space:normal;'>"+_ic.replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</div>";td.style.whiteSpace="normal";}}catch(_e3){}
 if(row.grp==="貯蓄"&&!row.isFlag){var _sk=row.k+"|"+p.id;var _auto=(td.innerText||"").replace(/\u00a0/g," ").trim();if(state.savNotes&&state.savNotes[_sk]!==undefined&&state.savNotes[_sk]!==""&&String(state.savNotes[_sk]).trim()!=="—"){td.textContent=state.savNotes[_sk];td.style.color="#1f7d56";td.style.fontWeight="700";}td.contentEditable="true";td.style.cursor="text";td.style.outline="none";td.title="クリックで編集（空にすると自動計算にもどります）";td.addEventListener("blur",function(){if(!state.savNotes)state.savNotes={};var _t=(td.innerText||"").replace(/\u00a0/g," ").trim();var _had=(state.savNotes[_sk]!==undefined&&state.savNotes[_sk]!=="");if(_t===""||_t==="—"||_t===_auto){if(_had){delete state.savNotes[_sk];try{var _k9=getCustomerKey(),_r9=localStorage.getItem(_k9);if(_r9){var _o9=JSON.parse(_r9);if(_o9&&_o9.savNotes){delete _o9.savNotes[_sk];localStorage.setItem(_k9,JSON.stringify(_o9));}}}catch(e){}saveState();render();}return;}if(state.savNotes[_sk]!==_t){state.savNotes[_sk]=_t;saveState();}});}

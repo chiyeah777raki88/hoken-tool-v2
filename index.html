@@ -379,7 +379,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0808s(証券の色を1か所に固定して全画面そろえる)";
+var APP_VERSION="v2-0808t(証券の色をぜんぶの画面で完全に連動)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -713,7 +713,7 @@ if(sv.scenRate)scenRate=sv.scenRate;if(sv.feeRate!=null)feeRate=sv.feeRate;if(sv
 if(sv.famSave&&Array.isArray(sv.famSave)&&sv.famSave.length>0){base.family=sv.famSave;base.policies={};base.family.forEach(function(m){base.policies[m.id]=[];});}
 if(sv.polSave){base.family.forEach(function(m){if(sv.polSave[m.id]&&sv.polSave[m.id].length>0)base.policies[m.id]=sv.polSave[m.id];});}
 // 旧データ互換：新フィールド（払込回数・法人）を補完
-try{base.family.forEach(function(m){(base.policies[m.id]||[]).forEach(function(p){
+try{base.family.forEach(function(m){(base.policies[m.id]||[]).forEach(function(p,_pi){
 if(p.payFreq===undefined){var u=(p.premUnit||"").trim();p.payFreq=(u==="円/年"||u==="年払")?"年":(u==="一時払"||u==="一時払い")?"一時":"月";}
 if(p.prepayCount===undefined)p.prepayCount=0;
 if(p.isCorp===undefined)p.isCorp=false;
@@ -723,7 +723,11 @@ if(p.corpName===undefined)p.corpName="";
 if(p.corpPurpose===undefined)p.corpPurpose="";
 if(p.corpExit===undefined)p.corpExit="";
 if(p.corpAccounting===undefined)p.corpAccounting="";if(p.corpLossRate===undefined)p.corpLossRate="";
-});});}catch(e){}
+/*証券の色を1回だけ固定：以後どの画面でも同じ色になる*/
+if(!p.chartColor||p.chartColor===""){var _PCD=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];p.chartColor=_PCD[_pi%_PCD.length];}
+});});
+Object.keys(base.proposalPolicies||{}).forEach(function(_k){(base.proposalPolicies[_k]||[]).forEach(function(p,_pi){if(!p.chartColor||p.chartColor===""){var _PCD=["#8e44ad","#c0392b","#e67e22","#16a085","#2980b9","#d35400","#7f8c8d","#1abc9c"];p.chartColor=_PCD[_pi%_PCD.length];}});});
+}catch(e){}
 if(sv.radarScores)base.radarScores=sv.radarScores;
 if(sv.premScores)base.premScores=sv.premScores;
 if(sv.bigMatrixData)base.bigMatrixData=sv.bigMatrixData;
@@ -2301,7 +2305,7 @@ if(p.deathLines&&p.deathLines.length){var _dlt=0;p.deathLines.forEach(function(d
 if(deathStr==="—"&&(p.deathType==="lump"||(p.deathType==="both"&&p.dlAmount>0)))deathStr=(p.dlAmount||0)+"万円";
 if(p.deathType==="annuity"||(p.deathType==="both"&&p.daAmount>0))deathStr=(deathStr==="—"?"":deathStr+" + ")+"月額"+(p.daAmount||0)+"万円";
 var hC=p.careType&&p.careType!=="none";
-var polColor=p.chartColor&&p.chartColor!==""?p.chartColor:"#1a2744";
+var polColor=polColorOf(p);
 var tr2=el("tr");tr2.style.borderBottom="1px solid #ddd8cc";tr2.style.borderLeft="4px solid "+polColor;
 [m.name||m.relation,i+1,cN(p),insTypeLabel(p),_periodDisp(p),pS(p),deathStr,p.hospDaily?p.hospDaily.toLocaleString()+"円":"—",p.cancerOn?(p.c1st||0)+"万円":"—",
 p.cancerContinue?(p.cancerContinueAmount||0)+(p.cancerContinueType==="monthly"?"万/月":"万/年"):"—",
@@ -2396,7 +2400,7 @@ function covEnd(p){if(p.dlPeriodType==="終身"||p.periodWhole)return null;if(+p
 function shortN(p){return cN(p).replace("生命","").replace("損保","");}
 var TLCOLS=["#534AB7","#D85A30","#1D9E75","#378ADD","#C2407F","#BA7517","#0F6E56","#993C1D"];
 pairs.forEach(function(x){if(tlPremSel[x.policy.id]===undefined)tlPremSel[x.policy.id]=true;});
-function colOf(p,i){return (p.chartColor&&p.chartColor!=="")?p.chartColor:TLCOLS[i%TLCOLS.length];}
+function colOf(p,i){return polColorOf(p);}
 // 祝金/還付の受取年齢(被保険者年齢→本人軸)を集計し、過去も含めて軸範囲を決める
 function celebCap(p){var ce=covEnd(p);return p.celebEndAge>0?p.celebEndAge:(p.dlPayEnd>0?p.dlPayEnd:(ce!=null?ce:90));}
 var events=[];
@@ -2538,7 +2542,7 @@ var p=x.policy,m=x.member;
 var mAge=getAge(m.dob)||baseAge;
 var hC=(p.careType&&p.careType!=="none")||(p.careLump||0)>0||(p.careMonthly||0)>0;
 var careCI=dSets.filter(function(d){return d.isCarePol;}).length;
-var col=hC?CARE_COLS[careCI%CARE_COLS.length]:(p.chartColor&&p.chartColor!==""?p.chartColor:GCOLS[ci%GCOLS.length]);
+var col=polColorOf(p);
 var data=ages.map(function(a2){
 var ma=a2-(baseAge-mAge),v=0;
 if(p.deathLines&&p.deathLines.length){p.deathLines.forEach(function(dl){var amt=+dl.amount||0;if(amt>10000)amt=Math.round(amt/10000);var end=(+dl.endAge>0)?+dl.endAge:120;if(amt>0&&ma>0&&ma<=end)v+=amt;});}
@@ -3562,7 +3566,7 @@ var nisaColors=nisaAccounts.map(function(a){return a.color&&a.color!=""?a.color:
 var idecoColors=idecoAccounts.map(function(a){return a.color&&a.color!=""?a.color:defaultColors[1];});
 aColors.push(nisaAccounts.length>0&&nisaAccounts[0].color&&nisaAccounts[0].color!==""?nisaAccounts[0].color:defaultColors[0]);
 aColors.push(idecoAccounts.length>0&&idecoAccounts[0].color&&idecoAccounts[0].color!==""?idecoAccounts[0].color:defaultColors[1]);
-pProjs.forEach(function(x,i){aColors.push(x.policy.chartColor&&x.policy.chartColor!=""?x.policy.chartColor:defaultColors[(i+2)%defaultColors.length]);});
+pProjs.forEach(function(x,i){aColors.push(polColorOf(x.policy));});
 // extraRows colors
 var extraRowColors=["#e91e63","#ff9800","#9c27b0","#00bcd4","#8bc34a","#ff5722"];
 extraRows.filter(function(r){return r.amount>0&&r.age>0&&(assetMember==="all"||!r.mid||r.mid===assetMember);}).forEach(function(r,ri){
@@ -5302,7 +5306,7 @@ var th=document.createElement("th");th.style.cssText="background:#334155;color:w
 });
 t2.appendChild(hr2);
 pols.forEach(function(x,i){
-var p=x.policy;var pm=+toM(p);var col=p.chartColor||"#1a2744";
+var p=x.policy;var pm=+toM(p);var col=polColorOf(p);
 var isEx=isPracticalExempt(p);
 var tr=document.createElement("tr");tr.style.cssText="border-left:3px solid "+col+";background:"+(i%2?"#f8f8f8":"white");
 [i+1,polLabel(p),insTypeLabel(p),
@@ -5329,7 +5333,7 @@ var maxDeath=Math.max.apply(null,deathPols.map(function(x){return x.policy.dlAmo
 var svgW=280,bh=12,gap=2;
 var svg='<svg width="'+svgW+'" height="'+(bh+gap)*deathPols.length+'" xmlns="http://www.w3.org/2000/svg">';
 deathPols.forEach(function(x,i){
-var p=x.policy;var v=p.dlAmount||0;var col=p.chartColor||"#1e40af";
+var p=x.policy;var v=p.dlAmount||0;var col=polColorOf(p);
 var bw=maxDeath>0?Math.round((v/maxDeath)*(svgW-130)):0;var y=i*(bh+gap);
 svg+='<text x="0" y="'+(y+9)+'" font-size="7" fill="#333">'+polLabel(p).slice(0,12)+'</text>';
 svg+='<rect x="90" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+col+'" rx="1"/>';
@@ -5347,7 +5351,7 @@ var maxPrem=Math.max.apply(null,pols.map(function(x){return +toM(x.policy)||0;})
 if(maxPrem>0){
 var svgP='<svg width="280" height="'+(13*pols.length)+'" xmlns="http://www.w3.org/2000/svg">';
 pols.forEach(function(x,i){
-var p=x.policy;var pm=+toM(p);var col=p.chartColor||"#b45309";
+var p=x.policy;var pm=+toM(p);var col=polColorOf(p);
 var bw=Math.round((pm/maxPrem)*150);var y=i*13;
 svgP+='<text x="0" y="'+(y+9)+'" font-size="7" fill="#333">'+polLabel(p).slice(0,12)+'</text>';
 svgP+='<rect x="90" y="'+y+'" width="'+bw+'" height="11" fill="'+col+'" rx="1"/>';
@@ -5384,7 +5388,7 @@ var td=document.createElement("td");td.style.cssText="padding:1px 3px;border-bot
 if(cd&&cd.text){
 td.textContent=cd.text;
 if(cd.polIdxs&&cd.polIdxs.length>0){
-var pcol=pols[cd.polIdxs[0]]&&pols[cd.polIdxs[0]].policy.chartColor||"#166534";
+var pcol=pols[cd.polIdxs[0]]?polColorOf(pols[cd.polIdxs[0]].policy):"#166534";
 td.style.background=pcol+"22";td.style.borderLeft="2px solid "+pcol;
 }
 } else if(cd&&cd.na){td.textContent="×";td.style.color="#ccc";}
@@ -5419,7 +5423,7 @@ var td=document.createElement("td");td.style.cssText="padding:1px 3px;border-bot
 if(cd&&cd.text){
 td.textContent=cd.text;
 if(cd.polIdxs&&cd.polIdxs.length>0){
-var pcol2=pols[cd.polIdxs[0]]&&pols[cd.polIdxs[0]].policy.chartColor||"#6b21a8";
+var pcol2=pols[cd.polIdxs[0]]?polColorOf(pols[cd.polIdxs[0]].policy):"#6b21a8";
 td.style.background=pcol2+"22";td.style.borderLeft="2px solid "+pcol2;
 }
 } else if(cd&&cd.na){td.textContent="×";td.style.color="#ccc";}

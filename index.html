@@ -379,7 +379,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0808r(免除条件を給付条件と同じ並びに・色見本をそろえる)";
+var APP_VERSION="v2-0808s(証券の色を1か所に固定して全画面そろえる)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1384,8 +1384,9 @@ nameRow.appendChild(nameLbl2);nameRow.appendChild(nameInp2);
 cont.appendChild(nameRow);
 var colorRow=el("div");colorRow.style.cssText="margin-bottom:8px;padding:6px 12px;background:white;border:1px solid #ddd8cc;border-radius:6px;display:flex;align-items:center;gap:10px;";
 var colorLbl=el("span");colorLbl.style.cssText="font-size:12px;color:#8a8a8a;";colorLbl.textContent="グラフの色：";
-var polColorInp=document.createElement("input");polColorInp.type="color";polColorInp.value=pol.chartColor||"#8e44ad";polColorInp.style.cssText="width:40px;height:30px;padding:2px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;";
-polColorInp.addEventListener("input",function(){upd("chartColor",this.value);});
+try{if(!pol.chartColor){pol.chartColor=polColorOf(pol);saveState();}}catch(_ec){}
+var polColorInp=document.createElement("input");polColorInp.type="color";polColorInp.value=pol.chartColor||polColorOf(pol);polColorInp.style.cssText="width:40px;height:30px;padding:2px;border:1px solid #ddd8cc;border-radius:4px;cursor:pointer;";
+polColorInp.addEventListener("change",function(){upd("chartColor",this.value);render();});polColorInp.addEventListener("input",function(){upd("chartColor",this.value);});
 colorRow.appendChild(colorLbl);colorRow.appendChild(polColorInp);
 cont.appendChild(colorRow);
 var resetDiv=el("div");resetDiv.style.cssText="margin-bottom:8px;padding:8px 12px;background:#fff9e6;border-radius:6px;border:1px solid #f0d060;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;";

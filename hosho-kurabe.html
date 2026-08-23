@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>保障の形くらべ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{--navy:#1a2744;--gold:#c9a84c;--line:#ddd8cc;--bg:#faf8f3;--kake:#eef2f7;--cho:#fdf6e6}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Meiryo","Yu Gothic",system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px}
+header{background:var(--navy);color:#fff;padding:8px 16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+header h1{margin:0;font-size:16px}
+header span{font-size:11px;color:#c9c4b8}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:10px 14px 30px;align-items:start}
+@media(max-width:1180px){.grid{grid-template-columns:1fr}}
+.right{position:sticky;top:8px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:7px;padding:9px 11px;margin-bottom:10px}
+.panel h2{margin:0 0 7px;font-size:13px;border-left:5px solid var(--gold);padding-left:8px}
+.base{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+label{font-size:10.5px;display:block;margin-bottom:2px;color:#555}
+input,select{font-family:inherit;font-size:12px;padding:3px 5px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--navy)}
+input[type=number]{width:66px}
+table.plans{width:100%;border-collapse:collapse;font-size:10.5px}
+table.plans th,table.plans td{border:1px solid var(--line);padding:3px 4px;text-align:center;vertical-align:middle}
+table.plans th{background:#f0eff0;font-weight:600;font-size:9.5px;line-height:1.3}
+tr.kake{background:var(--kake)} tr.cho{background:var(--cho)}
+.sw{width:24px;height:5px;border-radius:3px;display:inline-block;vertical-align:middle}
+.chip{display:inline-block;font-size:9.5px;padding:1px 6px;border-radius:9px;font-weight:700;white-space:nowrap}
+.chip.k{background:#4a6fa5;color:#fff} .chip.c{background:#c9a84c;color:#3a2c00}
+.chartbox{background:#fff;border:1px solid var(--line);border-radius:7px;padding:8px 10px;margin-bottom:10px}
+.chartbox h2{margin:0 0 5px;font-size:13px;border-left:5px solid var(--gold);padding-left:8px}
+.cvwrap{position:relative;width:100%;height:265px}
+.cvwrap>canvas{position:absolute;left:0;top:0;width:100%!important;height:100%!important}
+table.res{width:100%;border-collapse:collapse;font-size:10.5px}
+table.res th,table.res td{border:1px solid var(--line);padding:4px 5px;text-align:right}
+table.res th{background:#f0eff0;text-align:center;font-size:9.5px;line-height:1.3}
+table.res td.nm{text-align:left;font-weight:600}
+.btns{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap}
+button{font-family:inherit;font-size:12px;padding:6px 14px;border-radius:5px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer}
+button.sub{background:#fff;color:var(--navy)}
+.hint{font-size:10px;color:#777;margin-top:5px;line-height:1.7}
+details summary{cursor:pointer;font-size:12px;font-weight:600;padding:3px 0}
+.printhead{display:none}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff;font-size:10px}
+  header,.btns,.hint,.noprint,details,#planPanel{display:none!important}
+  .grid{display:flex!important;flex-direction:column!important;align-items:stretch!important;
+        padding:0!important;gap:0!important;width:100%!important;max-width:none!important}
+  .left,.right{width:100%!important;max-width:none!important;display:block!important}
+  .right{position:static!important;order:1} .left{order:2}
+  .printhead{display:block!important;margin-bottom:2.5mm}
+  .panel,.chartbox{border:1px solid #999;border-radius:0;page-break-inside:avoid;
+                   margin:0 0 2mm;padding:1mm 2mm}
+  .chartbox h2,.panel h2{font-size:10.5px;margin:0 0 1mm;border-left-width:4px;padding-left:6px}
+  .cvwrap{height:80mm}          /* 実際の高さは印刷直前にJSが用紙に合わせて上書きします */
+  table.res{font-size:10px}
+  table.res th{padding:2px 4px;font-size:9px}
+  table.res td{padding:2.5px 4px}
+  @page{size:A4 portrait;margin:8mm}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>保障の形くらべ <span id="verTop" style="font-size:11px;color:#c9a84c;font-weight:400"></span></h1>
+  <span>これからの死亡保障を「どの形にするか」を並べて比べます。合算しません。　<b>青系＝掛け捨て / 金系＝貯蓄型</b></span>
+</header>
+
+<div class="printhead">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:1.5mm">
+    <div style="font-size:14px;font-weight:700">保障の形くらべ</div>
+    <div id="phName" style="font-size:12px;font-weight:600"></div>
+    <div id="phDate" style="font-size:9px;color:#555"></div>
+    <div id="phVer" style="font-size:8px;color:#888"></div>
+  </div>
+</div>
+
+<div class="grid">
+
+<!-- 左：入力と表 -->
+<div class="left">
+
+  <div class="panel noprint">
+    <div class="base">
+      <div><label>現在の年齢</label><input type="number" id="age0" value="40" min="0" max="90" onchange="draw()"></div>
+      <div><label>グラフ右端(歳)</label><input type="number" id="ageMax" value="95" min="50" max="110" onchange="draw()"></div>
+      <div><label>運用利率(%)</label><input type="number" id="rate" value="6" step="0.1" min="0" max="15" onchange="draw()"></div>
+      <div><label>お名前(印刷用)</label><input type="text" id="cname" placeholder="〇〇 様" style="width:120px"></div>
+      <div><label>印刷の詰め具合(mm)<br><span style="font-size:9px;color:#888">余る→＋ / はみ出す→−</span></label><input type="number" id="fitAdj" value="0" step="5" style="width:58px"></div>
+      <div style="padding-bottom:3px"><label>重なり線</label>
+        <label style="font-size:11px;color:var(--navy);display:flex;align-items:center;gap:4px;margin:0">
+        <input type="checkbox" id="sepOverlap" checked onchange="draw()" style="width:auto">ずらして表示</label></div>
+    </div>
+  </div>
+
+  <div class="btns noprint">
+    <button onclick="draw()">グラフを描き直す</button>
+    <button class="sub" onclick="window.print()">印刷 / PDF</button>
+    <button class="sub" onclick="allOn(false)">全部消す</button>
+    <button class="sub" onclick="allOn(true)">全部出す</button>
+    <button class="sub" onclick="resetColors()">色を既定に戻す</button>
+  </div>
+
+  <div class="panel" id="planPanel">
+    <h2>くらべる案（最大10）　<span style="font-size:10px;font-weight:400">左の色がグラフの線の色です</span></h2>
+    <div style="overflow-x:auto">
+    <table class="plans">
+      <thead><tr>
+        <th style="width:26px">出</th><th style="width:32px">線</th><th style="width:118px">案の名前</th>
+        <th style="width:92px">保障の形</th><th style="width:40px">種別</th>
+        <th style="width:72px">保障額<br>万円<br><span style="font-weight:400">収入保障は<br>月額万円</span></th>
+        <th style="width:52px">保障<br>満了</th><th style="width:52px">払込<br>満了</th>
+        <th style="width:70px">保険料<br>円/月</th><th style="width:34px">運用</th>
+        <th style="width:60px">返戻率</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    </div>
+    <details class="noprint"><summary>用語と計算のしかた</summary>
+    <div class="hint">
+      <b>掛け捨て</b>…平準定期／収入保障／逓減定期（解約返戻金は0）　<b>貯蓄型</b>…終身保険／養老保険<br>
+      収入保障の保障額＝月額×満了までの残り月数。逓減定期＝まっすぐ減って満了で0。終身＝一生涯。<br>
+      <b>運用</b>にチェック＝払込保険料を年6%（変更可）の複利で回した解約返戻金を計算（変額・外貨建て用）。<br>
+      <b>運用なしの貯蓄型</b>＝払込累計×返戻率で概算。払込期間中は低解約返戻型を想定し7割で計算。
+    </div></details>
+  </div>
+
+  <div class="panel">
+    <h2>保険料と保障額のくらべ</h2>
+    <div style="overflow-x:auto">
+    <table class="res">
+      <thead><tr>
+        <th style="text-align:left">案</th><th>種別</th><th>保険料<br>円/月</th><th>払込<br>期間</th><th>総払込<br>万円</th>
+        <th>今の<br>保障額</th><th>10年後</th><th>20年後</th><th>保障<br>満了</th>
+        <th>払込満了時<br>返戻金</th><th>返戻率</th>
+      </tr></thead>
+      <tbody id="rb"></tbody>
+    </table>
+    </div>
+    <div class="hint">総払込＝月額保険料×（現在年齢〜払込満了年齢）の概算。返戻金は概算です。実際の数値は各社の設計書をご確認ください。</div>
+  </div>
+
+</div>
+
+<!-- 右：グラフ（画面に固定・スクロール不要） -->
+<div class="right">
+  <div class="chartbox">
+    <h2>① 保障額の推移　<span style="font-size:10px;font-weight:400">点線＝掛け捨て／実線＝貯蓄型</span></h2>
+    <div class="cvwrap"><canvas id="cv1"></canvas></div>
+  </div>
+  <div class="chartbox">
+    <h2>② 解約返戻金の推移　<span style="font-size:10px;font-weight:400">掛け捨ては0なので線が出ません</span></h2>
+    <div class="cvwrap"><canvas id="cv2"></canvas></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* =========================================================
+   保障の形くらべ（試作・単独ファイル）
+   版: v0.5   2026-08-19
+   ※ これはデスクトップ上の試作です。
+     稼働中アプリ hoken-tool-v2 には未反映。
+   --- 変更履歴 ---
+   v0.1 保障額グラフ＋保険料表（案4つ）
+   v0.2 終身・養老を追加／案10／運用6%／解約返戻金／払込期間
+   v0.3 画面を左右2列に。グラフを固定表示。凡例を表に統合
+   v0.4 グラフが伸びきる不具合を修正（親要素で高さ固定）
+   v0.5 印刷をA4縦1枚に整理。入力表は印刷から除外。版番号を追加
+   v0.6 印刷の右側と下の余白を解消（横幅いっぱいに展開）。グラフを拡大
+   v0.7 印刷時に案の数からグラフ高さを自動計算し、用紙の下まで使い切る。
+        保障額グラフを大きく／解約返戻金を小さく。表の文字を拡大
+   v0.8 2枚目にはみ出す不具合を修正。枠と余白の実測ぶんを差し引いて再計算
+   v0.9 下の余白をグラフに配分（+12mm）。「印刷の詰め具合(mm)」欄を追加し
+        利用者が自分でプレビューを見ながら微調整できるように
+   v1.0 線の色を1本ずつ指定できるように（色見本→カラーピッカー）。
+        既定色を10本すべて別系統に変更。「色を既定に戻す」ボタン追加
+   v1.1 保障額が同じ案の線がぴったり重なって1本しか見えない問題に対応。
+        ①重なり線をごく僅かにずらして表示（切替可・数値は元のまま）
+        ②同じ種別でも線の模様を変えて見分けられるように
+   ========================================================= */
+const VER="v1.1";
+const KAKE=["平準定期","収入保障","逓減定期"];
+const N=10;
+/* 既定の色。似た色にならないよう10本すべて別系統にしてあります。
+   ①〜④はお客様が元々お使いだったグラフの配色に合わせています。 */
+const DEFCOL=["#d81b60","#ef6c00","#1565c0","#2e7d32","#6a1b9a",
+              "#00838f","#5d4037","#c62828","#37474f","#9e9d24"];
+const DEF=[
+ {on:1,nm:"① 収入保障 84歳",   tp:"収入保障", amt:10,  end:84, pend:84, prem:4000, inv:0, ret:0,  col:DEFCOL[0]},
+ {on:1,nm:"② 収入保障 90歳",   tp:"収入保障", amt:8,   end:90, pend:90, prem:4500, inv:0, ret:0,  col:DEFCOL[1]},
+ {on:1,nm:"③ 平準定期 90歳",   tp:"平準定期", amt:2000,end:90, pend:90, prem:9000, inv:0, ret:0,  col:DEFCOL[2]},
+ {on:1,nm:"④ 平準定期 84歳",   tp:"平準定期", amt:3000,end:84, pend:84, prem:9500, inv:0, ret:0,  col:DEFCOL[3]},
+ {on:1,nm:"⑤ 終身 500万",       tp:"終身保険", amt:500, end:110,pend:65, prem:9850, inv:0, ret:108,col:DEFCOL[4]},
+ {on:1,nm:"⑥ 変額終身 500万",   tp:"終身保険", amt:500, end:110,pend:65, prem:8000, inv:1, ret:0,  col:DEFCOL[5]},
+ {on:0,nm:"⑦ 養老 500万",       tp:"養老保険", amt:500, end:65, pend:65, prem:16000,inv:0, ret:100,col:DEFCOL[6]},
+ {on:0,nm:"⑧ 逓減定期 3000万",  tp:"逓減定期", amt:3000,end:84, pend:84, prem:5000, inv:0, ret:0,  col:DEFCOL[7]},
+ {on:0,nm:"⑨",                   tp:"平準定期", amt:1000,end:80, pend:80, prem:4000, inv:0, ret:0,  col:DEFCOL[8]},
+ {on:0,nm:"⑩",                   tp:"平準定期", amt:1000,end:80, pend:80, prem:4000, inv:0, ret:0,  col:DEFCOL[9]}
+];
+const isKake=t=>KAKE.includes(t);
+function cur(i){
+  const g=id=>document.getElementById(id+i);
+  if(!g('nm')) return DEF[i];
+  return {on:g('on').checked,nm:g('nm').value,tp:g('tp').value,amt:+g('amt').value,
+          end:+g('end').value,pend:+g('pend').value,prem:+g('prem').value,
+          inv:g('inv').checked?1:0,ret:+g('ret').value,col:g('col').value};
+}
+function colorOf(i,ps){ return ps[i].col || DEFCOL[i]; }
+function resetColors(){
+  for(let i=0;i<N;i++) document.getElementById('col'+i).value=DEFCOL[i];
+  draw();
+}
+function rows(){
+ document.getElementById('tb').innerHTML = DEF.map((p,i)=>`
+ <tr id="tr${i}" class="${isKake(p.tp)?'kake':'cho'}">
+  <td><input type="checkbox" id="on${i}" ${p.on?'checked':''} onchange="draw()"></td>
+  <td><input type="color" id="col${i}" value="${p.col}" onchange="draw()" title="線の色を選べます"
+             style="width:30px;height:22px;padding:0;border:1px solid #bbb;cursor:pointer"></td>
+  <td><input type="text" id="nm${i}" value="${p.nm}" style="width:98%" onchange="draw()"></td>
+  <td><select id="tp${i}" onchange="draw()">
+    ${["平準定期","収入保障","逓減定期","終身保険","養老保険"].map(o=>`<option ${p.tp==o?"selected":""}>${o}</option>`).join('')}
+  </select></td>
+  <td id="bd${i}"></td>
+  <td><input type="number" id="amt${i}" value="${p.amt}" onchange="draw()"></td>
+  <td><input type="number" id="end${i}" value="${p.end}" style="width:46px" onchange="draw()"></td>
+  <td><input type="number" id="pend${i}" value="${p.pend}" style="width:46px" onchange="draw()"></td>
+  <td><input type="number" id="prem${i}" value="${p.prem}" step="100" onchange="draw()"></td>
+  <td><input type="checkbox" id="inv${i}" ${p.inv?'checked':''} onchange="draw()"></td>
+  <td><input type="number" id="ret${i}" value="${p.ret}" style="width:44px" onchange="draw()">%</td>
+ </tr>`).join('');
+}
+function allOn(v){ for(let i=0;i<N;i++) document.getElementById('on'+i).checked=v; draw(); }
+
+function cover(p,age,a0){
+ if(p.tp=="終身保険") return p.amt;
+ if(age>p.end) return 0;
+ if(p.tp=="平準定期"||p.tp=="養老保険") return p.amt;
+ if(p.tp=="収入保障") return Math.max(0,(p.end-age)*12*p.amt);
+ if(p.tp=="逓減定期"){const w=p.end-a0; return w<=0?0:Math.max(0,p.amt*(p.end-age)/w);}
+ return 0;
+}
+function cash(p,age,a0,r){
+ if(isKake(p.tp)) return 0;
+ const paidMo=Math.max(0,(Math.min(age,p.pend)-a0)*12);
+ if(paidMo<=0) return 0;
+ if(p.inv){
+   const m=r/100/12;
+   let fv = m>0 ? p.prem*((Math.pow(1+m,paidMo)-1)/m) : p.prem*paidMo;
+   fv *= Math.pow(1+r/100, Math.max(0,age-Math.max(a0,p.pend)));
+   return fv/10000;
+ }
+ const total=p.prem*paidMo/10000, rate=(p.ret||0)/100;
+ return age < p.pend ? total*rate*0.7 : total*rate;
+}
+
+let c1=null,c2=null;
+function draw(){
+ const a0=+document.getElementById('age0').value, aM=+document.getElementById('ageMax').value;
+ const r=+document.getElementById('rate').value;
+ const labels=[]; for(let a=a0;a<=aM;a++) labels.push(a);
+ const ps=[]; for(let i=0;i<N;i++) ps.push(cur(i));
+
+ ps.forEach((p,i)=>{
+   const tr=document.getElementById('tr'+i); if(tr) tr.className=isKake(p.tp)?'kake':'cho';
+   const bd=document.getElementById('bd'+i);
+   if(bd) bd.innerHTML=`<span class="chip ${isKake(p.tp)?'k':'c'}">${isKake(p.tp)?'掛捨':'貯蓄'}</span>`;
+ });
+
+ /* 線の模様。掛け捨ては破線・貯蓄型は実線を基本にしつつ、
+    同じ種別の中でも模様を変えて、重なったときに見分けられるようにする */
+ const DASH_K=[[9,4],[2,3],[13,3,2,3],[6,6],[3,7]];
+ const DASH_C=[[],[18,4],[],[18,4],[]];
+ const sepOn=document.getElementById('sepOverlap').checked;
+
+ const mk=fn=>{
+   const raws=ps.map(p=>labels.map(a=>fn(p,a,a0,r)));
+   const vis=[]; ps.forEach((p,i)=>{ if(p.on) vis.push(i); });
+   let mx=0; vis.forEach(i=>raws[i].forEach(v=>{ if(v>mx) mx=v; }));
+   const step = (sepOn && mx>0) ? mx*0.007 : 0;      // 重なり回避のごく僅かなずらし
+   let kk=0, cc=0;
+   return ps.map((p,i)=>{
+     const dash = isKake(p.tp) ? DASH_K[(kk++)%5] : DASH_C[(cc++)%5];
+     const k=vis.indexOf(i);
+     const off = (k<0||!step) ? 0 : (k-(vis.length-1)/2)*step;
+     return {label:p.nm, borderColor:colorOf(i,ps), backgroundColor:colorOf(i,ps),
+       borderDash:dash, borderWidth:isKake(p.tp)?2.6:3.2,
+       pointRadius:0, tension:0, hidden:!p.on,
+       data:raws[i].map(v=>v+off), raw:raws[i]};
+   });
+ };
+ const opt=ylab=>({responsive:true,maintainAspectRatio:false,animation:false,
+   plugins:{legend:{display:false},
+     tooltip:{callbacks:{label:c=>c.dataset.label+" : "
+        +Math.round((c.dataset.raw?c.dataset.raw[c.dataIndex]:c.parsed.y)).toLocaleString()+"万円"}}},
+   scales:{x:{title:{display:true,text:'年齢（歳）',font:{size:10}},ticks:{maxTicksLimit:14,font:{size:10}}},
+     y:{title:{display:true,text:ylab,font:{size:10}},beginAtZero:true,
+        ticks:{font:{size:10},callback:v=>v.toLocaleString()+"万"}}}});
+
+ if(c1)c1.destroy(); if(c2)c2.destroy();
+ c1=new Chart(document.getElementById('cv1'),{type:'line',data:{labels,datasets:mk(cover)},options:opt('保障額（万円）')});
+ c2=new Chart(document.getElementById('cv2'),{type:'line',data:{labels,datasets:mk(cash)},options:opt('解約返戻金（万円）')});
+
+ const f=v=>Math.round(v).toLocaleString();
+ document.getElementById('rb').innerHTML = ps.map((p,i)=>({p,i})).filter(x=>x.p.on).map(({p,i})=>{
+  const mo=Math.max(0,(p.pend-a0)*12), tot=p.prem*mo/10000, cv=cash(p,p.pend,a0,r);
+  const pct=tot>0?(cv/tot*100):0;
+  return `<tr class="${isKake(p.tp)?'kake':'cho'}">
+   <td class="nm"><span class="sw" style="background:${colorOf(i,ps)};margin-right:5px"></span>${p.nm}</td>
+   <td style="text-align:center"><span class="chip ${isKake(p.tp)?'k':'c'}">${isKake(p.tp)?'掛捨':'貯蓄'}</span></td>
+   <td>${f(p.prem)}</td><td>${p.pend}歳</td><td>${f(tot)}</td>
+   <td>${f(cover(p,a0,a0))}万</td><td>${f(cover(p,a0+10,a0))}万</td><td>${f(cover(p,a0+20,a0))}万</td>
+   <td>${p.tp=="終身保険"?"一生涯":p.end+"歳"}</td>
+   <td>${isKake(p.tp)?"—":f(cv)+"万"}</td>
+   <td>${isKake(p.tp)?"—":f(pct)+"%"}</td></tr>`;
+ }).join('');
+}
+// 印刷時の見出し（お名前・作成日）を差し込む
+function fillHead(){
+  const n=document.getElementById('cname').value.trim();
+  document.getElementById('phName').textContent = n ? n : '';
+  const d=new Date();
+  document.getElementById('phDate').textContent =
+    d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 作成';
+  document.getElementById('phVer').textContent = '保障の形くらべ '+VER;
+  document.getElementById('verTop').textContent = VER;
+}
+document.getElementById('cname').addEventListener('input',fillHead);
+
+/* 印刷直前に、案の数に応じてグラフの高さを計算し用紙の下まで使い切る
+   A4縦297mm − 上下余白8mm×2 = 281mm が使える高さ                     */
+function fitPrint(){
+  const rows=document.querySelectorAll('#rb tr').length;
+  const tableH = 18 + rows*5.4;          // 表の見出し＋行数ぶんの概算(mm)
+  // 281mm(A4縦−余白)から、見出し・枠線・内側余白・箱の隙間の実測ぶんを引いた残りをグラフに配分
+  const adj = +(document.getElementById('fitAdj').value||0);   // お客様が微調整できる値
+  let avail = 236 + adj - tableH;
+  if(avail < 80) avail = 80;             // 案が多すぎる場合の下限
+  const h1 = avail*0.62, h2 = avail*0.38;   // 保障額を大きく、解約返戻金を小さく
+  const w  = document.querySelectorAll('.cvwrap');
+  w[0].style.setProperty('height', h1.toFixed(1)+'mm','important');
+  w[1].style.setProperty('height', h2.toFixed(1)+'mm','important');
+  if(c1)c1.resize(); if(c2)c2.resize();
+}
+function unfitPrint(){
+  document.querySelectorAll('.cvwrap').forEach(e=>e.style.removeProperty('height'));
+  if(c1)c1.resize(); if(c2)c2.resize();
+}
+window.addEventListener('beforeprint',()=>{ fillHead(); fitPrint(); });
+window.addEventListener('afterprint', unfitPrint);
+
+rows(); draw(); fillHead();
+</script>
+</body>
+</html>

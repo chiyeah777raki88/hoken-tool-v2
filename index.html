@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0911-2356(提案比較タブの比較表を中央寄せに修正)";
+var APP_VERSION="v2-0912-0006(入力中に再描画で画面が先頭に飛ぶ不具合を修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -6007,9 +6007,38 @@ window.addEventListener("resize",function(){
 clearTimeout(_resizeTimer);
 _resizeTimer=setTimeout(function(){if(currentTab==="graph"||currentTab==="assets"){try{render();}catch(e){}}},600);
 });
+function _domPath(el,root){
+var path=[];
+var cur=el;
+while(cur&&cur!==root){
+  var p=cur.parentNode;if(!p)return null;
+  path.unshift(Array.prototype.indexOf.call(p.childNodes,cur));
+  cur=p;
+}
+return cur===root?path:null;
+}
+function _domFromPath(root,path){
+var cur=root;
+for(var i=0;i<path.length;i++){
+  if(!cur||!cur.childNodes||!cur.childNodes[path[i]])return null;
+  cur=cur.childNodes[path[i]];
+}
+return cur;
+}
 function render(){
 var app=document.getElementById("app");
 if(!app)return;
+var _scrollX=window.scrollX||document.documentElement.scrollLeft||0;
+var _scrollY=window.scrollY||document.documentElement.scrollTop||0;
+var _activeInfo=null;
+try{
+  var _ae=document.activeElement;
+  if(_ae&&app.contains(_ae)&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT")){
+    var _selStart=null,_selEnd=null;
+    try{_selStart=_ae.selectionStart;_selEnd=_ae.selectionEnd;}catch(_se){}
+    _activeInfo={tag:_ae.tagName,path:_domPath(_ae,app),selStart:_selStart,selEnd:_selEnd};
+  }
+}catch(_ae2){}
 app.innerHTML="";
 var hdr=el("div","hdr");
 var span=el("span");span.style.cssText="font-weight:700;white-space:nowrap;";span.textContent="保険管理 サーバー版";
@@ -6491,6 +6520,19 @@ var ex2=document.querySelector(".tooltip-popup");if(ex2){ex2.remove();return;}
 if(this.scrollWidth>this.clientWidth){var tp=el("div","tooltip-popup",this.textContent);tp.addEventListener("click",function(){tp.remove();});document.body.appendChild(tp);setTimeout(function(){if(tp.parentNode)tp.remove();},4000);}
 });
 });
+/* 入力中に再描画されても、画面が先頭に飛ばないようスクロール位置とフォーカスを復元する */
+try{
+  if(_activeInfo&&_activeInfo.path){
+    var _re=_domFromPath(app,_activeInfo.path);
+    if(_re&&_re.tagName===_activeInfo.tag&&typeof _re.focus==="function"){
+      _re.focus({preventScroll:true});
+      if(_activeInfo.selStart!=null&&typeof _re.setSelectionRange==="function"){
+        try{_re.setSelectionRange(_activeInfo.selStart,_activeInfo.selEnd);}catch(_sre){}
+      }
+    }
+  }
+}catch(_rf){}
+try{window.scrollTo(_scrollX,_scrollY);}catch(_rs){}
 }
 (function(){
 function showLogin(){

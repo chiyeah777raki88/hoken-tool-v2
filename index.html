@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0911-1913(年金の保険料は常に円表示に修正)";
+var APP_VERSION="v2-0911-1917(現在⇔提案タブを中央表示に・提案書の年金表示も円換算に修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2780,7 +2780,7 @@ function _pdDetail(p){
   if(p.careLump>0) a.push("介護 "+p.careLump+"万円");
   if(p.careMonthly>0) a.push("介護月額 "+p.careMonthly+"万円");
   if(p.disMonthly>0) a.push("就業不能 月"+p.disMonthly+"万円");
-  if(p.annualPension>0) a.push("年金 年"+p.annualPension);
+  if(p.annualPension>0){ var _pdJpy=toJPY(p,p.annualPension); a.push("年金 年"+_pdJpy.toLocaleString()+"万円"+((p.currency&&p.currency!=="JPY")?("（"+_fxSym(p)+(+p.annualPension).toLocaleString()+"）"):"")); }
   if(!a.length&&p.notes) a.push(String(p.notes).slice(0,28));
   if(!a.length) a.push(p.company||"");
   return a.join("／");
@@ -5219,10 +5219,10 @@ function buildCmpSideTab(){
  cont.appendChild(note);
  var pages=_buildCmpSidePages(true);
  if(!pages){var e=el("p");e.style.cssText="font-size:12px;color:#888;";e.textContent="証券がありません。";cont.appendChild(e);return cont;}
- var sc=el("div");sc.style.cssText="overflow-x:auto;";
+ var sc=el("div");sc.style.cssText="overflow-x:auto;text-align:center;";
  try{var _z=Math.min(1,(window.innerWidth-60)/1092);if(_z<1)sc.style.zoom=_z;}catch(_e){}
  pages.forEach(function(pw,i){
- var frame=el("div");frame.style.cssText="width:1058px;background:#fff;border:1px solid #ccc;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:14px;margin:0 0 18px;box-sizing:content-box;";
+ var frame=el("div");frame.style.cssText="width:1058px;background:#fff;border:1px solid #ccc;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:14px;margin:0 auto 18px;box-sizing:content-box;text-align:left;";
  frame.appendChild(pw);sc.appendChild(frame);
  });
  cont.appendChild(sc);

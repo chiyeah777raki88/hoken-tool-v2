@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0911-2338(保険会社の選択肢にチューリッヒ生命を追加)";
+var APP_VERSION="v2-0911-2356(提案比較タブの比較表を中央寄せに修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3762,6 +3762,7 @@ if(g.candidates.length>0){
 var memOf=g.candidates.map(function(){return mem;});
 var tw=el("div");tw.style.cssText="margin:8px 0;";
 var _kt=buildKanyuTable(g.candidates,memOf);_removeLastCol(_kt);_pcApplyWysiwyg(_kt,g.candidates.length);
+try{var _ktTbl=_kt.querySelector("table.kanyu")||_kt.querySelector("table");if(_ktTbl)_ktTbl.style.setProperty("margin","0 auto","important");}catch(_e2){}
 try{var _pfs=_pcCurrentPrintFont();
 _kt.querySelectorAll("td,th").forEach(function(c){c.style.setProperty("font-size",_pfs+"px","important");});
 _kt.querySelectorAll("td *,th *").forEach(function(e2){try{if(e2.tagName==="BUTTON")return;e2.style.setProperty("font-size",_pfs+"px","important");}catch(_x){}});

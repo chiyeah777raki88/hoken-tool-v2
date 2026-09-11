@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0808t(証券の色をぜんぶの画面で完全に連動)";
+var APP_VERSION="v2-0911-1726(ドル建て年金の円換算バグ修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -1911,7 +1911,7 @@ lbl("年金受取期間（年）",inp("number",pol.pensionYears||"",function(v){
 upd("pensionYears",+v);
 if(pol.annualPension>0){var tot=pol.annualPension*(+v);upd("futureVal3",tot);upd("futureVal1",tot);upd("futureVal5",tot);upd("futureVal6",tot);}
 })),
-function(){var d=el("div");d.style.cssText="padding:6px 9px;background:#f0f4ff;border-radius:4px;font-size:12px;font-weight:700;color:#1a2744;";var tot=(pol.annualPension||0)*(pol.pensionYears||0);d.innerHTML="受取総額（参考）<br>"+(tot>0?tot.toLocaleString():"—")+"万円";return lbl("受取総額（自動計算）",d);}()
+function(){var d=el("div");d.style.cssText="padding:6px 9px;background:#f0f4ff;border-radius:4px;font-size:12px;font-weight:700;color:#1a2744;";var totRaw=(pol.annualPension||0)*(pol.pensionYears||0);var totFx=pol.currency&&pol.currency!=="JPY";var tot=totFx?Math.round(totRaw*(pol.exchangeRate||150)/10000*100)/100:totRaw;d.innerHTML="受取総額（参考）<br>"+(tot>0?tot.toLocaleString():"—")+"万円"+((totFx&&totRaw>0)?"（"+_fxSym(pol)+totRaw.toLocaleString()+"）":"");return lbl("受取総額（自動計算）",d);}()
 ]),
 function(){var p4=el("p");p4.style.cssText="font-size:12px;color:#8a8a8a;margin:6px 0 4px;";p4.textContent="変額年金は初年度の年金額が運用実績で変動します。設計書の初年度年金額のレンジ（最低〜最高）を入れると比較表に『188〜309万』のように年額レンジで表示します。";return p4;}(),
 grd("g2",[
@@ -2428,7 +2428,7 @@ var events=[];
 pairs.forEach(function(x,i){var p=x.policy,m=x.member,c=colOf(p,i);
 if(+p.celebAmount>0&&+p.celebInterval>0&&+p.celebStartAge>0){var cap=celebCap(p);for(var ca=+p.celebStartAge;ca<=cap;ca+=+p.celebInterval){events.push({ax:toAxis(ca,m),amt:p.celebAmount,c:c,big:false});}}
 if(+p.refundVal>0&&+p.refundAge>0){events.push({ax:toAxis(+p.refundAge,m),amt:p.refundVal,c:c,big:true});}
-if(+p.annualPension>0&&+p.pensionStartAge>0){events.push({ax:toAxis(+p.pensionStartAge,m),amt:p.annualPension,c:c,big:true,suf:"/年"});}
+if(+p.annualPension>0&&+p.pensionStartAge>0){events.push({ax:toAxis(+p.pensionStartAge,m),amt:toJPY(p,+p.annualPension),c:c,big:true,suf:"/年"});}
 });
 var minEv=events.reduce(function(mn,e){return Math.min(mn,e.ax);},baseAge);
 var minAge=Math.floor(Math.min(baseAge,minEv)/5)*5;
@@ -4069,9 +4069,9 @@ function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
 
 {k:"advLump",l:"先進医療一時金",u:"万",grp:"保障",g:function(p){return +p.advancedMedicalLump||0;}},
 {k:"exempt",l:"保険料免除",u:"",grp:"保障",detail:true,g:function(p){return isPracticalExempt(p)?1:0;},isFlag:true},
-{k:"pension",l:"年金 年額",u:"万",grp:"貯蓄",g:function(p){if(!_isAnnuity(p))return 0;if(+p.annuityAnnualMax>0)return +p.annuityAnnualMax;if(+p.annuityAnnualMin>0)return +p.annuityAnnualMin;return +p.annualPension||0;},disp:function(p){if(!_isAnnuity(p))return "";var mn=+p.annuityAnnualMin||0,mx=+p.annuityAnnualMax||0;if(mn>0&&mx>0)return mn+"〜"+mx+"万";if(mx>0)return mx+"万";if(mn>0)return mn+"万";var a=+p.annualPension||0;return a>0?(a+"万"):"";}},
+{k:"pension",l:"年金 年額",u:"万",grp:"貯蓄",noFx:true,g:function(p){if(!_isAnnuity(p))return 0;if(+p.annuityAnnualMax>0)return +p.annuityAnnualMax;if(+p.annuityAnnualMin>0)return +p.annuityAnnualMin;return toJPY(p,+p.annualPension||0);},disp:function(p){if(!_isAnnuity(p))return "";var mn=+p.annuityAnnualMin||0,mx=+p.annuityAnnualMax||0;if(mn>0&&mx>0)return mn+"〜"+mx+"万";if(mx>0)return mx+"万";if(mn>0)return mn+"万";var a=+p.annualPension||0;if(!(a>0))return "";var j=toJPY(p,a);return (p.currency&&p.currency!=="JPY")?(j.toLocaleString()+"万（"+_fxSym(p)+a.toLocaleString()+"）"):(a+"万");}},
 {k:"pgenshi",l:"年金原資(開始時積立)",u:"万",grp:"貯蓄",g:function(p){return _isAnnuity(p)?_accumAtAge(p,(+p.pensionStartAge||70)):0;}},
-{k:"pgtotal",l:"年金 受取総額",u:"万",grp:"貯蓄",g:function(p){if(!_isAnnuity(p))return 0;var pt=p.pensionTotals;if(pt){var key=scenRate==="1"?"v1":scenRate==="5"?"v5":scenRate==="6"?"v6":"v3";var pv=+pt[key]||0;if(pv>0)return pv;}return Math.round((+p.annualPension||0)*(+p.pensionYears||0));}},
+{k:"pgtotal",l:"年金 受取総額",u:"万",grp:"貯蓄",noFx:true,g:function(p){if(!_isAnnuity(p))return 0;var pt=p.pensionTotals;if(pt){var key=scenRate==="1"?"v1":scenRate==="5"?"v5":scenRate==="6"?"v6":"v3";var pv=+pt[key]||0;if(pv>0)return pv;}return Math.round(toJPY(p,+p.annualPension||0)*(+p.pensionYears||0)*100)/100;}},
 {k:"celeb",l:"祝金・生存給付",u:"万",grp:"貯蓄",g:function(p){return +p.celebAmount||0;}},
 {k:"cash",l:"解約返戻金/積立",u:"万",grp:"貯蓄",g:function(p){return _isAnnuity(p)?0:((+p.refundVal||0)||(+p.currentVal||0));}},
 {k:"acc0",l:_accAges[0]+"歳時の積立額",u:"万",grp:"貯蓄",g:function(p){return (_isAnnuity(p)||_accHide(p))?0:_accumAtAge(p,_accAges[0]);},disp:function(p){return (_isAnnuity(p)||_accHide(p))?"":_accDisp(p,_accAges[0]);}},
@@ -4089,7 +4089,7 @@ _cn.forEach(function(nm){_KR.splice(_si++,0,{k:"cc_"+nm,l:nm,u:"",grp:"保障",n
 g:function(p){var a=((p&&p.customCov)||[]).filter(function(x){return x&&x.l===nm;})[0];return a?(+a.v||0):0;},
 disp:function(p){var a=((p&&p.customCov)||[]).filter(function(x){return x&&x.l===nm;})[0];if(!a||!(+a.v>0))return "";return (+a.v)+(a.u||"万");}});});}catch(e){}
 try{_KR=_KR.map(function(r){
-if((r.grp!=="保障"&&r.grp!=="貯蓄")||r.isFlag||!r.g)return r;
+if((r.grp!=="保障"&&r.grp!=="貯蓄")||r.isFlag||!r.g||r.noFx)return r;
 var g0=r.g,d0=r.disp,uu=r.u||"万";var o={};for(var kk in r){o[kk]=r[kk];}
 o.g=function(p){var v=g0(p)||0;return _isFx(p)?fxConv(p,v,uu):v;};
 if(d0){o.disp=function(p){if(!_isFx(p))return d0(p);var raw=g0(p)||0;if(!(raw>0))return "";var j=fxConv(p,raw,uu);return (uu==="円"?(Math.round(j).toLocaleString()+"円"):(j.toLocaleString()+"万"))+"（"+_fxSym(p)+raw.toLocaleString()+"）";};}

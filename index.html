@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0915-1507(パターン②の②を証券1本の前納モデルに変更し、月々ベースの比較に統一)";
+var APP_VERSION="v2-0915-1511(前納候補の判定を保障期間ではなく実際の払込期間で行うよう修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3110,7 +3110,7 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
     if(u.indexOf("一時")>=0)return 0; return (p.payFreq==="年"||u.indexOf("年")>=0)?a:a*12;}
   function perMonth2(p){return perYear2(p)/12;}
   var ageNow=getAge(mem.dob)||46;
-  function continuesAfter10(p){var yrs=(+p.dlPayEnd||0)-ageNow;return yrs>10||p.dlPeriodType==="終身"||(+p.dlPeriodEnd||0)>60;}
+  function continuesAfter10(p){var pt=p.dlPayType||"終身払";if(pt==="終身払"||pt.indexOf("終身払")>=0||pt==="更新型")return true;var end=+p.dlPayEnd||0;if(end>0)return (end-ageNow)>10;return true;}
   var candidates=(prop||[]).filter(function(p){return perMonth2(p)>0&&!continuesAfter10(p);});
   if(!candidates.length)candidates=(prop||[]).filter(function(p){return perMonth2(p)>0;});
   function candKey(p){return (p.company||"")+"|"+(p.insType||"")+"|"+(p.premAmount||0);}

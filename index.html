@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0915-1449(パターン②に掛け金を上げずに保障改善できる期間を示すセクションを追加)";
+var APP_VERSION="v2-0915-1507(パターン②の②を証券1本の前納モデルに変更し、月々ベースの比較に統一)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3094,11 +3094,9 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
     wrap.appendChild(rzNote("「解約返戻金（元本）」は下の欄で直接書き換えられます。金額を増やすと、カバーできる期間とサニーに回せる残りが自動で変わります。"));
   })();
 
-  wrap.appendChild(rzSec("解約返戻金の活用 ― サニーガーデン プライム（定期支払コース）か、保険料への充当か",BLUE));
-  wrap.appendChild(rzLead("ここから先は、上と同じ解約返戻金を「増額分の穴埋め」ではなく「①サニーに全額回す／②保険料に全額充てる」の二択で比べた場合の話です。損金算入は論点にしていません。",BLUE));
+  wrap.appendChild(rzSec("解約返戻金の活用 ― 現実的な使い方（証券を1つ前納＋残りの使い道）",BLUE));
+  wrap.appendChild(rzLead("解約返戻金をまとめて保険料の総額に充てたり、まとめてサニーガーデンに入金したりする使い方は、実際にはあまり現実的ではありません。よくあるのは「証券を1つだけ選んで、その保険料をまとめて前納する」使い方です。ここでは1本を選んで前納し、月々の負担がどう変わるかを計算します。損金算入は論点にしていません。",BLUE));
 
-  var inRow=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 14px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
-  inRow.className="no-print";
   function field(label,val,unit,cb){
     var box=rzEl("div","display:flex;flex-direction:column;gap:3px;");
     box.appendChild(rzEl("span","font-size:11.5px;color:#666;",label));
@@ -3107,65 +3105,87 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
     r.appendChild(i);if(unit)r.appendChild(rzEl("span","font-size:12px;color:#666;",unit));
     box.appendChild(r);return box;
   }
-  inRow.appendChild(field("活用する解約返戻金（元本）",d.principal,"円",function(v){d.principal=v;save();render();}));
-  inRow.appendChild(field("積立利率",d.rate,"％/年",function(v){d.rate=v;save();render();}));
-  inRow.appendChild(field("利率保証年数",d.years,"年",function(v){d.years=v;save();render();}));
-  inRow.appendChild(field("参考為替レート（入金時）",d.fx,"円/ドル",function(v){d.fx=v;save();render();}));
-  wrap.appendChild(inRow);
-  var inRow2=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:0 0 6px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
-  inRow2.className="no-print";
-  inRow2.appendChild(field("保険自体で継続する年間保険料",d.premYear,"円/年",function(v){d.premYear=v;save();render();}));
-  inRow2.appendChild(field("その保険料を払う年数",d.premYears,"年",function(v){d.premYears=v;save();render();}));
-  wrap.appendChild(inRow2);
+
+  function perYear2(p){var a=+p.premAmount||0,u=p.premUnit||"";
+    if(u.indexOf("一時")>=0)return 0; return (p.payFreq==="年"||u.indexOf("年")>=0)?a:a*12;}
+  function perMonth2(p){return perYear2(p)/12;}
+  var ageNow=getAge(mem.dob)||46;
+  function continuesAfter10(p){var yrs=(+p.dlPayEnd||0)-ageNow;return yrs>10||p.dlPeriodType==="終身"||(+p.dlPeriodEnd||0)>60;}
+  var candidates=(prop||[]).filter(function(p){return perMonth2(p)>0&&!continuesAfter10(p);});
+  if(!candidates.length)candidates=(prop||[]).filter(function(p){return perMonth2(p)>0;});
+  function candKey(p){return (p.company||"")+"|"+(p.insType||"")+"|"+(p.premAmount||0);}
+  var defaultCand=candidates.slice().sort(function(a,b){return perYear2(b)-perYear2(a);})[0];
+  if(d.prepayKey==null)d.prepayKey=defaultCand?candKey(defaultCand):"";
+  var selected=candidates.find(function(p){return candKey(p)===d.prepayKey;})||defaultCand;
+
+  var inRow0=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 6px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
+  inRow0.className="no-print";
+  var selBox=rzEl("div","display:flex;flex-direction:column;gap:3px;");
+  selBox.appendChild(rzEl("span","font-size:11.5px;color:#666;","前納する証券（1つだけ選択）"));
+  var sel=document.createElement("select");
+  sel.style.cssText="padding:5px 6px;font-size:13px;border:1px solid #c9d4e0;border-radius:4px;min-width:280px;";
+  candidates.forEach(function(p){
+    var opt=document.createElement("option");
+    opt.value=candKey(p);
+    opt.textContent=(p.company||"")+" "+(p.insType||"")+"（年"+Math.round(perYear2(p)).toLocaleString()+"円・月"+Math.round(perMonth2(p)).toLocaleString()+"円）";
+    if(candKey(p)===d.prepayKey)opt.selected=true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener("change",function(){d.prepayKey=sel.value;save();render();});
+  selBox.appendChild(sel);
+  inRow0.appendChild(selBox);
+  inRow0.appendChild(field("前納する年数",d.premYears,"年",function(v){d.premYears=v;save();render();}));
+  inRow0.appendChild(field("活用する解約返戻金（総額）",d.principal,"円",function(v){d.principal=v;save();render();}));
+  wrap.appendChild(inRow0);
   var noteBits=[];
-  if(refund>0)noteBits.push("「現在の加入」の解約返戻金合計は "+rzMan(refund*10000)+"（元本欄の初期値）");
-  if(+duringMonthAuto>0)noteBits.push("継続する保険料は、上の月額比較の「切替後 1〜10年目」（月"+rzYen(duringMonthAuto)+"）を年換算した額を初期値にしています");
+  if(refund>0)noteBits.push("「現在の加入」の解約返戻金合計は "+rzMan(refund*10000)+"（総額欄の初期値）");
   if(noteBits.length)wrap.appendChild(rzNote("※"+noteBits.join("／")+"。実際と違う場合は欄を直接書き換えてください。"));
 
-  var principal=+d.principal||0, rate=(+d.rate||0)/100, years=+d.years||20, fx=+d.fx||154;
-  var premYear=+d.premYear||0, premYears=+d.premYears||10;
-  var usd=fx>0?principal/fx:0;
-  var yearlyJPY=principal*rate;
-  var yearlyUSD=usd*rate;
-  var totalJPY=yearlyJPY*years;
-  var premiumTotal=premYear*premYears; /* 保険自体で必ず出ていく保険料（①②共通・不可避） */
-  var premMonth=premYear/12;
-  var monthsCovered=premMonth>0?Math.min(principal/premMonth,premYears*12):0;
-  var yearsCovered=monthsCovered/12;
+  if(!selected){
+    wrap.appendChild(rzNote("前納の対象にできる証券（1〜10年目で払込が終わる保険料）が見つかりませんでした。"));
+  }else{
+    var selAnnual=perYear2(selected), selMonthly=perMonth2(selected), payYears=+d.premYears||10;
+    var totalNeeded=selAnnual*payYears;
+    var principal2=+d.principal||0;
+    var monthsCovered2=selMonthly>0?Math.min(principal2/selMonthly,payYears*12):0;
+    var yearsCovered2=monthsCovered2/12;
+    var fullyCovered=principal2>=totalNeeded;
+    var leftoverAfterPrepay=Math.max(principal2-totalNeeded,0);
+    var shortfallMonths=Math.max(payYears*12-monthsCovered2,0);
+    var duringMonthPrepaid=Math.max(duringMonth-selMonthly,0);
 
-  wrap.appendChild(rzCards([
-    {label:"元本（一時払保険料）",value:rzYen(principal),c:NAVY,sub:"米ドル換算 約"+Math.round(usd).toLocaleString()+"ドル（レート"+fx+"円）"},
-    {label:"毎年の定期支払額",value:rzYen(yearlyJPY),c:BLUE,sub:"米ドルでは約"+yearlyUSD.toFixed(2)+"ドル／年（入金時と同じ為替の場合）"},
-    {label:years+"年間の受取累計",value:rzYen(totalJPY),c:GREEN,sub:"年1回・"+years+"年間 受け取った場合の単純合計"},
-    {label:"継続する保険料の合計",value:rzYen(premiumTotal),c:RED,sub:rzYen(premYear)+"／年（月"+rzYen(premMonth)+"）×"+premYears+"年"}
-  ]));
-  wrap.appendChild(rzLead(rzYen(principal)+"は、月"+rzYen(premMonth)+"の保険料に換算すると<b>約"+monthsCovered.toFixed(1)+"か月分（約"+yearsCovered.toFixed(1)+"年分）</b>に相当します。①でサニーに回すと、この期間の保険料は会社の手元資金から別途払うことになり、②で保険料に充てれば、この期間は自己負担ゼロになります。サニーを選ぶかどうかは、この期間分の保険料負担をどちらが持つか、という話に直結します。",RED));
-  wrap.appendChild(rzNote("為替が動かなければ、毎年の受取額は「元本×積立利率」で決まり、為替レートの絶対水準そのものには左右されません（入金時に円高でも、受取時までに為替が戻れば円換算額は同じ）。得をするのは、入金した今日より受取の各年で円安（ドル高）に振れた場合です。逆に今日よりさらに円高が進むと、円換算の受取額はこれより減ります。"));
+    wrap.appendChild(rzCards([
+      {label:"前納する証券",value:(selected.company||"")+" "+(selected.insType||""),c:NAVY,sub:"年"+rzYen(selAnnual)+"（月"+rzYen(selMonthly)+"）"},
+      {label:payYears+"年分の前納に必要な金額",value:rzYen(totalNeeded),c:RED,sub:fullyCovered?"解約返戻金で全額まかなえます":"解約返戻金だけでは約"+yearsCovered2.toFixed(1)+"年分しかまかなえません"},
+      {label:"前納後、手元に残る解約返戻金",value:fullyCovered?rzYen(leftoverAfterPrepay):"なし（不足"+rzYen(totalNeeded-principal2)+"）",c:fullyCovered?GREEN:RED},
+      {label:"前納中の月々保険料（前納した分を除く）",value:rzYen(duringMonthPrepaid)+"/月",c:GREEN,sub:"今より"+(duringMonthPrepaid>=curMonth?"+":"−")+rzYen(Math.abs(duringMonthPrepaid-curMonth))+"/月（前納しない場合は"+rzYen(duringMonth)+"/月）"}
+    ]));
+    if(!fullyCovered&&shortfallMonths>0){
+      wrap.appendChild(rzNote("解約返戻金だけでは"+payYears+"年分の前納をまかないきれず、約"+Math.round(monthsCovered2)+"ヶ月分（約"+yearsCovered2.toFixed(1)+"年）を前納した後は、残りの約"+Math.round(shortfallMonths)+"ヶ月間（約"+(shortfallMonths/12).toFixed(1)+"年間）は月"+rzYen(duringMonth)+"（前納しない場合と同じ金額）に戻ります。"));
+    }
 
-  /* ① サニー：保険料は満額を別途払いつつ、サニーの受取を得る */
-  var opt1_duringPayIncome=yearlyJPY*Math.min(premYears,years);
-  var opt1_duringPayNet=opt1_duringPayIncome-premiumTotal;
-  var opt1_totalIncome=totalJPY;
-  var opt1_totalNet=opt1_totalIncome-premiumTotal;
-  /* ② 充当：元本を保険料に充てて相殺、残りは自己負担。使い切れない分は余剰として残る */
-  var opt2_outOfPocket=Math.max(premiumTotal-principal,0);
-  var opt2_leftover=Math.max(principal-premiumTotal,0);
-  var opt2_totalNet=-opt2_outOfPocket;
-  var diffTotal=opt1_totalNet-opt2_totalNet; /* ①が②よりどれだけ有利/不利か（現金ベース、資産の有無は別途） */
+    if(leftoverAfterPrepay>0){
+      wrap.appendChild(rzSec("前納後に残る解約返戻金"+rzYen(leftoverAfterPrepay)+"の使い道（例：サニーガーデン プライム）",BLUE));
+      var inRow1=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:6px 0 12px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
+      inRow1.className="no-print";
+      inRow1.appendChild(field("積立利率",d.rate,"％/年",function(v){d.rate=v;save();render();}));
+      inRow1.appendChild(field("利率保証年数",d.years,"年",function(v){d.years=v;save();render();}));
+      inRow1.appendChild(field("参考為替レート（入金時）",d.fx,"円/ドル",function(v){d.fx=v;save();render();}));
+      wrap.appendChild(inRow1);
 
-  wrap.appendChild(rzSec("① と ② の比較（保険料込みの手元キャッシュ）",NAVY));
-  wrap.appendChild(rzTable(["","① サニーガーデン プライム（定期支払コース）","② 保険料への充当（従来のご提案と同じ考え方）"],[
-    ["使う解約返戻金","<b>"+rzYen(principal)+"</b>","同額 "+rzYen(principal)],
-    ["会社に残る資産","米ドル建て終身保険として残る（解約すれば返戻金化）","0円（保険料の支払いに充当し消費）"],
-    ["継続する保険料（"+premYears+"年間・不可避）","<span style='color:"+RED+"'>"+rzYen(premiumTotal)+"</span>　全額を別途、手元資金から支払う","<span style='color:"+RED+"'>"+rzYen(premiumTotal)+"</span>　のうち "+rzYen(Math.min(principal,premiumTotal))+" を元本で相殺"+(opt2_leftover>0?"（元本が余り"+rzYen(opt2_leftover)+"残ります）":"")],
-    ["自己負担の保険料（実際に払う額）",rzYen(premiumTotal),"<b>"+rzYen(opt2_outOfPocket)+"</b>"],
-    ["サニーからの受取（"+premYears+"年間）",rzYen(opt1_duringPayIncome),"なし"],
-    ["差引ネット（保険料払込"+premYears+"年間）","<b>"+rzYen(opt1_duringPayNet)+"</b>",("<b>"+rzYen(-opt2_outOfPocket)+"</b>")],
-    [years+"年間トータルの差引ネット","<b style='color:"+(opt1_totalNet>=0?GREEN:RED)+"'>"+rzYen(opt1_totalNet)+"</b>　＋米ドル資産"+rzYen(principal)+"相当が残る","<b style='color:"+RED+"'>"+rzYen(opt2_totalNet)+"</b>　資産は残らない"],
-    ["万一（死亡）保障","保証期間中〜終身、死亡保険金が続く","既契約の保障のみ（保険料充当分の新たな保障はなし）"],
-    ["リスク","為替変動・市場価格調整・保証期間内の途中解約による解約控除","なし（資金はその場で使い切るため変動リスクを負わない）"]
-  ],["18%","44%","38%"]));
-  wrap.appendChild(rzP("<b>会社にとって：</b>"+premYears+"年間の医療・がんの保険料"+rzYen(premiumTotal)+"は、①でも②でも避けられません。①はこれを手元資金で別途払いながら、サニーガーデンからの受取"+rzYen(opt1_duringPayIncome)+"を得るので、その期間の現金収支は"+rzYen(opt1_duringPayNet)+"、"+years+"年間トータルでは"+rzYen(opt1_totalNet)+"（プラスなら受取が保険料を上回る、マイナスなら下回る）。加えて米ドル建て資産"+rzYen(principal)+"相当がそのまま残ります。②は元本"+rzYen(principal)+"で保険料を相殺するので、その期間の自己負担は"+rzYen(opt2_outOfPocket)+"で確定し、為替リスクはありませんが、資産は何も残りません。現金ベースの差は"+rzYen(Math.abs(diffTotal))+"（"+(diffTotal>=0?"①の方がキャッシュも有利":"②の方がキャッシュは有利")+")で、それに①だけが持つ米ドル資産"+rzYen(principal)+"相当（為替次第で増減）が上乗せされる、という比べ方になります。"));
+      var rate2=(+d.rate||0)/100, years2=+d.years||20, fx2=+d.fx||154;
+      var usd2=fx2>0?leftoverAfterPrepay/fx2:0;
+      var yearlyJPY2=leftoverAfterPrepay*rate2;
+      var totalJPY2=yearlyJPY2*years2;
+      wrap.appendChild(rzCards([
+        {label:"サニーに回せる元本",value:rzYen(leftoverAfterPrepay),c:NAVY,sub:"米ドル換算 約"+Math.round(usd2).toLocaleString()+"ドル（レート"+fx2+"円）"},
+        {label:"毎年の定期支払額",value:rzYen(yearlyJPY2),c:BLUE},
+        {label:years2+"年間の受取累計",value:rzYen(totalJPY2),c:GREEN}
+      ]));
+      wrap.appendChild(rzNote("為替が動かなければ、毎年の受取額は「元本×積立利率」で決まり、為替レートの絶対水準そのものには左右されません。残った解約返戻金の範囲だけをサニーに回す想定で、全額を一度にサニーへ入金する前提ではありません。"));
+    }
+  }
+
   wrap.appendChild(rzNote("本シミュレーションはメットライフ生命「サニーガーデン プライム」の設計例をもとにした概算です。実際の積立利率・為替レート・受取金額は契約日により変動し、正式には設計書でご確認ください。解約控除・市場価格調整、税務上の取扱い（受取時の益金算入等）は、実行前に必ず保険会社の設計書と顧問税理士にご確認ください。"));
 
   var pbtn2=document.createElement("button");

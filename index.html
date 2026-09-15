@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0915-1437(継続保険料の初期値を全体月額に統一し、元本が何か月分の保険料に相当するかを明示)";
+var APP_VERSION="v2-0915-1449(パターン②に掛け金を上げずに保障改善できる期間を示すセクションを追加)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3070,8 +3070,32 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
   ]));
   wrap.appendChild(rzNote("医療・がんの短期払い（10年）と定期のつなぎ分が終わる11年目以降は、マニュライフの保険料のみが残ります。"));
 
+  (function(){
+    var principal0=+d.principal||0, premYears0=+d.premYears||10;
+    var gapMonthly=duringMonth-curMonth;
+    wrap.appendChild(rzSec("目標：保障は良くする、掛け金は今のまま",ORANGE));
+    if(gapMonthly<=0){
+      wrap.appendChild(rzLead("切替後の保険料は今と同じか、今より安いので、解約返戻金を使わなくても掛け金は上がりません。",GREEN));
+      return;
+    }
+    var gapTotal=gapMonthly*premYears0*12;
+    var monthsCovered0=Math.min(principal0/gapMonthly,premYears0*12);
+    var yearsCovered0=monthsCovered0/12;
+    var remainMonths=Math.max(premYears0*12-monthsCovered0,0);
+    var remainYears=remainMonths/12;
+    var leftover0=Math.max(principal0-gapTotal,0);
+    wrap.appendChild(rzLead("保障を今の内容から良くすると、1〜10年目は月々"+rzYen(gapMonthly)+"の増額になります。解約返戻金"+rzYen(principal0)+"をこの増額分だけに充てると、10年のうち<b>約"+yearsCovered0.toFixed(1)+"年間は今の月¥"+Math.round(curMonth).toLocaleString()+"のままで、内容だけ良くなる</b>計算です。",ORANGE));
+    wrap.appendChild(rzCards([
+      {label:"1〜10年目の増額分",value:rzYen(gapMonthly)+"/月",c:RED,sub:"10年分の合計 "+rzYen(gapTotal)},
+      {label:"解約返戻金でカバーできる期間",value:yearsCovered0.toFixed(1)+"年（約"+Math.round(monthsCovered0)+"ヶ月）",c:GREEN,sub:"この間は今と同じ月"+rzYen(curMonth)+"のまま"},
+      {label:"カバーしきれない残り期間",value:remainYears>0?(remainYears.toFixed(1)+"年（約"+Math.round(remainMonths)+"ヶ月）"):"なし",c:remainYears>0?RED:GREEN,sub:remainYears>0?"この間は月"+rzYen(duringMonth)+"の自己負担":"10年間ずっと今のまま"},
+      {label:"サニー等に回せる残り",value:rzYen(leftover0),c:leftover0>0?BLUE:"#999",sub:leftover0>0?"増額分を全部カバーしてもまだ残る分":"今は増額分を埋めるだけで使い切る想定"}
+    ]));
+    wrap.appendChild(rzNote("「解約返戻金（元本）」は下の欄で直接書き換えられます。金額を増やすと、カバーできる期間とサニーに回せる残りが自動で変わります。"));
+  })();
+
   wrap.appendChild(rzSec("解約返戻金の活用 ― サニーガーデン プライム（定期支払コース）か、保険料への充当か",BLUE));
-  wrap.appendChild(rzLead("ここから先は、上の保険料とは別に会社にある解約返戻金をどう使うかの話です。損金算入は論点にしていません。",BLUE));
+  wrap.appendChild(rzLead("ここから先は、上と同じ解約返戻金を「増額分の穴埋め」ではなく「①サニーに全額回す／②保険料に全額充てる」の二択で比べた場合の話です。損金算入は論点にしていません。",BLUE));
 
   var inRow=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 14px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
   inRow.className="no-print";

@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0915-1338(パターン②冒頭に月額保険料の比較グラフを追加)";
+var APP_VERSION="v2-0915-1437(継続保険料の初期値を全体月額に統一し、元本が何か月分の保険料に相当するかを明示)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -3040,7 +3040,7 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
   if(d.rate==null)d.rate=4.63;
   if(d.years==null)d.years=20;
   if(d.fx==null)d.fx=154;
-  if(d.premYear==null)d.premYear=(+yearlyShortAuto>0)?Math.round(+yearlyShortAuto):251652;
+  if(d.premYear==null)d.premYear=(+duringMonthAuto>0)?Math.round(+duringMonthAuto*12):((+yearlyShortAuto>0)?Math.round(+yearlyShortAuto):251652);
   if(d.premYears==null)d.premYears=10;
   function save(){storageSet(key,JSON.stringify(d));}
 
@@ -3095,7 +3095,7 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
   wrap.appendChild(inRow2);
   var noteBits=[];
   if(refund>0)noteBits.push("「現在の加入」の解約返戻金合計は "+rzMan(refund*10000)+"（元本欄の初期値）");
-  if(+yearlyShortAuto>0)noteBits.push("医療＋がんの短期払い年額は登録データから "+rzYen(yearlyShortAuto)+"（継続保険料欄の初期値）");
+  if(+duringMonthAuto>0)noteBits.push("継続する保険料は、上の月額比較の「切替後 1〜10年目」（月"+rzYen(duringMonthAuto)+"）を年換算した額を初期値にしています");
   if(noteBits.length)wrap.appendChild(rzNote("※"+noteBits.join("／")+"。実際と違う場合は欄を直接書き換えてください。"));
 
   var principal=+d.principal||0, rate=(+d.rate||0)/100, years=+d.years||20, fx=+d.fx||154;
@@ -3105,13 +3105,17 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMont
   var yearlyUSD=usd*rate;
   var totalJPY=yearlyJPY*years;
   var premiumTotal=premYear*premYears; /* 保険自体で必ず出ていく保険料（①②共通・不可避） */
+  var premMonth=premYear/12;
+  var monthsCovered=premMonth>0?Math.min(principal/premMonth,premYears*12):0;
+  var yearsCovered=monthsCovered/12;
 
   wrap.appendChild(rzCards([
     {label:"元本（一時払保険料）",value:rzYen(principal),c:NAVY,sub:"米ドル換算 約"+Math.round(usd).toLocaleString()+"ドル（レート"+fx+"円）"},
     {label:"毎年の定期支払額",value:rzYen(yearlyJPY),c:BLUE,sub:"米ドルでは約"+yearlyUSD.toFixed(2)+"ドル／年（入金時と同じ為替の場合）"},
     {label:years+"年間の受取累計",value:rzYen(totalJPY),c:GREEN,sub:"年1回・"+years+"年間 受け取った場合の単純合計"},
-    {label:"継続する保険料の合計",value:rzYen(premiumTotal),c:RED,sub:rzYen(premYear)+"／年 ×"+premYears+"年（①②どちらを選んでも発生）"}
+    {label:"継続する保険料の合計",value:rzYen(premiumTotal),c:RED,sub:rzYen(premYear)+"／年（月"+rzYen(premMonth)+"）×"+premYears+"年"}
   ]));
+  wrap.appendChild(rzLead(rzYen(principal)+"は、月"+rzYen(premMonth)+"の保険料に換算すると<b>約"+monthsCovered.toFixed(1)+"か月分（約"+yearsCovered.toFixed(1)+"年分）</b>に相当します。①でサニーに回すと、この期間の保険料は会社の手元資金から別途払うことになり、②で保険料に充てれば、この期間は自己負担ゼロになります。サニーを選ぶかどうかは、この期間分の保険料負担をどちらが持つか、という話に直結します。",RED));
   wrap.appendChild(rzNote("為替が動かなければ、毎年の受取額は「元本×積立利率」で決まり、為替レートの絶対水準そのものには左右されません（入金時に円高でも、受取時までに為替が戻れば円換算額は同じ）。得をするのは、入金した今日より受取の各年で円安（ドル高）に振れた場合です。逆に今日よりさらに円高が進むと、円換算の受取額はこれより減ります。"));
 
   /* ① サニー：保険料は満額を別途払いつつ、サニーの受取を得る */

@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0915-1259(提案根拠タブにパターン②解約返戻金の活用＝サニーガーデン定期支払vs保険料充当を追加)";
+var APP_VERSION="v2-0915-1319(パターン②に継続する保険料込みのキャッシュ比較を追加)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2930,7 +2930,7 @@ function buildRationaleTab(){
     patRow.appendChild(pb);
   });
   wrap.appendChild(patRow);
-  if(pattern==="2"){ buildRationalePattern2(wrap,mem,cur,prop,refund); return wrap; }
+  if(pattern==="2"){ buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShort); return wrap; }
 
   var SEL=rzSelLoad(); var SECS={};
   function rzSecBox(n){var d=rzEl("div","");d.className="rz-sec";if(!SEL[n])d.style.display="none";SECS[n]=d;wrap.appendChild(d);return d;}
@@ -3028,7 +3028,7 @@ function buildRationaleTab(){
   return wrap;
 }
 
-function buildRationalePattern2(wrap,mem,cur,prop,refund){
+function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto){
   var NAVY="#1a3a5c",RED="#c0392b",GREEN="#1e7a45",BLUE="#2f5f8f",ORANGE="#b8720d";
   var key=getCustomerKey()+"__rz2";
   var d;
@@ -3039,10 +3039,12 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund){
   if(d.rate==null)d.rate=4.63;
   if(d.years==null)d.years=20;
   if(d.fx==null)d.fx=154;
+  if(d.premYear==null)d.premYear=(+yearlyShortAuto>0)?Math.round(+yearlyShortAuto):251652;
+  if(d.premYears==null)d.premYears=10;
   function save(){storageSet(key,JSON.stringify(d));}
 
   wrap.appendChild(rzSec("解約返戻金の活用 ― サニーガーデン プライム（定期支払コース）か、保険料への充当か",BLUE));
-  wrap.appendChild(rzLead("損金算入は今回の論点にしていません。既契約の解約返戻金をどう使うと会社にとって有利かを比べます。",BLUE));
+  wrap.appendChild(rzLead("損金算入は今回の論点にしていません。保険自体（医療・がんの保障）はどちらを選んでも継続するので、その保険料も含めて会社の手元キャッシュがどう動くかで比べます。",BLUE));
 
   var inRow=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 14px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
   inRow.className="no-print";
@@ -3059,34 +3061,56 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund){
   inRow.appendChild(field("利率保証年数",d.years,"年",function(v){d.years=v;save();render();}));
   inRow.appendChild(field("参考為替レート（入金時）",d.fx,"円/ドル",function(v){d.fx=v;save();render();}));
   wrap.appendChild(inRow);
-  if(refund>0){
-    wrap.appendChild(rzNote("※「現在の加入」に登録されている解約返戻金の合計は "+rzMan(refund*10000)+" です（初期値として元本欄に反映しています。変更した場合は上の欄で調整してください）。"));
-  }
+  var inRow2=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:0 0 6px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
+  inRow2.className="no-print";
+  inRow2.appendChild(field("保険自体で継続する年間保険料",d.premYear,"円/年",function(v){d.premYear=v;save();render();}));
+  inRow2.appendChild(field("その保険料を払う年数",d.premYears,"年",function(v){d.premYears=v;save();render();}));
+  wrap.appendChild(inRow2);
+  var noteBits=[];
+  if(refund>0)noteBits.push("「現在の加入」の解約返戻金合計は "+rzMan(refund*10000)+"（元本欄の初期値）");
+  if(+yearlyShortAuto>0)noteBits.push("医療＋がんの短期払い年額は登録データから "+rzYen(yearlyShortAuto)+"（継続保険料欄の初期値）");
+  if(noteBits.length)wrap.appendChild(rzNote("※"+noteBits.join("／")+"。実際と違う場合は欄を直接書き換えてください。"));
 
   var principal=+d.principal||0, rate=(+d.rate||0)/100, years=+d.years||20, fx=+d.fx||154;
+  var premYear=+d.premYear||0, premYears=+d.premYears||10;
   var usd=fx>0?principal/fx:0;
   var yearlyJPY=principal*rate;
   var yearlyUSD=usd*rate;
   var totalJPY=yearlyJPY*years;
+  var premiumTotal=premYear*premYears; /* 保険自体で必ず出ていく保険料（①②共通・不可避） */
 
   wrap.appendChild(rzCards([
     {label:"元本（一時払保険料）",value:rzYen(principal),c:NAVY,sub:"米ドル換算 約"+Math.round(usd).toLocaleString()+"ドル（レート"+fx+"円）"},
     {label:"毎年の定期支払額",value:rzYen(yearlyJPY),c:BLUE,sub:"米ドルでは約"+yearlyUSD.toFixed(2)+"ドル／年（入金時と同じ為替の場合）"},
     {label:years+"年間の受取累計",value:rzYen(totalJPY),c:GREEN,sub:"年1回・"+years+"年間 受け取った場合の単純合計"},
-    {label:years+"年後も残る資産",value:"約"+rzYen(principal)+"相当",c:ORANGE,sub:"米ドル建てのまま。円換算額は将来の為替次第"}
+    {label:"継続する保険料の合計",value:rzYen(premiumTotal),c:RED,sub:rzYen(premYear)+"／年 ×"+premYears+"年（①②どちらを選んでも発生）"}
   ]));
   wrap.appendChild(rzNote("為替が動かなければ、毎年の受取額は「元本×積立利率」で決まり、為替レートの絶対水準そのものには左右されません（入金時に円高でも、受取時までに為替が戻れば円換算額は同じ）。得をするのは、入金した今日より受取の各年で円安（ドル高）に振れた場合です。逆に今日よりさらに円高が進むと、円換算の受取額はこれより減ります。"));
 
-  wrap.appendChild(rzSec("① と ② の比較",NAVY));
+  /* ① サニー：保険料は満額を別途払いつつ、サニーの受取を得る */
+  var opt1_duringPayIncome=yearlyJPY*Math.min(premYears,years);
+  var opt1_duringPayNet=opt1_duringPayIncome-premiumTotal;
+  var opt1_totalIncome=totalJPY;
+  var opt1_totalNet=opt1_totalIncome-premiumTotal;
+  /* ② 充当：元本を保険料に充てて相殺、残りは自己負担。使い切れない分は余剰として残る */
+  var opt2_outOfPocket=Math.max(premiumTotal-principal,0);
+  var opt2_leftover=Math.max(principal-premiumTotal,0);
+  var opt2_totalNet=-opt2_outOfPocket;
+  var diffTotal=opt1_totalNet-opt2_totalNet; /* ①が②よりどれだけ有利/不利か（現金ベース、資産の有無は別途） */
+
+  wrap.appendChild(rzSec("① と ② の比較（保険料込みの手元キャッシュ）",NAVY));
   wrap.appendChild(rzTable(["","① サニーガーデン プライム（定期支払コース）","② 保険料への充当（従来のご提案と同じ考え方）"],[
     ["使う解約返戻金","<b>"+rzYen(principal)+"</b>","同額 "+rzYen(principal)],
     ["会社に残る資産","米ドル建て終身保険として残る（解約すれば返戻金化）","0円（保険料の支払いに充当し消費）"],
-    ["毎年のキャッシュ収入",rzYen(yearlyJPY)+"／年 を"+years+"年間","なし"],
-    [years+"年間の受取累計",rzYen(totalJPY),"0円（ただし将来の保険料負担がその場で"+rzYen(principal)+"分軽くなる）"],
+    ["継続する保険料（"+premYears+"年間・不可避）","<span style='color:"+RED+"'>"+rzYen(premiumTotal)+"</span>　全額を別途、手元資金から支払う","<span style='color:"+RED+"'>"+rzYen(premiumTotal)+"</span>　のうち "+rzYen(Math.min(principal,premiumTotal))+" を元本で相殺"+(opt2_leftover>0?"（元本が余り"+rzYen(opt2_leftover)+"残ります）":"")],
+    ["自己負担の保険料（実際に払う額）",rzYen(premiumTotal),"<b>"+rzYen(opt2_outOfPocket)+"</b>"],
+    ["サニーからの受取（"+premYears+"年間）",rzYen(opt1_duringPayIncome),"なし"],
+    ["差引ネット（保険料払込"+premYears+"年間）","<b>"+rzYen(opt1_duringPayNet)+"</b>",("<b>"+rzYen(-opt2_outOfPocket)+"</b>")],
+    [years+"年間トータルの差引ネット","<b style='color:"+(opt1_totalNet>=0?GREEN:RED)+"'>"+rzYen(opt1_totalNet)+"</b>　＋米ドル資産"+rzYen(principal)+"相当が残る","<b style='color:"+RED+"'>"+rzYen(opt2_totalNet)+"</b>　資産は残らない"],
     ["万一（死亡）保障","保証期間中〜終身、死亡保険金が続く","既契約の保障のみ（保険料充当分の新たな保障はなし）"],
     ["リスク","為替変動・市場価格調整・保証期間内の途中解約による解約控除","なし（資金はその場で使い切るため変動リスクを負わない）"]
-  ],["16%","46%","38%"]));
-  wrap.appendChild(rzP("<b>会社にとって：</b>①は解約返戻金を資産として持ち続けながら、毎年"+rzYen(yearlyJPY)+"の現金収入を生みます。資産は残るため、必要なときにあらためて解約・活用する余地も残ります。ただし為替と市場価格調整の影響は受けます。②は資金をその場で使い切りますが、将来の保険料負担を確実にその金額分減らせるので、為替などの変動リスクはありません。どちらが有利かは、会社が現金収入を今欲しいか、保険料負担を先に軽くしたいか、為替変動リスクをどこまで許容できるかによります。"));
+  ],["18%","44%","38%"]));
+  wrap.appendChild(rzP("<b>会社にとって：</b>"+premYears+"年間の医療・がんの保険料"+rzYen(premiumTotal)+"は、①でも②でも避けられません。①はこれを手元資金で別途払いながら、サニーガーデンからの受取"+rzYen(opt1_duringPayIncome)+"を得るので、その期間の現金収支は"+rzYen(opt1_duringPayNet)+"、"+years+"年間トータルでは"+rzYen(opt1_totalNet)+"（プラスなら受取が保険料を上回る、マイナスなら下回る）。加えて米ドル建て資産"+rzYen(principal)+"相当がそのまま残ります。②は元本"+rzYen(principal)+"で保険料を相殺するので、その期間の自己負担は"+rzYen(opt2_outOfPocket)+"で確定し、為替リスクはありませんが、資産は何も残りません。現金ベースの差は"+rzYen(Math.abs(diffTotal))+"（"+(diffTotal>=0?"①の方がキャッシュも有利":"②の方がキャッシュは有利")+")で、それに①だけが持つ米ドル資産"+rzYen(principal)+"相当（為替次第で増減）が上乗せされる、という比べ方になります。"));
   wrap.appendChild(rzNote("本シミュレーションはメットライフ生命「サニーガーデン プライム」の設計例をもとにした概算です。実際の積立利率・為替レート・受取金額は契約日により変動し、正式には設計書でご確認ください。解約控除・市場価格調整、税務上の取扱い（受取時の益金算入等）は、実行前に必ず保険会社の設計書と顧問税理士にご確認ください。"));
 
   var pbtn2=document.createElement("button");

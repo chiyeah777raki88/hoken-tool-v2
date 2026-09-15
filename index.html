@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0915-1319(パターン②に継続する保険料込みのキャッシュ比較を追加)";
+var APP_VERSION="v2-0915-1338(パターン②冒頭に月額保険料の比較グラフを追加)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2905,6 +2905,7 @@ function buildRationaleTab(){
   var afterMonth2=mainDeath?perMonth(mainDeath):0;
   var tsunagi=death.filter(function(p){return p!==mainDeath;});
   var tsunagiYear=tsunagi.reduce(function(s,p){return s+perMonth(p)*12;},0);
+  var duringMonthAll=death.reduce(function(s,p){return s+perMonth(p);},0)+yearlyShort/12; /* 提案の月額（月払い換算・前納なし） */
   var deductible=yearlyShort+tsunagiYear;
   var gain=refund*10000;
   var taxable=gain-deductible;
@@ -2930,7 +2931,7 @@ function buildRationaleTab(){
     patRow.appendChild(pb);
   });
   wrap.appendChild(patRow);
-  if(pattern==="2"){ buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShort); return wrap; }
+  if(pattern==="2"){ buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShort,curMonth,duringMonthAll,afterMonth2); return wrap; }
 
   var SEL=rzSelLoad(); var SECS={};
   function rzSecBox(n){var d=rzEl("div","");d.className="rz-sec";if(!SEL[n])d.style.display="none";SECS[n]=d;wrap.appendChild(d);return d;}
@@ -3028,7 +3029,7 @@ function buildRationaleTab(){
   return wrap;
 }
 
-function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto){
+function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto,curMonthAuto,duringMonthAuto,afterMonthAuto){
   var NAVY="#1a3a5c",RED="#c0392b",GREEN="#1e7a45",BLUE="#2f5f8f",ORANGE="#b8720d";
   var key=getCustomerKey()+"__rz2";
   var d;
@@ -3043,8 +3044,34 @@ function buildRationalePattern2(wrap,mem,cur,prop,refund,yearlyShortAuto){
   if(d.premYears==null)d.premYears=10;
   function save(){storageSet(key,JSON.stringify(d));}
 
+  var curMonth=+curMonthAuto||0, duringMonth=+duringMonthAuto||0, afterMonth=+afterMonthAuto||0;
+  wrap.appendChild(rzSec("月額保険料の比較（今と比べてどう変わるか）",NAVY));
+  wrap.appendChild(rzLead("30万円特例の話は年間ベースの目安で、実際の請求は月払いで進める前提です。今の保険料と、切り替えた場合の月々の保険料を並べます。",NAVY));
+  (function(){
+    var vals=[curMonth,duringMonth,afterMonth], labs=["現在","切替後 1〜10年目","切替後 11年目以降"], cols=["#7a8aa5",RED,GREEN];
+    var maxV=Math.max.apply(null,vals.map(function(v){return v||0;}))||1;
+    var bh=26,gap=12,pad=168,svgW=560;
+    var s='<svg width="'+svgW+'" height="'+((bh+gap)*vals.length)+'" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;">';
+    vals.forEach(function(v,i){
+      var y=i*(bh+gap);
+      var bw=Math.max(2,Math.round((v/maxV)*(svgW-pad-90)));
+      s+='<text x="0" y="'+(y+bh*0.68)+'" font-size="13.5" font-weight="700" fill="#333">'+labs[i]+'</text>';
+      s+='<rect x="'+pad+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="4" fill="'+cols[i]+'"/>';
+      s+='<text x="'+(pad+bw+8)+'" y="'+(y+bh*0.68)+'" font-size="14.5" font-weight="800" fill="'+cols[i]+'">¥'+Math.round(v).toLocaleString()+'/月</text>';
+    });
+    s+='</svg>';
+    var svgWrap=document.createElement("div");svgWrap.innerHTML=s;svgWrap.style.margin="6px 0 12px";
+    wrap.appendChild(svgWrap);
+  })();
+  wrap.appendChild(rzCards([
+    {label:"現在",value:rzYen(curMonth)+"/月",c:"#7a8aa5"},
+    {label:"切替後 1〜10年目",value:rzYen(duringMonth)+"/月",c:RED,sub:(duringMonth>=curMonth?"今より +":"今より −")+rzYen(Math.abs(duringMonth-curMonth))+"/月"},
+    {label:"切替後 11年目以降",value:rzYen(afterMonth)+"/月",c:GREEN,sub:(afterMonth>=curMonth?"今より +":"今より −")+rzYen(Math.abs(afterMonth-curMonth))+"/月"}
+  ]));
+  wrap.appendChild(rzNote("医療・がんの短期払い（10年）と定期のつなぎ分が終わる11年目以降は、マニュライフの保険料のみが残ります。"));
+
   wrap.appendChild(rzSec("解約返戻金の活用 ― サニーガーデン プライム（定期支払コース）か、保険料への充当か",BLUE));
-  wrap.appendChild(rzLead("損金算入は今回の論点にしていません。保険自体（医療・がんの保障）はどちらを選んでも継続するので、その保険料も含めて会社の手元キャッシュがどう動くかで比べます。",BLUE));
+  wrap.appendChild(rzLead("ここから先は、上の保険料とは別に会社にある解約返戻金をどう使うかの話です。損金算入は論点にしていません。",BLUE));
 
   var inRow=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 14px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
   inRow.className="no-print";

@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0912-0006(入力中に再描画で画面が先頭に飛ぶ不具合を修正)";
+var APP_VERSION="v2-0915-1259(提案根拠タブにパターン②解約返戻金の活用＝サニーガーデン定期支払vs保険料充当を追加)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -2916,6 +2916,22 @@ function buildRationaleTab(){
   h.appendChild(rzEl("div","font-size:13px;color:#666;",mem.name+" 様（"+(getAge(mem.dob)||"")+"歳）　法人契約"));
   wrap.appendChild(h);
   wrap.appendChild(rzNote("このページは、登録されている「現在の加入」と「提案内容」から自動計算しています。データを直すとここも連動します。"));
+
+  /* --- パターン切替（①損金メリット型／②解約返戻金活用型） --- */
+  var patKey=getCustomerKey()+"__rz_pattern";
+  var pattern=storageGet(patKey)||"1";
+  var patRow=rzEl("div","display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;padding:8px 12px;background:#f4f7fa;border:1px solid #c9d4e0;border-radius:7px;");
+  patRow.className="no-print";
+  [["1","① 名義変更・30万円特例（損金メリット重視）"],["2","② 解約返戻金の活用（サニーガーデン vs 保険料充当）"]].forEach(function(pt){
+    var pb=document.createElement("button");
+    pb.textContent=pt[1];
+    pb.style.cssText="padding:6px 12px;border:1px solid "+NAVY+";border-radius:5px;cursor:pointer;font-size:12.5px;font-weight:700;background:"+(pattern===pt[0]?NAVY:"#fff")+";color:"+(pattern===pt[0]?"#fff":NAVY)+";";
+    pb.addEventListener("click",function(){storageSet(patKey,pt[0]);render();});
+    patRow.appendChild(pb);
+  });
+  wrap.appendChild(patRow);
+  if(pattern==="2"){ buildRationalePattern2(wrap,mem,cur,prop,refund); return wrap; }
+
   var SEL=rzSelLoad(); var SECS={};
   function rzSecBox(n){var d=rzEl("div","");d.className="rz-sec";if(!SEL[n])d.style.display="none";SECS[n]=d;wrap.appendChild(d);return d;}
   if(!document.getElementById("rz-print-css")){var st=document.createElement("style");st.id="rz-print-css";
@@ -3010,6 +3026,80 @@ function buildRationaleTab(){
   S6.appendChild(rzP("・<b>税務の取扱いは個別事情により異なります。</b>30万円特例の適用可否、名義変更時の評価額、見舞金の相当額は、実行前に必ず顧問税理士にご確認ください。"));
 
   return wrap;
+}
+
+function buildRationalePattern2(wrap,mem,cur,prop,refund){
+  var NAVY="#1a3a5c",RED="#c0392b",GREEN="#1e7a45",BLUE="#2f5f8f",ORANGE="#b8720d";
+  var key=getCustomerKey()+"__rz2";
+  var d;
+  try{d=JSON.parse(storageGet(key)||"null");}catch(e){d=null;}
+  if(!d||typeof d!=="object")d={};
+  var mlPol=(prop||[]).find(function(p){return p.company==="メットライフ生命"&&(p.insType||"").indexOf("外貨建て")>=0;});
+  if(d.principal==null)d.principal=(mlPol&&(+mlPol.premAmount)>0)?+mlPol.premAmount:(refund>0?Math.round(refund*10000):2000000);
+  if(d.rate==null)d.rate=4.63;
+  if(d.years==null)d.years=20;
+  if(d.fx==null)d.fx=154;
+  function save(){storageSet(key,JSON.stringify(d));}
+
+  wrap.appendChild(rzSec("解約返戻金の活用 ― サニーガーデン プライム（定期支払コース）か、保険料への充当か",BLUE));
+  wrap.appendChild(rzLead("損金算入は今回の論点にしていません。既契約の解約返戻金をどう使うと会社にとって有利かを比べます。",BLUE));
+
+  var inRow=rzEl("div","display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 14px;padding:10px 12px;background:#f7f9fc;border:1px solid #c9d4e0;border-radius:7px;");
+  inRow.className="no-print";
+  function field(label,val,unit,cb){
+    var box=rzEl("div","display:flex;flex-direction:column;gap:3px;");
+    box.appendChild(rzEl("span","font-size:11.5px;color:#666;",label));
+    var r=rzEl("div","display:flex;align-items:center;gap:4px;");
+    var i=inp("number",val,cb);i.style.cssText="width:110px;padding:4px 6px;font-size:13px;border:1px solid #c9d4e0;border-radius:4px;";
+    r.appendChild(i);if(unit)r.appendChild(rzEl("span","font-size:12px;color:#666;",unit));
+    box.appendChild(r);return box;
+  }
+  inRow.appendChild(field("活用する解約返戻金（元本）",d.principal,"円",function(v){d.principal=v;save();render();}));
+  inRow.appendChild(field("積立利率",d.rate,"％/年",function(v){d.rate=v;save();render();}));
+  inRow.appendChild(field("利率保証年数",d.years,"年",function(v){d.years=v;save();render();}));
+  inRow.appendChild(field("参考為替レート（入金時）",d.fx,"円/ドル",function(v){d.fx=v;save();render();}));
+  wrap.appendChild(inRow);
+  if(refund>0){
+    wrap.appendChild(rzNote("※「現在の加入」に登録されている解約返戻金の合計は "+rzMan(refund*10000)+" です（初期値として元本欄に反映しています。変更した場合は上の欄で調整してください）。"));
+  }
+
+  var principal=+d.principal||0, rate=(+d.rate||0)/100, years=+d.years||20, fx=+d.fx||154;
+  var usd=fx>0?principal/fx:0;
+  var yearlyJPY=principal*rate;
+  var yearlyUSD=usd*rate;
+  var totalJPY=yearlyJPY*years;
+
+  wrap.appendChild(rzCards([
+    {label:"元本（一時払保険料）",value:rzYen(principal),c:NAVY,sub:"米ドル換算 約"+Math.round(usd).toLocaleString()+"ドル（レート"+fx+"円）"},
+    {label:"毎年の定期支払額",value:rzYen(yearlyJPY),c:BLUE,sub:"米ドルでは約"+yearlyUSD.toFixed(2)+"ドル／年（入金時と同じ為替の場合）"},
+    {label:years+"年間の受取累計",value:rzYen(totalJPY),c:GREEN,sub:"年1回・"+years+"年間 受け取った場合の単純合計"},
+    {label:years+"年後も残る資産",value:"約"+rzYen(principal)+"相当",c:ORANGE,sub:"米ドル建てのまま。円換算額は将来の為替次第"}
+  ]));
+  wrap.appendChild(rzNote("為替が動かなければ、毎年の受取額は「元本×積立利率」で決まり、為替レートの絶対水準そのものには左右されません（入金時に円高でも、受取時までに為替が戻れば円換算額は同じ）。得をするのは、入金した今日より受取の各年で円安（ドル高）に振れた場合です。逆に今日よりさらに円高が進むと、円換算の受取額はこれより減ります。"));
+
+  wrap.appendChild(rzSec("① と ② の比較",NAVY));
+  wrap.appendChild(rzTable(["","① サニーガーデン プライム（定期支払コース）","② 保険料への充当（従来のご提案と同じ考え方）"],[
+    ["使う解約返戻金","<b>"+rzYen(principal)+"</b>","同額 "+rzYen(principal)],
+    ["会社に残る資産","米ドル建て終身保険として残る（解約すれば返戻金化）","0円（保険料の支払いに充当し消費）"],
+    ["毎年のキャッシュ収入",rzYen(yearlyJPY)+"／年 を"+years+"年間","なし"],
+    [years+"年間の受取累計",rzYen(totalJPY),"0円（ただし将来の保険料負担がその場で"+rzYen(principal)+"分軽くなる）"],
+    ["万一（死亡）保障","保証期間中〜終身、死亡保険金が続く","既契約の保障のみ（保険料充当分の新たな保障はなし）"],
+    ["リスク","為替変動・市場価格調整・保証期間内の途中解約による解約控除","なし（資金はその場で使い切るため変動リスクを負わない）"]
+  ],["16%","46%","38%"]));
+  wrap.appendChild(rzP("<b>会社にとって：</b>①は解約返戻金を資産として持ち続けながら、毎年"+rzYen(yearlyJPY)+"の現金収入を生みます。資産は残るため、必要なときにあらためて解約・活用する余地も残ります。ただし為替と市場価格調整の影響は受けます。②は資金をその場で使い切りますが、将来の保険料負担を確実にその金額分減らせるので、為替などの変動リスクはありません。どちらが有利かは、会社が現金収入を今欲しいか、保険料負担を先に軽くしたいか、為替変動リスクをどこまで許容できるかによります。"));
+  wrap.appendChild(rzNote("本シミュレーションはメットライフ生命「サニーガーデン プライム」の設計例をもとにした概算です。実際の積立利率・為替レート・受取金額は契約日により変動し、正式には設計書でご確認ください。解約控除・市場価格調整、税務上の取扱い（受取時の益金算入等）は、実行前に必ず保険会社の設計書と顧問税理士にご確認ください。"));
+
+  var pbtn2=document.createElement("button");
+  pbtn2.textContent="🖨 この内容で印刷 / PDF保存";
+  pbtn2.className="no-print";
+  pbtn2.style.cssText="margin-top:10px;padding:6px 12px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;font-size:12.5px;font-weight:800;cursor:pointer;";
+  pbtn2.addEventListener("click",function(){
+    document.body.classList.add("przrz");
+    var done=function(){document.body.classList.remove("przrz");window.removeEventListener("afterprint",done);};
+    window.addEventListener("afterprint",done);
+    setTimeout(function(){window.print();},60);
+  });
+  wrap.appendChild(pbtn2);
 }
 
 function buildAssetsTab(){

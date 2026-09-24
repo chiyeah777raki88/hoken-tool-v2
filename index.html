@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0925-1030(加入一覧を「全て／個人のみ／法人のみ」で切り替えられるよう変更。がん特約に上皮内がん診断額の入力欄を追加。災害保障期間付定期保険を追加し、災害保障期間中は死亡保障グラフに計上しないよう修正。11年目以降の保険料残額を実際の払込区分で再計算。全て短期払のため0円に修正)";
+var APP_VERSION="v2-0925-1200(返戻金表を見やすく（枠内スクロール・見出し固定・5歳ごと強調）、空の行を消すボタン、法人契約は返戻金表を常に表示。加入一覧を「全て／個人のみ／法人のみ」で切り替えられるよう変更。がん特約に上皮内がん診断額の入力欄を追加。災害保障期間付定期保険を追加し、災害保障期間中は死亡保障グラフに計上しないよう修正。11年目以降の保険料残額を実際の払込区分で再計算。全て短期払のため0円に修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -669,7 +669,7 @@ function assetPairs(){return (assetSource==="proposal"&&state.proposalPolicies)?
 var summaryMember="all"; // 加入一覧の表示対象
 var tlPremSel={}; // タイムライン:保険料合計に含める証券
 var tlFamShow=false; // タイムライン:家族の年齢表示(トグル)
-var detShowAll=false,kanyuShowAll=false,kanyuShowKojin=false; // マイナー特約/個人表示トグル
+var _VPSO={};var detShowAll=false,kanyuShowAll=false,kanyuShowKojin=false; // マイナー特約/個人表示トグル
 var printSel={summary:true,graph:true,assets:true,compare:true}; // 印刷するタブ
 // 保険種類別の想定利率（％）。"scenario"＝運用シナリオ連動（変額系）。貯蓄性のない種類は0。
 var RATE_DEFAULT={"終身保険":1.5,"外貨建て終身保険":2.5,"定期保険":0,"低解約定期":1.5,"変額定期保険":"scenario","収入保障保険":0,"逓減定期保険":0,"養老保険":1.5,"変額終身保険":"scenario","変額養老保険":"scenario","医療保険":0,"がん保険":0,"3大疾病保険":0,"特定疾病保障終身保険":1.5,"特定疾病保障定期保険":0,"外貨建て特定疾病保障終身保険":2.5,"外貨建て特定疾病保障定期保険":0,"就業不能保険":0,"介護保険":0,"個人年金保険":3,"学資保険":1,"変額年金保険":"scenario","ドル建て災害終身保険":2.5,"総合保険（複合型）":1.5,"その他":1.5};
@@ -1732,7 +1732,7 @@ renderRR();
 var addRR=btn("＋ 更新保険料を追加","bg",function(){if(!pol.renewalRates)pol.renewalRates=[];pol.renewalRates.push({age:0,prem:0});saveState();renderRR();});
 cont.appendChild(sec("更新後保険料の目安（更新型のとき記入・一覧にも表示されます）",null,[rrRows,addRR]));
 }
-if(!(pol.insType&&(pol.insType.indexOf("変額")>=0||pol.insType.indexOf("年金")>=0||pol.insType.indexOf("終身")>=0||pol.insType.indexOf("養老")>=0||pol.insType.indexOf("学資")>=0||pol.insType.indexOf("総合保険")>=0||pol.insType.indexOf("低解約")>=0||pol.insType.indexOf("外貨建て")>=0||pol.insType.indexOf("ドル建て")>=0))&&!(pol.futureVals&&pol.futureVals.length)&&!((+pol.currentVal)>0)&&!(pol.refundVal>0||pol.refundAge>0)&&!pol.showVp){
+if(!(pol.insType&&(pol.insType.indexOf("変額")>=0||pol.insType.indexOf("年金")>=0||pol.insType.indexOf("終身")>=0||pol.insType.indexOf("養老")>=0||pol.insType.indexOf("学資")>=0||pol.insType.indexOf("総合保険")>=0||pol.insType.indexOf("低解約")>=0||pol.insType.indexOf("外貨建て")>=0||pol.insType.indexOf("ドル建て")>=0))&&!(pol.futureVals&&pol.futureVals.length)&&!((+pol.currentVal)>0)&&!(pol.refundVal>0||pol.refundAge>0)&&!pol.showVp&&!pol.isCorp&&!/災害保障期間付/.test(pol.insType||"")){
 var _vpAsk=el("div");_vpAsk.style.cssText="margin:8px 0;padding:8px 12px;background:#f7f9ff;border:1px solid #c3dafe;border-radius:6px;font-size:12px;color:#1a2744;display:flex;align-items:center;gap:10px;flex-wrap:wrap;";
 var _vpTx=el("span");_vpTx.textContent="この保険種類は掛け捨て扱いのため、解約返戻金の表は出していません。返戻金がある契約なら、こちらから表を出せます。";_vpAsk.appendChild(_vpTx);
 _vpAsk.appendChild(btn("解約返戻金の表を出す","bg",function(){pol.showVp=true;saveState();render();}));
@@ -1742,6 +1742,7 @@ var isVP=pol.insType&&(pol.insType.indexOf("変額")>=0||pol.insType.indexOf("�
 if(!isVP&&pol.futureVals&&pol.futureVals.length)isVP=true;
 if(!isVP&&((+pol.currentVal)>0))isVP=true;
 if(!isVP&&pol.showVp)isVP=true;
+if(!isVP&&(pol.isCorp||/災害保障期間付/.test(pol.insType||"")))isVP=true;
 if(isVP||pol.refundVal>0||pol.refundAge>0){
 var unit=pol.currency&&pol.currency!=="JPY"?pol.currency:"万円";
 if(!pol.futureVals)pol.futureVals=[];
@@ -1749,6 +1750,7 @@ var isVar=pol.insType&&pol.insType.indexOf("変額")>=0; // 変額系は運用�
 if(pol.showPaid===undefined)pol.showPaid=true;
 var vpTableWrap=el("div");
 var renderVpTable=function(){
+var _vpSt0=0;try{var _ob=vpTableWrap.querySelector(".vpBox");if(_ob)_vpSt0=_ob.scrollTop;}catch(e){}
 vpTableWrap.innerHTML="";
 // 払込累計・返戻率を使うかのチェック（掛け捨て等はオフにできる）
 var optBar=el("div");optBar.style.cssText="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;color:#1a2744;";
@@ -1758,13 +1760,16 @@ var olb=el("label");olb.style.cssText="cursor:pointer;display:flex;align-items:c
 olb.appendChild(ocb);olb.appendChild(document.createTextNode("払込累計・返戻率を表示する（掛け捨てはオフ）"));
 optBar.appendChild(olb);vpTableWrap.appendChild(optBar);
 var sp=!!pol.showPaid;
-var tbl=document.createElement("table");tbl.style.cssText="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;";
+var _emptyN=(pol.futureVals||[]).filter(function(r){return !(+r.paid)&&!(+r.v1)&&!(+r.v3)&&!(+r.v5)&&!(+r.v6);}).length;
+if(_emptyN>0){var _eb=el("div");_eb.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px;padding:5px 8px;background:#fff4e5;border:1px solid #f5c98a;border-radius:6px;font-size:12px;color:#8a5320;";var _et=el("span");_et.textContent="金額が空の行が "+_emptyN+" 行あります（計算では0円扱いになります）";_eb.appendChild(_et);var _ebb=btn("🧹 空の行を消す","bn",function(){pol.futureVals=(pol.futureVals||[]).filter(function(r){return (+r.paid)||(+r.v1)||(+r.v3)||(+r.v5)||(+r.v6);});upd("futureVals",pol.futureVals);renderVpTable();});_ebb.style.cssText="font-size:11px;padding:2px 8px;";_eb.appendChild(_ebb);vpTableWrap.appendChild(_eb);}
+var _tblBox=el("div");_tblBox.style.cssText="max-height:380px;overflow:auto;border:1px solid #ddd8cc;border-radius:6px;margin-bottom:8px;";
+var tbl=document.createElement("table");tbl.className="vpTbl";tbl.style.cssText="width:100%;border-collapse:collapse;font-size:12px;";
 var thead=el("thead"),hr=el("tr");
 var cols;
 if(isVar){cols=["年度","年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["-3%("+unit+")","0%("+unit+")","3%("+unit+")","6%("+unit+")",""]);}
 else{cols=["年度","年齢"].concat(sp?["払込累計("+unit+")"]:[]).concat(["解約返戻金("+unit+")"]).concat(sp?["返戻率"]:[]).concat([""]);}
 cols.forEach(function(h){
-var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:5px 6px;text-align:center;font-size:11px;";hr.appendChild(th);
+var th=el("th",null,h);th.style.cssText="background:#1a2744;color:white;padding:4px 4px;text-align:center;font-size:11px;position:sticky;top:0;z-index:1;white-space:nowrap;";hr.appendChild(th);
 });
 thead.appendChild(hr);tbl.appendChild(thead);
 var tbody=el("tbody");
@@ -1778,7 +1783,7 @@ var _su=el("button","btn bn");_su.textContent="↑";_su.title="この行から�
 _su.addEventListener("click",function(){_vpShift(["v1","v3","v5","v6","paid"],-1,ri);});
 var _sd=el("button","btn bn");_sd.textContent="↓";_sd.title="この行から下の金額だけ1つ下へずらす（年齢はそのまま）";_sd.style.cssText="padding:2px 5px;font-size:11px;margin-right:2px;";
 _sd.addEventListener("click",function(){_vpShift(["v1","v3","v5","v6","paid"],1,ri);});
-var _dw=el("div");_dw.style.cssText="display:flex;align-items:center;white-space:nowrap;";_dw.appendChild(_su);_dw.appendChild(_sd);_dw.appendChild(db);
+var _dw=el("div");_dw.style.cssText="display:flex;align-items:center;white-space:nowrap;";if(_VPSO[pol.id]){_dw.appendChild(_su);_dw.appendChild(_sd);}_dw.appendChild(db);
 var paidI=null;
 if(sp){paidI=inp("number",row.paid||"",function(v){pol.futureVals[ri].paid=+v;upd("futureVals",pol.futureVals);renderVpTable();});}
 if(isVar){
@@ -1800,10 +1805,13 @@ if(isVar){
   var cells=[yrC,ageI].concat(sp?[paidI]:[]).concat([rI]).concat(sp?[rate]:[]).concat([_dw]);
   cells.forEach(function(x){var td=el("td");td.style.padding="2px 3px";td.appendChild(x);tr.appendChild(td);});
 }
+var _a5=(+row.age>0&&(+row.age)%5===0);var _isE=!(+row.paid)&&!(+row.v1)&&!(+row.v3)&&!(+row.v5)&&!(+row.v6);tr.style.background=_isE?"#fff4e5":(_a5?"#eef3fb":(ri%2?"#fafafa":"#fff"));if(_a5)tr.style.fontWeight="700";
+Array.prototype.forEach.call(tr.querySelectorAll("input"),function(ip){ip.style.padding="2px 4px";ip.style.fontSize="12px";ip.style.textAlign="right";ip.style.border="1px solid #e3ded2";ip.style.minWidth="54px";if(!ip.style.background)ip.style.background="transparent";});
+Array.prototype.forEach.call(tr.children,function(td){td.style.padding="1px 2px";td.style.borderBottom="1px solid #eee";});
 tbody.appendChild(tr);
 });
 tbl.appendChild(tbody);
-vpTableWrap.appendChild(tbl);
+_tblBox.appendChild(tbl);vpTableWrap.appendChild(_tblBox);_tblBox.className="vpBox";if(_vpSt0)setTimeout(function(){_tblBox.scrollTop=_vpSt0;},0);
 var vpBtns=el("div");vpBtns.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center;";
 vpBtns.appendChild(btn("＋ 年齢を追加","bg",function(){
 if(!pol.futureVals)pol.futureVals=[];
@@ -1815,7 +1823,8 @@ function _vpShift(keys,dir,from){var fv=pol.futureVals||[];if(!fv.length)return;
 var vals=fv.map(function(r){var o={};keys.forEach(function(k){o[k]=r[k];});return o;});
 fv.forEach(function(r,i){if(i<_st)return;var src=(dir>0)?(i-1):(i+1);if(src<_st||src<0||src>=vals.length){keys.forEach(function(k){r[k]=0;});return;}keys.forEach(function(k){r[k]=vals[src][k];});});
 upd("futureVals",pol.futureVals);renderVpTable();}
-var _shRow=el("div");_shRow.style.cssText="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0;padding:5px 8px;background:#f7f9ff;border:1px solid #c3dafe;border-radius:6px;";
+var _shTg=btn((_VPSO[pol.id]?"▾":"▸")+" 行がズレているときの修正","bn",function(){_VPSO[pol.id]=!_VPSO[pol.id];renderVpTable();});_shTg.style.cssText="font-size:11px;padding:2px 8px;margin:0 0 6px;";vpTableWrap.appendChild(_shTg);
+var _shRow=el("div");_shRow.style.cssText="display:"+(_VPSO[pol.id]?"flex":"none")+";align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 6px;padding:5px 8px;background:#f7f9ff;border:1px solid #c3dafe;border-radius:6px;";
 var _shL=el("span");_shL.textContent="行がズレているとき：";_shL.style.cssText="font-size:12px;color:#1a2744;font-weight:700;";_shRow.appendChild(_shL);
 var _sb1=btn("解約返戻金を1行上へ","bn",function(){_vpShift(["v1","v3","v5","v6"],-1);});_sb1.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb1);
 var _sb2=btn("解約返戻金を1行下へ","bn",function(){_vpShift(["v1","v3","v5","v6"],1);});_sb2.style.cssText="font-size:11px;padding:3px 8px;";_shRow.appendChild(_sb2);

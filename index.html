@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-0925-1200(返戻金表を見やすく（枠内スクロール・見出し固定・5歳ごと強調）、空の行を消すボタン、法人契約は返戻金表を常に表示。加入一覧を「全て／個人のみ／法人のみ」で切り替えられるよう変更。がん特約に上皮内がん診断額の入力欄を追加。災害保障期間付定期保険を追加し、災害保障期間中は死亡保障グラフに計上しないよう修正。11年目以降の保険料残額を実際の払込区分で再計算。全て短期払のため0円に修正)";
+var APP_VERSION="v2-0925-1330(保障明細と重なる旧入力欄（死亡保障・就業不能・がん・3大疾病）を使っていなければ隠すよう変更。返戻金表を見やすく（枠内スクロール・見出し固定・5歳ごと強調）、空の行を消すボタン、法人契約は返戻金表を常に表示。加入一覧を「全て／個人のみ／法人のみ」で切り替えられるよう変更。がん特約に上皮内がん診断額の入力欄を追加。災害保障期間付定期保険を追加し、災害保障期間中は死亡保障グラフに計上しないよう修正。11年目以降の保険料残額を実際の払込区分で再計算。全て短期払のため0円に修正)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -669,7 +669,7 @@ function assetPairs(){return (assetSource==="proposal"&&state.proposalPolicies)?
 var summaryMember="all"; // 加入一覧の表示対象
 var tlPremSel={}; // タイムライン:保険料合計に含める証券
 var tlFamShow=false; // タイムライン:家族の年齢表示(トグル)
-var _VPSO={};var detShowAll=false,kanyuShowAll=false,kanyuShowKojin=false; // マイナー特約/個人表示トグル
+var _VPSO={},_OLDSEC={};var detShowAll=false,kanyuShowAll=false,kanyuShowKojin=false; // マイナー特約/個人表示トグル
 var printSel={summary:true,graph:true,assets:true,compare:true}; // 印刷するタブ
 // 保険種類別の想定利率（％）。"scenario"＝運用シナリオ連動（変額系）。貯蓄性のない種類は0。
 var RATE_DEFAULT={"終身保険":1.5,"外貨建て終身保険":2.5,"定期保険":0,"低解約定期":1.5,"変額定期保険":"scenario","収入保障保険":0,"逓減定期保険":0,"養老保険":1.5,"変額終身保険":"scenario","変額養老保険":"scenario","医療保険":0,"がん保険":0,"3大疾病保険":0,"特定疾病保障終身保険":1.5,"特定疾病保障定期保険":0,"外貨建て特定疾病保障終身保険":2.5,"外貨建て特定疾病保障定期保険":0,"就業不能保険":0,"介護保険":0,"個人年金保険":3,"学資保険":1,"変額年金保険":"scenario","ドル建て災害終身保険":2.5,"総合保険（複合型）":1.5,"その他":1.5};
@@ -2113,6 +2113,16 @@ var _hA=el("div");_hA.style.cssText="font-size:13px;font-weight:800;color:#2f6b3
 detailBox.insertBefore(_hA,detailBox.firstChild);
 var _n2=null;Array.prototype.slice.call(detailBox.children).forEach(function(n){if(!_n2&&_secHdrTxt(n).indexOf("死亡保障")===0)_n2=n;});
 if(_n2){var _hB=el("div");_hB.style.cssText="font-size:13px;font-weight:800;color:#1a2744;background:#eef3fb;border-left:4px solid #1a2744;padding:6px 10px;margin:14px 0 6px;";_hB.textContent="■ 保障の細かい設定";detailBox.insertBefore(_hB,_n2);}
+/* 上の「保障明細」で入力できる内容と重なる旧入力欄は、使っていなければ隠す（データは消さない） */
+var _need={"死亡保障":((pol.deathLines&&pol.deathLines.length>0)||(+pol.dlReducedAmount>0)||((+pol.daAmount>0)&&((+pol.daPeriodEnd>0)||(+pol.daMinGuarantee>0)))),
+"就業不能・介護":((+pol.disPayLimit>0)||(+pol.disMinGuarantee>0)||(+pol.carePayLimit>0)),
+"がん特約":(+pol.c2nd>0),
+"がん継続保障":(!!pol.cancerContinue||(+pol.cancerContinueAmount>0)),
+"3大疾病":((+pol.b1st>0&&+pol.b1st!==+pol.h1st)||!!pol.bigSplit)};
+var _hidN=[];Array.prototype.slice.call(detailBox.children).forEach(function(n){var t=_secHdrTxt(n);Object.keys(_need).forEach(function(k){if(t.indexOf(k)===0&&!_need[k]){_hidN.push(n);}});});
+if(_hidN.length){var _op=!!_OLDSEC[pol.id];_hidN.forEach(function(n){n.style.display=_op?"":"none";});
+var _tg=btn((_op?"▾ ":"▸ ")+"上の保障明細と重なる入力欄（死亡保障・就業不能・がん・3大疾病）を"+(_op?"隠す":"表示する"),"bn",function(){_OLDSEC[pol.id]=!_OLDSEC[pol.id];render();});_tg.style.cssText="font-size:11px;padding:3px 10px;margin:0 0 8px;background:#f4f4f4;color:#555;border:1px solid #ddd;";
+var _first=_hidN[0];detailBox.insertBefore(_tg,_first);}
 }catch(e){}
 detWrap.appendChild(detHdr);detWrap.appendChild(detailBox);cont.appendChild(detWrap);
 

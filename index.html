@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-1006-0510(提案根拠②をサニーガーデン案から元の提案に戻し、死亡保障300万円の内訳とつなぎ構造を修正。他の改善点は維持)";
+var APP_VERSION="v2-1008-1200(加入一覧・給付条件比較の印刷で端が切れないよう、用紙の余白を4mm→8mmに広げた。提案根拠②をサニーガーデン案から元の提案に戻し、死亡保障300万円の内訳とつなぎ構造を修正。他の改善点は維持)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4753,7 +4753,7 @@ var _t=pw.querySelector(".kanyu")||_box;
 _fitFillKanyu(pw,_t,1046,690);
 _pageFill(pw);
 pa.appendChild(pw);
-document.body.classList.add("psplit");setPageOrient("landscape",4);_withPrintTitle(printName((isProp?"提案_":"")+"加入一覧"),function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";});
+document.body.classList.add("psplit");setPageOrient("landscape",8);_withPrintTitle(printName((isProp?"提案_":"")+"加入一覧"),function(){document.body.classList.remove("psplit");pw.style.zoom="1";pa.innerHTML="";});
 setTimeout(function(){window.print();},250);
 }
 function _buildPropCmpFitted(quiet){
@@ -4815,7 +4815,7 @@ try{pw.querySelectorAll("td > div").forEach(function(dv){if(!(dv.textContent||""
 _fitFillMatrix(pw,1058,726);
 _pageFill(pw);
 pa.appendChild(pw);
-document.body.classList.add("psplit");setPageOrient("landscape",4);_withPrintTitle(printName((isProp?"提案_":"")+"給付条件比較"),function(){document.body.classList.remove("psplit");pa.innerHTML="";});
+document.body.classList.add("psplit");setPageOrient("landscape",8);_withPrintTitle(printName((isProp?"提案_":"")+"給付条件比較"),function(){document.body.classList.remove("psplit");pa.innerHTML="";});
 setTimeout(function(){window.print();},250);
 }
 function _fitFillMatrix(pw,maxW,maxH){

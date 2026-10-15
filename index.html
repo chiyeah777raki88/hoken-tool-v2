@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-1015-2300(合計の死亡保障は災害保障期間中の証券を除いた「今の額」に。死亡保険金が1億円以上（万円で10000超）だと「4万」のように1万分の1で表示される不具合を修正。Excelで直した加入一覧を取り込むと、次回からの出力に同じ直し（文字・改行・色・幅・高さ・消した行列・余白）を反映する機能を追加。Excel出力：行の高さを実測し、A4横に合う列幅を自動で選んで紙いっぱいに大きく印刷されるよう修正。Excel出力：Excelの印刷プレビューで表が出ない不具合を修正（行の設定値・印刷範囲・解像度を明示）。開くと改ページプレビュー表示。加入一覧をExcel(.xlsx)で出力するボタンを追加（加入一覧タブと印刷タブ）。加入一覧の印刷：証券が多い時に表が用紙の半分の幅に縮んで余白だらけになる不具合を修正。用紙いっぱいに広げて文字を最大にする。加入一覧の印刷で、1枚に収まる範囲で文字を自動で最大まで大きくするよう変更。印刷余白を5mmに。加入一覧・給付条件比較の印刷で端が切れないよう、用紙の余白を4mm→8mmに広げた。提案根拠②をサニーガーデン案から元の提案に戻し、死亡保障300万円の内訳とつなぎ構造を修正。他の改善点は維持)";
+var APP_VERSION="v2-1015-2330(合計の死亡保障は災害保障期間中の証券を除いた「今の額」に。死亡保険金が1億円以上（万円で10000超）だと「4万」のように1万分の1で表示される不具合を修正。Excelで直した加入一覧を取り込むと、次回からの出力に同じ直し（文字・改行・色・幅・高さ・消した行列・余白）を反映する機能を追加。Excel出力：行の高さを実測し、A4横に合う列幅を自動で選んで紙いっぱいに大きく印刷されるよう修正。Excel出力：Excelの印刷プレビューで表が出ない不具合を修正（行の設定値・印刷範囲・解像度を明示）。開くと改ページプレビュー表示。加入一覧をExcel(.xlsx)で出力するボタンを追加（加入一覧タブと印刷タブ）。加入一覧の印刷：証券が多い時に表が用紙の半分の幅に縮んで余白だらけになる不具合を修正。用紙いっぱいに広げて文字を最大にする。加入一覧の印刷で、1枚に収まる範囲で文字を自動で最大まで大きくするよう変更。印刷余白を5mmに。加入一覧・給付条件比較の印刷で端が切れないよう、用紙の余白を4mm→8mmに広げた。提案根拠②をサニーガーデン案から元の提案に戻し、死亡保障300万円の内訳とつなぎ構造を修正。他の改善点は維持)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4178,7 +4178,7 @@ function _isOneOf(p){if(!p)return false;if(p.oneOfDeath)return true;return !!p.c
 function _waOn(p){var _wa=+((typeof state!=="undefined"&&state.wholeAge)||0);if(!(_wa>0)||!p)return false;if(((p.dlPeriodType||"")+(p.dlPayType||"")).indexOf("更新")>=0)return false;var _pe=+(p.dlPeriodEnd||0);return _pe>=_wa;}
 function _getAccAges(){var a=state.accAges;if(a&&a.length===3&&a.every(function(x){return +x>0;}))return a.map(Number);return [65,70,80];}
 function kanyuRowDefs(){var _accAges=_getAccAges();var _KR=[
-{k:"death",l:"死亡一時金",u:"万",grp:"保障",g:function(p){if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(!_isFx(p)&&a>=1000000)a=Math.round(a/10000);s+=a;});if(s>0)return s;}var v=+p.dlAmount||0;var mv=(!_isFx(p)&&v>=1000000)?Math.round(v/10000):v;return (_hasLump(p)&&!_inDisPeriodNow(p))?mv:0;},disp:function(p){var mv=0;if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(!_isFx(p)&&a>=1000000)a=Math.round(a/10000);s+=a;});mv=s;}if(!(mv>0)){var v=+p.dlAmount||0;mv=((!_isFx(p)&&v>=1000000)?Math.round(v/10000):v);if(!(_hasLump(p)))mv=0;}if(!(mv>0))return "";if((p.insType||"").indexOf("災害")>=0&&+p.disasterPeriodYears>0){return mv.toLocaleString()+"万("+((+p.disasterPeriodYears)+1)+"年目〜)";}return mv.toLocaleString()+"万";}},
+{k:"death",l:"死亡一時金",u:"万",grp:"保障",g:function(p){if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(!_isFx(p)&&a>=1000000)a=Math.round(a/10000);s+=a;});if(s>0)return s;}var v=+p.dlAmount||0;var mv=(!_isFx(p)&&v>=1000000)?Math.round(v/10000):v;return (_hasLump(p))?mv:0;},disp:function(p){var mv=0;if(p.deathLines&&p.deathLines.length){var s=0;p.deathLines.forEach(function(dl){var a=+dl.amount||0;if(!_isFx(p)&&a>=1000000)a=Math.round(a/10000);s+=a;});mv=s;}if(!(mv>0)){var v=+p.dlAmount||0;mv=((!_isFx(p)&&v>=1000000)?Math.round(v/10000):v);if(!(_hasLump(p)))mv=0;}if(!(mv>0))return "";if((p.insType||"").indexOf("災害")>=0&&+p.disasterPeriodYears>0){return mv.toLocaleString()+"万("+((+p.disasterPeriodYears)+1)+"年目〜)";}return mv.toLocaleString()+"万";}},
 {k:"dann",l:"死亡(月額)",u:"万/月",grp:"保障",g:function(p){return (_hasAnn(p))?(+p.daAmount||0):0;}},
 {k:"hospin",l:"入院一時金",u:"万",grp:"保障",g:function(p){return +p.hospLumpIn||0;}},
 {k:"hospout",l:"退院一時金",u:"万",grp:"保障",g:function(p){return +p.hospLumpOut||0;}},
@@ -4588,7 +4588,7 @@ tr.appendChild(td);
 });
 if(row.isFlag){var tdS=el("td",null,"");tdS.style.background="#fafafa";tr.appendChild(tdS);tb.appendChild(tr);return;}
 var tdSum=el("td");tdSum.style.cssText="text-align:center;font-weight:700;background:#fdf8ec;white-space:nowrap;font-size:12px;";
-if(row.noSum){tdSum.textContent="—";}else{tdSum.innerHTML=_sumCellHTML(function(p){return row.g(p)||0;},row.u);}
+if(row.noSum){tdSum.textContent="—";}else{tdSum.innerHTML=_sumCellHTML(function(p){if(row.k==="death"&&_inDisPeriodNow(p))return 0;return row.g(p)||0;},row.u);}
 tr.appendChild(tdSum);
 tb.appendChild(tr);
 });

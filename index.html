@@ -401,7 +401,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-1016-1330(Excelで直した行の高さ・列の幅・文字の大きさ・赤字などの色・一部だけの色をそのまま次回の出力に反映)";
+var APP_VERSION="v2-1016-1345(Excelで直した行の高さ・列の幅・文字の大きさ・赤字などの色・一部だけの色をそのまま次回の出力に反映)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4871,7 +4871,7 @@ var v=_xlCellText(cell.value);var o={};if(!g||_xlNorm(v.replace(/1㌦/g,"1ドル
 /* 見た目は、出力したときと違うところだけ覚える（変えていないセルは毎回最新の決まりで出す） */
 var f=cell.font||{};if(g){var gf=g.font||{};var fc=_xlColorArgb(f.color,TH)||"FF000000",gc=_xlColorArgb(gf.color,TH)||"FF000000";var fd={};if(fc!==gc)fd.color={argb:fc};if(!!f.bold!==!!gf.bold)fd.bold=!!f.bold;if(f.italic)fd.italic=true;if(f.underline)fd.underline=f.underline;if(f.size&&gf.size&&Math.abs(f.size-Math.max(6,Math.round(gf.size*XF)))>=1)fd.size=f.size;if(Object.keys(fd).length)o.fontDiff=fd;
 /* セルの中の一部だけ色・太字を変えた場合 */
-var cv=cell.value;if(cv&&typeof cv==="object"&&cv.richText&&cv.richText.length>1){var _bc=fd.color?fd.color.argb:gc;var _any=false;var runs=cv.richText.map(function(rr){var rf=rr.font||{};var x={t:rr.text||""};var rc2=_xlColorArgb(rf.color,TH);if(rc2&&rc2!==_bc){x.c=rc2;_any=true;}if(rf.bold!=null&&!!rf.bold!==!!(fd.bold!=null?fd.bold:gf.bold)){x.b=!!rf.bold;_any=true;}return x;});if(_any)o.runs=runs;}}
+var cv=cell.value;if(cv&&typeof cv==="object"&&cv.richText&&cv.richText.length>1){var _bc=fd.color?fd.color.argb:gc;var _any=false;var runs=cv.richText.map(function(rr){var x={t:rr.text||""};if(!rr.font)return x;var rf=rr.font;var rc2=_xlColorArgb(rf.color,TH);if(rc2&&rc2!==_bc){x.c=rc2;_any=true;}if(!!rf.bold!==!!(fd.bold!=null?fd.bold:gf.bold)){x.b=!!rf.bold;_any=true;}return x;});if(_any)o.runs=runs;}}
 var fl=cell.fill;var flc=(fl&&fl.type==="pattern"&&fl.fgColor)?_xlColorArgb(fl.fgColor,TH):null;if(g&&(flc||null)!==(g.fill||null)&&!(flc==="FFFFFFFF"&&!g.fill))o.fill=flc;
 if(Object.keys(o).length)ov.cells[key]=o;});});
 M.rows.forEach(function(row){if(!seenR[row.key])ov.hideRows.push(row.key);});

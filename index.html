@@ -400,7 +400,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-1016-0700(手術(入院/外来)の行だけ緑・青だった数字の色を、他の行と同じ決まり（一生続く＝緑、途中で終わる＝赤）に統一。Excel出力：改行の多いセルで文字が重なる・切れる問題を修正（行の高さを改行数から確保）。セル内の改行の行間を狭く（Excelは行間の狭いBIZ UDPゴシックに、印刷は行の高さを詰めた）。Excelの文字色を画面と同じに。Excel出力で、画面では緑・赤の文字が黒になっていたセルを画面と同じ色に。加入一覧：法人の列を太い金色の枠で囲み、見出しを法人＝金・個人＝青で色分け（画面・印刷・Excel）。証券が少ない方の印刷で下に余白が残る問題を修正（文字をさらに大きく）。Excelは全セル同じ書体・上下中央。加入一覧を見やすく作り直し：外貨は「$額／1ドル○円⇒○万」、保険料合計は円と外貨を分けて表示、死亡保障合計は「今／○年目〜」、印刷とExcelは意味の切れ目で改行し数字の途中で切らない。Excel出力：上下左右の余白がそろうよう、表の縦横比を用紙に合わせる。Excelのファイル名を「選んだ方の名前_個人/法人_日付_時刻」にして見分けやすく。Excel出力：証券が少ない方は拡大して用紙いっぱいに印刷（余白だらけを解消）。合計の死亡保障は災害保障期間中の証券を除いた「今の額」に。死亡保険金が1億円以上（万円で10000超）だと「4万」のように1万分の1で表示される不具合を修正。Excelで直した加入一覧を取り込むと、次回からの出力に同じ直し（文字・改行・色・幅・高さ・消した行列・余白）を反映する機能を追加。Excel出力：行の高さを実測し、A4横に合う列幅を自動で選んで紙いっぱいに大きく印刷されるよう修正。Excel出力：Excelの印刷プレビューで表が出ない不具合を修正（行の設定値・印刷範囲・解像度を明示）。開くと改ページプレビュー表示。加入一覧をExcel(.xlsx)で出力するボタンを追加（加入一覧タブと印刷タブ）。加入一覧の印刷：証券が多い時に表が用紙の半分の幅に縮んで余白だらけになる不具合を修正。用紙いっぱいに広げて文字を最大にする。加入一覧の印刷で、1枚に収まる範囲で文字を自動で最大まで大きくするよう変更。印刷余白を5mmに。加入一覧・給付条件比較の印刷で端が切れないよう、用紙の余白を4mm→8mmに広げた。提案根拠②をサニーガーデン案から元の提案に戻し、死亡保障300万円の内訳とつなぎ構造を修正。他の改善点は維持)";
+var APP_VERSION="v2-1016-0800(Excelの直しの取り込みが全セルの見た目を古い形で固定していた不具合を修正（変えたところだけ覚える。古い取り込みは無効に）。印刷とExcelの日付の横に版番号。手術(入院/外来)の行だけ緑・青だった数字の色を、他の行と同じ決まり（一生続く＝緑、途中で終わる＝赤）に統一。Excel出力：改行の多いセルで文字が重なる・切れる問題を修正（行の高さを改行数から確保）。セル内の改行の行間を狭く（Excelは行間の狭いBIZ UDPゴシックに、印刷は行の高さを詰めた）。Excelの文字色を画面と同じに。Excel出力で、画面では緑・赤の文字が黒になっていたセルを画面と同じ色に。加入一覧：法人の列を太い金色の枠で囲み、見出しを法人＝金・個人＝青で色分け（画面・印刷・Excel）。証券が少ない方の印刷で下に余白が残る問題を修正（文字をさらに大きく）。Excelは全セル同じ書体・上下中央。加入一覧を見やすく作り直し：外貨は「$額／1ドル○円⇒○万」、保険料合計は円と外貨を分けて表示、死亡保障合計は「今／○年目〜」、印刷とExcelは意味の切れ目で改行し数字の途中で切らない。Excel出力：上下左右の余白がそろうよう、表の縦横比を用紙に合わせる。Excelのファイル名を「選んだ方の名前_個人/法人_日付_時刻」にして見分けやすく。Excel出力：証券が少ない方は拡大して用紙いっぱいに印刷（余白だらけを解消）。合計の死亡保障は災害保障期間中の証券を除いた「今の額」に。死亡保険金が1億円以上（万円で10000超）だと「4万」のように1万分の1で表示される不具合を修正。Excelで直した加入一覧を取り込むと、次回からの出力に同じ直し（文字・改行・色・幅・高さ・消した行列・余白）を反映する機能を追加。Excel出力：行の高さを実測し、A4横に合う列幅を自動で選んで紙いっぱいに大きく印刷されるよう修正。Excel出力：Excelの印刷プレビューで表が出ない不具合を修正（行の設定値・印刷範囲・解像度を明示）。開くと改ページプレビュー表示。加入一覧をExcel(.xlsx)で出力するボタンを追加（加入一覧タブと印刷タブ）。加入一覧の印刷：証券が多い時に表が用紙の半分の幅に縮んで余白だらけになる不具合を修正。用紙いっぱいに広げて文字を最大にする。加入一覧の印刷で、1枚に収まる範囲で文字を自動で最大まで大きくするよう変更。印刷余白を5mmに。加入一覧・給付条件比較の印刷で端が切れないよう、用紙の余白を4mm→8mmに広げた。提案根拠②をサニーガーデン案から元の提案に戻し、死亡保障300万円の内訳とつなぎ構造を修正。他の改善点は維持)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4799,13 +4799,13 @@ function exportKanyuExcel(isProp){
 if(!_kanyuXlPairs(isProp).length){alert(isProp?"提案証券がありません":"証券がありません");return;}
 _loadExcelJS(function(){try{
 var M=_kanyuXlModel(isProp);if(!M)return;
-var ov=((state.kanyuXl||{})[_kanyuXlScope(isProp)])||{};var ovc=ov.cells||{},hideR=ov.hideRows||[],hideC=ov.hideCols||[];
+var ov=((state.kanyuXl||{})[_kanyuXlScope(isProp)])||{};/* 古い形式の取り込み（全セルの見た目を固定していたもの）は使わない */try{var _ck=ov.cells||{};if(Object.keys(_ck).some(function(k){return _ck[k]&&(_ck[k].align||_ck[k].font);}))ov={};}catch(e){}var ovc=ov.cells||{},hideR=ov.hideRows||[],hideC=ov.hideCols||[];
 var vis=[];M.colKeys.forEach(function(k,i){if(hideC.indexOf(k)<0)vis.push(i);});var nC=vis.length;var outCol={};vis.forEach(function(i,j){outCol[i]=j+1;});
 var KEYC=nC+2,R0=3;
 var wb=new ExcelJS.Workbook();var ws=wb.addWorksheet("加入一覧",{properties:{dyDescent:0.25,defaultRowHeight:15},views:[{showGridLines:false,style:"pageBreakPreview",zoomScale:70,zoomScaleNormal:100}]});
 var d=new Date();var ymd=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
 var t1=ws.getCell(1,1);t1.value=(ovc["_title|_label"]&&ovc["_title|_label"].v!=null)?ovc["_title|_label"].v:(isProp?"【提案】内容一覧":"加入内容一覧");t1.font={name:"BIZ UDPゴシック",bold:true,size:14,color:{argb:"FF1A2744"}};
-var rc=ws.getCell(1,nC);rc.value=(M.bime?(M.bime.name||M.bime.relation)+" 様　":"")+ymd;rc.alignment={horizontal:"right",vertical:"bottom"};rc.font={name:"BIZ UDPゴシック",size:10,color:{argb:"FF555555"}};
+var rc=ws.getCell(1,nC);rc.value=(M.bime?(M.bime.name||M.bime.relation)+" 様　":"")+ymd+"　"+String(APP_VERSION).slice(0,12);rc.alignment={horizontal:"right",vertical:"bottom"};rc.font={name:"BIZ UDPゴシック",size:10,color:{argb:"FF555555"}};
 if(nC>2)ws.mergeCells(1,1,1,Math.max(1,nC-2));
 /* 2行目（隠し）：列の目印。右端の隠し列：行の目印。Excelで直して取り込むときに使う */
 vis.forEach(function(i,j){ws.getCell(2,j+1).value=M.colKeys[i];});ws.getCell(2,KEYC).value="__rowkey__";ws.getRow(2).hidden=true;
@@ -4814,8 +4814,8 @@ var thin={style:"thin",color:{argb:"FFBFBFBF"}};var r=R0;
 M.rows.forEach(function(row){if(hideR.indexOf(row.key)>=0)return;
 row.cells.forEach(function(c){var lastI=c.ci+c.cs-1;var cols=[];for(var q=c.ci;q<=lastI;q++)if(outCol[q])cols.push(outCol[q]);if(!cols.length)return;
 var cell=ws.getCell(r,cols[0]);var o=ovc[row.key+"|"+M.colKeys[c.ci]]||{};
-cell.value=(o.v!=null)?o.v:c.v;cell.font=Object.assign({},o.font||c.font,{name:"BIZ UDPゴシック"});var fl=(o.fill!==undefined)?o.fill:c.fill;if(fl)cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:fl}};
-cell.alignment=o.align||c.align;var _b0=c.bd||{};cell.border={top:_b0.top||thin,left:_b0.left||thin,bottom:_b0.bottom||thin,right:_b0.right||thin};
+cell.value=(o.v!=null)?o.v:c.v;cell.font=Object.assign({},c.font,o.fontDiff||{},{name:"BIZ UDPゴシック"});var fl=(o.fill!==undefined)?o.fill:c.fill;if(fl)cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:fl}};
+cell.alignment=c.align;var _b0=c.bd||{};cell.border={top:_b0.top||thin,left:_b0.left||thin,bottom:_b0.bottom||thin,right:_b0.right||thin};
 if(cols.length>1){try{ws.mergeCells(r,cols[0],r,cols[cols.length-1]);}catch(e){}}});
 ws.getCell(r,KEYC).value=row.key;var rh=(ov.rowH&&ov.rowH[row.key])||row.h;
 /* Excelの行間は画面より広いので、改行の数×文字の大きさから必要な高さを出して足りなければ広げる */
@@ -4855,10 +4855,10 @@ var tv=_xlCellText(ws.getCell(1,1).value);if(tv&&tv!==(isProp?"【提案】内�
 ws.eachRow({includeEmpty:false},function(row,rn){if(rn<3)return;var rk=_xlCellText(row.getCell(KEYC).value);if(!rk)return;seenR[rk]=1;if(row.height)ov.rowH[rk]=row.height;
 Object.keys(colMap).forEach(function(c){var cell=row.getCell(+c);if(cell.isMerged&&cell.master&&cell.master.address!==cell.address)return;var key=rk+"|"+colMap[c];var g=gen[key];
 var v=_xlCellText(cell.value);var o={};if(!g||_xlNorm(v)!==_xlNorm(g.v))o.v=v;
-var f=cell.font||{};if(f.size||f.bold!=null||f.color)o.font={size:f.size||(g&&g.font.size)||10,bold:!!f.bold,color:(f.color&&f.color.argb)?{argb:f.color.argb}:((g&&g.font.color)||{argb:"FF222222"})};
-var fl=cell.fill;o.fill=(fl&&fl.type==="pattern"&&fl.fgColor&&fl.fgColor.argb)?fl.fgColor.argb:null;
-var al=cell.alignment||{};o.align={horizontal:al.horizontal||"general",vertical:al.vertical||"middle",wrapText:!!al.wrapText};
-ov.cells[key]=o;});});
+/* 見た目は、出力したときと違うところだけ覚える（変えていないセルは毎回最新の決まりで出す） */
+var f=cell.font||{};if(g){var gf=g.font||{};var fc=(f.color&&f.color.argb)||null,gc=(gf.color&&gf.color.argb)||null;var fd={};if(fc&&gc&&fc!==gc)fd.color={argb:fc};if(f.bold!=null&&!!f.bold!==!!gf.bold)fd.bold=!!f.bold;if(f.size&&gf.size&&Math.abs(f.size-gf.size)>0.4)fd.size=f.size;if(Object.keys(fd).length)o.fontDiff=fd;}
+var fl=cell.fill;var flc=(fl&&fl.type==="pattern"&&fl.fgColor&&fl.fgColor.argb)?fl.fgColor.argb:null;if(g&&(flc||null)!==(g.fill||null)&&!(flc==="FFFFFFFF"&&!g.fill))o.fill=flc;
+if(Object.keys(o).length)ov.cells[key]=o;});});
 M.rows.forEach(function(row){if(!seenR[row.key])ov.hideRows.push(row.key);});
 M.colKeys.forEach(function(k){if(!seenC[k])ov.hideCols.push(k);});
 var ps=ws.pageSetup||{};if(ps.margins)ov.margins=ps.margins;
@@ -4884,7 +4884,7 @@ var t=new Date();var ymd=t.getFullYear()+"年"+(t.getMonth()+1)+"月"+t.getDate(
 var hd=el("div");hd.style.cssText="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a2744;padding-bottom:4px;margin-bottom:8px;";
 var h1=el("span");h1.style.cssText="font-size:15px;font-weight:700;color:#1a2744;";h1.textContent=(isProp?"【提案】内容一覧":"加入内容一覧");
 var _bime=(function(){var s={};mem.forEach(function(m){if(m&&m.id)s[m.id]=m;});var ks=Object.keys(s);return ks.length===1?s[ks[0]]:(_selM||null);})();
-var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=(_bime?(_bime.name||_bime.relation)+" 様　":"")+ymd;
+var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=(_bime?(_bime.name||_bime.relation)+" 様　":"")+ymd+"　"+String(APP_VERSION).slice(0,12);
 hd.appendChild(h1);hd.appendChild(h2);
 var pw=el("div");pw.id="pkwrap";pw.style.cssText="transform-origin:top left;display:inline-block;";pw.appendChild(hd);
 var _ksa=kanyuShowAll;kanyuShowAll=false;var _box=buildKanyuTable(pols,mem);kanyuShowAll=_ksa;

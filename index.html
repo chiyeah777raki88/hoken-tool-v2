@@ -401,7 +401,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-1016-1545(Excelで直した文字・赤字をツールの画面と印刷にも反映。右上の名前・日付の見切れ修正。Excelで直した文字は全部残す。以後ツールで内容を変えたらそちらを優先。Excelの下の余白が広い問題：日本語Excelの列幅で計算し、直した表も用紙いっぱいに合わせる)";
+var APP_VERSION="v2-1016-1615(ツールで直した内容（備考・払込など）をExcelにも必ず反映。損金割合はツールの経理処理の値を出す（赤字のまま）。Excelで直した文字・赤字をツールの画面と印刷にも反映。右上の名前・日付の見切れ修正。Excelで直した文字は全部残す。以後ツールで内容を変えたらそちらを優先。Excelの下の余白が広い問題：日本語Excelの列幅で計算し、直した表も用紙いっぱいに合わせる)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4378,6 +4378,15 @@ function _sideSig(k,pols){var best=null,bv=-1;(pols||[]).forEach(function(p){var
 function _premSplit(pols){var pi=0,co=0;(pols||[]).forEach(function(p){var mm=+toM(p);if(mm&&mm<500000){if(p.isCorp)co+=mm;else pi+=mm;}});return {pi:pi,co:co,total:pi+co};}
 function _premBreakCell(pols){var s=_premSplit(pols);var h="<b>保険料/月</b><br>総 ¥"+s.total.toLocaleString();if(s.co>0&&s.pi>0){h+="<br><span style='color:#33415c;'>個人 ¥"+s.pi.toLocaleString()+"</span><br><span style='color:#9a6b00;background:#fff3d6;border-radius:3px;padding:0 2px;'>法人 ¥"+s.co.toLocaleString()+"</span>";}else if(s.co>0){h+="<br><span style='color:#9a6b00;background:#fff3d6;border-radius:3px;padding:0 2px;'>法人 ¥"+s.co.toLocaleString()+"</span>";}else{h+="<br><span style='color:#33415c;'>個人 ¥"+s.pi.toLocaleString()+"</span>";}return h;}
 /* Excelで直した文字・赤字を、ツールの画面と印刷にも同じように出す（ツールの内容があとで変わったセルはツールの内容のまま） */
+/* 損金割合はツールの経理処理が正。Excelで手入力した損金と食い違ったら、ツールの値を出す（赤字はそのまま） */
+function _xlSonkin(t){var m=String(t||"").replace(/[\s　]/g,"").replace(/％/g,"%").match(/損金[^0-9０-９]*([0-9０-９.]+)%?/);return m?m[1].replace(/[０-９]/g,function(d){return String.fromCharCode(d.charCodeAt(0)-65248);}):null;}
+/* Excelで直した文字を使うかどうか。ツールの内容があとで変わっていたらツールの内容を使う */
+function _xlUseText(o,cur){if(!o||o.v==null)return false;var sq=function(x){return String(x||"").replace(/1㌦/g,"1ドル").replace(/[\s\u3000\u200B\u2060]/g,"");};var a=sq(o.v),b=sq(cur);if(a===b)return true;if(_xlSonkinX(o.v,cur))return false;
+if(o.exact)return sq(o.src)===b;
+/* 前の取り込み（出力したときの内容の記録なし）：ツールの欄が空なら使う。文字を消しただけ・改行を変えただけの直しなら使う。ツールに無い文字が入っていたら（ツール側で直した可能性）ツールの内容 */
+if(!b||b==="—"||b==="-"||b==="ー")return true;if(!a||a==="—"||a==="-")return false;var i=0;for(var k=0;k<b.length&&i<a.length;k++){if(b.charAt(k)===a.charAt(i))i++;}return i===a.length;}
+function _xlSonkinX(v,cur){var a=_xlSonkin(v),b=_xlSonkin(cur);return !!(b&&a!==b);}
+function _xlAutoRuns(txt,oldRuns){try{if(!oldRuns)return null;var red=oldRuns.filter(function(x){return x.c&&/損金/.test(x.t);})[0];if(!red)return null;var i=txt.indexOf("損金");if(i<0)return null;var j=txt.indexOf("\n",i);if(j<0)j=txt.length;var r=[];if(i>0)r.push({t:txt.slice(0,i)});r.push({t:txt.slice(i,j),c:red.c,b:red.b});if(j<txt.length)r.push({t:txt.slice(j)});return r;}catch(e){return null;}}
 function _kanyuApplyXl(box,pols,isProp){try{var ov=((state.kanyuXl||{})[_kanyuXlScope(isProp)])||null;if(!ov||!ov.cells)return box;var cells={};Object.keys(ov.cells).forEach(function(k){cells[String(k).replace(/[​⁠]/g,"")]=ov.cells[k];});
 var t=box.querySelector("table");if(!t)return box;var grid=[],maxC=0;
 Array.prototype.forEach.call(t.rows,function(tr,ri){if(!grid[ri])grid[ri]=[];var ci=0;Array.prototype.forEach.call(tr.cells,function(td){while(grid[ri][ci])ci++;var cs=td.colSpan||1,rs=td.rowSpan||1;for(var a=0;a<rs;a++){if(!grid[ri+a])grid[ri+a]=[];for(var b=0;b<cs;b++)grid[ri+a][ci+b]=(a===0&&b===0)?{td:td}:"x";}ci+=cs;if(ci>maxC)maxC=ci;});});
@@ -4390,9 +4399,9 @@ var seen={};
 grid.forEach(function(row,ri){var lab="";var g0=row[c0];if(g0&&g0!=="x")lab=(g0.td.innerText||g0.td.textContent||"").replace(/[\s​⁠]+/g,"");if(!lab)lab="row";var key=lab;if(seen[key]){seen[key]++;key=lab+"#"+seen[key];}else seen[key]=1;
 row.forEach(function(g,ci){if(ci<c0||!g||g==="x")return;var o=cells[key+"|"+colKey(ci-c0)];if(!o)return;var td=g.td;var cur=td.innerText||td.textContent||"";
 var fd=o.fontDiff||{};if(fd.color&&fd.color.argb){td.style.color="#"+String(fd.color.argb).slice(-6);}if(fd.bold!=null)td.style.fontWeight=fd.bold?"700":"400";
-var useV=(o.v!=null)&&(o.src==null||sq(o.src)===sq(cur)||sq(o.v)===sq(cur));var txt=useV?String(o.v):null;
+var useV=_xlUseText(o,cur);var txt=useV?String(o.v):null;
 var runs=(o.runs&&txt!=null&&o.runs.map(function(x){return x.t;}).join("")===txt)?o.runs:((o.runs&&sq(o.runs.map(function(x){return x.t;}).join(""))===sq(cur))?o.runs:null);
-if(txt==null&&!runs&&!(fd.color||fd.bold!=null))return;
+if(!runs&&o.runs){runs=_xlAutoRuns(txt!=null?txt:cur.replace(/\r/g,''),o.runs);}if(txt==null&&!runs&&!(fd.color||fd.bold!=null))return;
 if(runs){td.innerHTML=runs.map(function(x){var st=(x.c?"color:#"+String(x.c).slice(-6)+";":"")+(x.b!=null?"font-weight:"+(x.b?700:400)+";":"");return st?'<span style="'+st+'">'+unit(x.t)+'</span>':unit(x.t);}).join("");}
 else if(txt!=null){td.innerHTML=unit(txt);}
 if(fd.color&&fd.color.argb){td.querySelectorAll("*").forEach(function(e){if(!e.style.color)e.style.color="inherit";});}
@@ -4838,12 +4847,12 @@ var _tE=(nC>=4)?2:1;var rc=ws.getCell(1,Math.min(nC,_tE+1));rc.value=(M.bime?(M.
 /* 右上の名前・日付・版番号が見切れないよう、題名の右から右端までを1つのセルにする */if(_tE>1)ws.mergeCells(1,1,1,_tE);if(nC>_tE+1)ws.mergeCells(1,_tE+1,1,nC);
 /* 2行目（隠し）：列の目印。右端の隠し列：行の目印。Excelで直して取り込むときに使う */
 vis.forEach(function(i,j){ws.getCell(2,j+1).value=M.colKeys[i];});ws.getCell(2,KEYC).value="__rowkey__";ws.getRow(2).hidden=true;
-ws.getCell(1,KEYC).value="__hoken_kanyu__";
+ws.getCell(1,KEYC).value="__hoken_kanyu__";/* 出力したときのツールの内容（隠しシート）。取り込みのとき、どこを直したかをこれと比べて決める */var wsO=wb.addWorksheet("_orig",{state:"veryHidden"});
 var thin={style:"thin",color:{argb:"FFBFBFBF"}};var r=R0;
 M.rows.forEach(function(row){if(hideR.indexOf(row.key)>=0)return;
 row.cells.forEach(function(c){var lastI=c.ci+c.cs-1;var cols=[];for(var q=c.ci;q<=lastI;q++)if(outCol[q])cols.push(outCol[q]);if(!cols.length)return;
 var cell=ws.getCell(r,cols[0]);var o=ovc[row.key+"|"+M.colKeys[c.ci]]||{};
-/* ツールの入力内容が、Excelで直したときから変わっていたら、新しい内容を出す */var _sq=function(x){return String(x||"").replace(/1㌦/g,"1ドル").replace(/[\s\u3000\u200B\u2060]/g,"");};/* 前の取り込み（元の内容の記録なし）は、今のツールの内容を「元の内容」として記録し、直した文字を使う。これ以降ツールで内容を変えたら新しい内容が出る */if(o.v!=null&&o.src==null){o.src=String(c.v);_mig=true;}var _useV=(o.v!=null)&&(_xlNorm(o.src)===_xlNorm(String(c.v))||_sq(o.v)===_sq(c.v));var _txt=_useV?String(o.v):String(c.v).replace(/1ドル/g,"1㌦");cell.value=_txt;cell._txt=_txt;var _bf=Object.assign({},c.font);if(_bf.size)_bf.size=Math.max(6,Math.round(_bf.size*(LAY?LF:1)));cell.font=Object.assign(_bf,o.fontDiff||{},{name:"BIZ UDPゴシック"});if(o.runs&&o.runs.map(function(x){return x.t;}).join("")===_txt){cell._runs=o.runs;}var fl=(o.fill!==undefined)?o.fill:c.fill;if(fl)cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:fl}};
+/* ツールの入力内容が、Excelで直したときから変わっていたら、新しい内容を出す */var _sq=function(x){return String(x||"").replace(/1㌦/g,"1ドル").replace(/[\s\u3000\u200B\u2060]/g,"");};/* 前の取り込み（元の内容の記録なし）は、今のツールの内容を「元の内容」として記録し、直した文字を使う。これ以降ツールで内容を変えたら新しい内容が出る */var _useV=_xlUseText(o,c.v);try{wsO.getCell(r,cols[0]).value=String(c.v);}catch(e){}var _txt=_useV?String(o.v):String(c.v).replace(/1ドル/g,"1㌦");cell.value=_txt;cell._txt=_txt;var _bf=Object.assign({},c.font);if(_bf.size)_bf.size=Math.max(6,Math.round(_bf.size*(LAY?LF:1)));cell.font=Object.assign(_bf,o.fontDiff||{},{name:"BIZ UDPゴシック"});if(o.runs&&o.runs.map(function(x){return x.t;}).join("")===_txt){cell._runs=o.runs;}else if(o.runs){var _ar=_xlAutoRuns(_txt,o.runs);if(_ar)cell._runs=_ar;}var fl=(o.fill!==undefined)?o.fill:c.fill;if(fl)cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:fl}};
 cell.alignment=c.align;var _b0=c.bd||{};cell.border={top:_b0.top||thin,left:_b0.left||thin,bottom:_b0.bottom||thin,right:_b0.right||thin};
 if(cols.length>1){try{ws.mergeCells(r,cols[0],r,cols[cols.length-1]);}catch(e){}}});
 ws.getCell(r,KEYC).value=row.key;var _rhS=ov.rowH&&ov.rowH[row.key];var rh=_rhS||(row.h*LF);if(!(LAY&&_rhS))
@@ -4880,14 +4889,14 @@ if(!ws){alert("このツールから出力した加入一覧のExcelではない
 var KEYC=0,colMap={};for(var c=1;c<=Math.min(ws.columnCount+2,300);c++){var k=_xlCellText(ws.getCell(2,c).value);if(k==="__rowkey__")KEYC=c;else if(k)colMap[c]=k;}
 var M=_kanyuXlModel(isProp);if(!M){alert("証券がありません");return;}
 var gen={};M.rows.forEach(function(row){row.cells.forEach(function(cc){gen[row.key+"|"+M.colKeys[cc.ci]]=cc;});});
-var ov={cells:{},rowH:{},colW:{},hideRows:[],hideCols:[]};var seenR={},seenC={};var TH=_xlThemeColors(wb);
+var ov={cells:{},rowH:{},colW:{},hideRows:[],hideCols:[]};var seenR={},seenC={};var WO=null;try{WO=wb.getWorksheet("_orig")||null;}catch(e){}var TH=_xlThemeColors(wb);
 /* 出力時に文字を何倍にしたか（ほとんどのセルの 文字の大きさ÷元の大きさ の真ん中の値） */
 var _rat=[];ws.eachRow({includeEmpty:false},function(row,rn){if(rn<3)return;var rk=_xlCellText(row.getCell(KEYC).value);if(!rk)return;rk=rk.replace(/[\u200B\u2060]/g,"");Object.keys(colMap).forEach(function(c){var cell=row.getCell(+c);var g=gen[rk+"|"+colMap[c]];if(g&&g.font&&g.font.size>=7&&cell.font&&cell.font.size)_rat.push(cell.font.size/g.font.size);});});_rat.sort(function(a,b){return a-b;});var XF=_rat.length?_rat[Math.floor(_rat.length/2)]:1;if(!(XF>0.2&&XF<5))XF=1;ov.f=XF;
 Object.keys(colMap).forEach(function(c){var ck=colMap[c];seenC[ck]=1;var w=ws.getColumn(+c).width;if(w)ov.colW[ck]=w;});
 var tv=_xlCellText(ws.getCell(1,1).value);if(tv&&tv!==(isProp?"【提案】内容一覧":"加入内容一覧"))ov.cells["_title|_label"]={v:tv};
 ws.eachRow({includeEmpty:false},function(row,rn){if(rn<3)return;var rk=_xlCellText(row.getCell(KEYC).value);if(!rk)return;rk=rk.replace(/[\u200B\u2060]/g,"");seenR[rk]=1;if(row.height)ov.rowH[rk]=row.height;
 Object.keys(colMap).forEach(function(c){var cell=row.getCell(+c);if(cell.isMerged&&cell.master&&cell.master.address!==cell.address)return;var key=rk+"|"+colMap[c];var g=gen[key];
-var v=_xlCellText(cell.value);var o={};if(!g||_xlNorm(v.replace(/1㌦/g,"1ドル"))!==_xlNorm(String(g.v).replace(/1㌦/g,"1ドル"))){o.v=v;if(g)o.src=String(g.v);}
+var v=_xlCellText(cell.value);var o={};if(WO){var ot=_xlCellText(WO.getCell(rn,+c).value);if(_xlNorm(v.replace(/1㌦/g,"1ドル"))!==_xlNorm(ot.replace(/1㌦/g,"1ドル"))){o.v=v;o.src=ot;o.exact=1;}}else if(!g||_xlNorm(v.replace(/1㌦/g,"1ドル"))!==_xlNorm(String(g.v).replace(/1㌦/g,"1ドル"))){o.v=v;if(g)o.src=String(g.v);}
 /* 見た目は、出力したときと違うところだけ覚える（変えていないセルは毎回最新の決まりで出す） */
 var f=cell.font||{};if(g){var gf=g.font||{};var fc=_xlColorArgb(f.color,TH)||"FF000000",gc=_xlColorArgb(gf.color,TH)||"FF000000";var fd={};if(fc!==gc)fd.color={argb:fc};if(!!f.bold!==!!gf.bold)fd.bold=!!f.bold;if(f.italic)fd.italic=true;if(f.underline)fd.underline=f.underline;if(f.size&&gf.size&&Math.abs(f.size-Math.max(6,Math.round(gf.size*XF)))>=1)fd.size=f.size;if(Object.keys(fd).length)o.fontDiff=fd;
 /* セルの中の一部だけ色・太字を変えた場合 */

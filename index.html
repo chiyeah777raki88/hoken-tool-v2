@@ -401,7 +401,7 @@ window.addEventListener("scroll",sync,{passive:true});window.addEventListener("r
 <script>
 var DRIVE_CLIENT_ID=storageGet("ins_gdrive_client_id")||"";
 var AI_API_KEY=storageGet("ins_ai_api_key")||"";
-var APP_VERSION="v2-1016-1515(右上の名前・日付の見切れ修正。Excelで直した文字は全部残す。以後ツールで内容を変えたらそちらを優先。Excelの下の余白が広い問題：日本語Excelの列幅で計算し、直した表も用紙いっぱいに合わせる)";
+var APP_VERSION="v2-1016-1545(Excelで直した文字・赤字をツールの画面と印刷にも反映。右上の名前・日付の見切れ修正。Excelで直した文字は全部残す。以後ツールで内容を変えたらそちらを優先。Excelの下の余白が広い問題：日本語Excelの列幅で計算し、直した表も用紙いっぱいに合わせる)";
 var DRIVE_FILE_ID=storageGet("ins_gdrive_file_id")||"";
 var DRIVE_ACCESS_TOKEN="";
 var driveStatus="disconnected";
@@ -4377,6 +4377,26 @@ function _cntWordTxt(k,p){if(k==="big3")k="heart";if(p&&p.contractEndsOnClaim&&(
 function _sideSig(k,pols){var best=null,bv=-1;(pols||[]).forEach(function(p){var v=(k==="cancer")?((p.cancerOn||+p.c1st>0)?(+p.c1st||0):0):(k==="heart")?(p.bigOn?(+p.h1st||0):0):(k==="brain")?(p.bigOn?(+p.b1st||0):0):0;if(v>0&&v>bv){bv=v;best=p;}});if(!best)return null;return _cntWordTxt(k,best)+"|"+_firstCondTxt(k,best)+"|"+_secondDetailTxt(k,best);}
 function _premSplit(pols){var pi=0,co=0;(pols||[]).forEach(function(p){var mm=+toM(p);if(mm&&mm<500000){if(p.isCorp)co+=mm;else pi+=mm;}});return {pi:pi,co:co,total:pi+co};}
 function _premBreakCell(pols){var s=_premSplit(pols);var h="<b>保険料/月</b><br>総 ¥"+s.total.toLocaleString();if(s.co>0&&s.pi>0){h+="<br><span style='color:#33415c;'>個人 ¥"+s.pi.toLocaleString()+"</span><br><span style='color:#9a6b00;background:#fff3d6;border-radius:3px;padding:0 2px;'>法人 ¥"+s.co.toLocaleString()+"</span>";}else if(s.co>0){h+="<br><span style='color:#9a6b00;background:#fff3d6;border-radius:3px;padding:0 2px;'>法人 ¥"+s.co.toLocaleString()+"</span>";}else{h+="<br><span style='color:#33415c;'>個人 ¥"+s.pi.toLocaleString()+"</span>";}return h;}
+/* Excelで直した文字・赤字を、ツールの画面と印刷にも同じように出す（ツールの内容があとで変わったセルはツールの内容のまま） */
+function _kanyuApplyXl(box,pols,isProp){try{var ov=((state.kanyuXl||{})[_kanyuXlScope(isProp)])||null;if(!ov||!ov.cells)return box;var cells={};Object.keys(ov.cells).forEach(function(k){cells[String(k).replace(/[​⁠]/g,"")]=ov.cells[k];});
+var t=box.querySelector("table");if(!t)return box;var grid=[],maxC=0;
+Array.prototype.forEach.call(t.rows,function(tr,ri){if(!grid[ri])grid[ri]=[];var ci=0;Array.prototype.forEach.call(tr.cells,function(td){while(grid[ri][ci])ci++;var cs=td.colSpan||1,rs=td.rowSpan||1;for(var a=0;a<rs;a++){if(!grid[ri+a])grid[ri+a]=[];for(var b=0;b<cs;b++)grid[ri+a][ci+b]=(a===0&&b===0)?{td:td}:"x";}ci+=cs;if(ci>maxC)maxC=ci;});});
+var skip0=grid.every(function(r){var g=r[0];return !g||g==="x"||!(g.td.innerText||g.td.textContent||"").trim();});var c0=skip0?1:0,nC=maxC-c0;
+var colKey=function(k){return k===0?"_label":(k===nC-1?"_total":String((pols[k-1]&&pols[k-1].id)||("c"+k)));};
+var sq=function(x){return String(x||"").replace(/1㌦/g,"1ドル").replace(/[\s　​⁠]/g,"");};
+var esc=function(x){return String(x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
+var unit=function(x){return esc(x).replace(/([0-9０-９][0-9０-９,，.]*)(万円|万|円|\/年|\/月|\/日)/g,'<span data-nb style="white-space:nowrap">$1<span class="kU" data-nb style="font-size:.8em">$2</span></span>').replace(/\n/g,"<br>");};
+var seen={};
+grid.forEach(function(row,ri){var lab="";var g0=row[c0];if(g0&&g0!=="x")lab=(g0.td.innerText||g0.td.textContent||"").replace(/[\s​⁠]+/g,"");if(!lab)lab="row";var key=lab;if(seen[key]){seen[key]++;key=lab+"#"+seen[key];}else seen[key]=1;
+row.forEach(function(g,ci){if(ci<c0||!g||g==="x")return;var o=cells[key+"|"+colKey(ci-c0)];if(!o)return;var td=g.td;var cur=td.innerText||td.textContent||"";
+var fd=o.fontDiff||{};if(fd.color&&fd.color.argb){td.style.color="#"+String(fd.color.argb).slice(-6);}if(fd.bold!=null)td.style.fontWeight=fd.bold?"700":"400";
+var useV=(o.v!=null)&&(o.src==null||sq(o.src)===sq(cur)||sq(o.v)===sq(cur));var txt=useV?String(o.v):null;
+var runs=(o.runs&&txt!=null&&o.runs.map(function(x){return x.t;}).join("")===txt)?o.runs:((o.runs&&sq(o.runs.map(function(x){return x.t;}).join(""))===sq(cur))?o.runs:null);
+if(txt==null&&!runs&&!(fd.color||fd.bold!=null))return;
+if(runs){td.innerHTML=runs.map(function(x){var st=(x.c?"color:#"+String(x.c).slice(-6)+";":"")+(x.b!=null?"font-weight:"+(x.b?700:400)+";":"");return st?'<span style="'+st+'">'+unit(x.t)+'</span>':unit(x.t);}).join("");}
+else if(txt!=null){td.innerHTML=unit(txt);}
+if(fd.color&&fd.color.argb){td.querySelectorAll("*").forEach(function(e){if(!e.style.color)e.style.color="inherit";});}
+});});}catch(e){}return box;}
 function buildKanyuTable(curPols,memOf,visPols){
 try{syncAllHealthRefund();}catch(e){}
 if(!state.ansinCov)state.ansinCov={};
@@ -4671,7 +4691,7 @@ pairs=_khFilter(pairs);
 if(!pairs.length){var _nk=el("div");_nk.style.cssText="background:#fff9e6;border:1px solid #f0d060;border-radius:8px;padding:10px;font-size:12px;margin-bottom:10px;";_nk.textContent=(state.kanyuKH==="hojin"?"法人":"個人")+"の証券がありません。「契約：全て」に戻すと全件出ます。";cont.appendChild(_nk);return cont;}
 var curPols=pairs.map(function(x){return x.policy;});
 var memOf=pairs.map(function(x){return x.member;});
-cont.appendChild(sec(isProp?"提案内容一覧":"加入内容一覧",null,buildKanyuTable(curPols,memOf),true));
+cont.appendChild(sec(isProp?"提案内容一覧":"加入内容一覧",null,_kanyuApplyXl(buildKanyuTable(curPols,memOf),curPols,isProp),true));
 var _mxMid=((pairs[0]&&pairs[0].member&&pairs[0].member.id)||(typeof currentMid!=="undefined"?currentMid:""));
 var _mxOpts=isProp?{store:"bigMatrixDataProp",mid:_mxMid,pols:propPairs().map(function(x){return x.policy;})}:{mid:_mxMid};
 cont.appendChild(sec("給付条件・免除条件の比較",null,buildBigDiseaseMatrix(curPols,_mxOpts),true));
@@ -4902,7 +4922,7 @@ var _bime=(function(){var s={};mem.forEach(function(m){if(m&&m.id)s[m.id]=m;});v
 var h2=el("span");h2.style.cssText="font-size:12px;color:#555;";h2.textContent=(_bime?(_bime.name||_bime.relation)+" 様　":"")+ymd+"　"+String(APP_VERSION).slice(0,12);
 hd.appendChild(h1);hd.appendChild(h2);
 var pw=el("div");pw.id="pkwrap";pw.style.cssText="transform-origin:top left;display:inline-block;";pw.appendChild(hd);
-var _ksa=kanyuShowAll;kanyuShowAll=false;var _box=buildKanyuTable(pols,mem);kanyuShowAll=_ksa;
+var _ksa=kanyuShowAll;kanyuShowAll=false;var _box=_kanyuApplyXl(buildKanyuTable(pols,mem),pols,isProp);kanyuShowAll=_ksa;
 try{_box.querySelectorAll(".no-print,button").forEach(function(e){e.remove();});}catch(e){}
 pw.appendChild(_box);
 var _t=pw.querySelector(".kanyu")||_box;
